@@ -1,0 +1,340 @@
+@keyframes slideIn {
+  from {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Update your button styles in Contact.css */
+
+.submit-btn {
+  width: 100%;
+  padding: 1rem;
+  background-color: #0f8abe;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem; /* Space between text and spinner */
+  position: relative;
+}
+
+.submit-btn:hover {
+  background-color: #0d7ba8;
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+.submit-btn:disabled {
+  background-color: #e2e8f0;
+  cursor: not-allowed;
+}
+
+/* Loading spinner styles */
+.submit-btn .loading-spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 3px solid transparent;
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: button-loading-spinner 1s ease infinite;
+}
+
+.submit-btn.loading .loading-spinner {
+  display: block;
+}
+
+@keyframes button-loading-spinner {
+  from {
+    transform: rotate(0turn);
+  }
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* Style for the reCAPTCHA wrapper */
+.recaptcha-container {
+  width: 100%;
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* Optional: style for recaptcha error */
+.recaptcha-error {
+  color: red;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+.contact-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2rem;
+  color: #333;
+  animation: slideIn 0.5s ease-out forwards;
+}
+
+.contact-header {
+  background: linear-gradient(rgba(15, 138, 190, 0.8), rgba(15, 138, 190, 0.9)),
+    url("./Images/header.png") center/cover no-repeat;
+  color: white;
+  padding: 5rem 1rem;
+  text-align: center;
+}
+
+.contact-header h1 {
+  font-weight: 700;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 40px;
+  margin-bottom: 1.2rem;
+  animation: slideIn 0.5s ease-out forwards; /* Added animation */
+}
+
+.contact-header p {
+  animation: slideIn 0.5s ease-out forwards; /* Added animation */
+  font-family: 'Montserrat', sans-serif;
+  font-size: 19.2px;
+}
+
+.contact-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+.recaptcha {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+.contact-form-container {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.contact-form-container h2,
+.contact-info h2 {
+  font-weight: 600;
+  color: #52514a;
+  margin-bottom: 1.5rem;
+  font-size: clamp(1.4rem, 4vw, 1.8rem);
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #52514a;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: "Montserrat", sans-serif;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #0f8abe;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.submit-btn {
+  background-color: #0f8abe;
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-btn:hover {
+  background-color: rgb(36, 117, 172);
+}
+
+.contact-info {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.contact-methods {
+  margin-bottom: 2rem;
+}
+
+.contact-method {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.method-icon svg {
+  font-size: 28px;
+  color: #0f8abe;
+  margin-bottom: 0.5rem;
+}
+
+.method-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.contact-method h3 {
+  margin: 0 10px 0.5rem 0;
+  color: #52514a;
+  font-size: 1.1rem;
+}
+
+.contact-method p {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 0.95rem;
+}
+
+.business-hours h3 {
+  font-weight: 600;
+  color: #52514a;
+  margin-bottom: 1rem;
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+}
+
+.business-hours p {
+  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+  margin: 0.5rem 0;
+  color: #7f8c8d;
+}
+
+.contact-map {
+  margin-top: 3rem;
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 100%;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.contact-map iframe,
+.contact-map > div {
+  width: 100% !important;
+  max-width: none !important;
+  display: block;
+}
+
+.alert {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.alert.success {
+  font-size: 1.1rem;
+  background-color: #f1ffeb;
+  color: #0f8abe;
+  border: 1px solid #52514a3d;
+}
+
+/* ----------------- Responsive Layouts ------------------ */
+
+@media (max-width: 1024px) {
+  .contact-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    width: 90%; /* Increased width for medium screens */
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .contact-form-container,
+  .contact-info {
+    padding: 1.5rem;
+    width: 95%; /* Increased width for smaller screens */
+    margin: 0 auto;
+  }
+
+  .contact-method {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .method-icon {
+    margin-right: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-header h1 {
+    font-size: 2.4rem; /* Slightly larger font size for better readability */
+  }
+
+  .contact-content {
+    width: 100%; /* Increased width for smaller screens */
+    margin: 0 auto;
+  }
+
+  .contact-form-container,
+  .contact-info {
+    width: 100%; /* Full width for very small screens */
+    padding: 1.2rem; /* Reduced padding for smaller screens */
+  }
+
+  .contact-method {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .method-icon {
+    margin: 0 0 0.5rem 0;
+  }
+
+  .contact-map iframe {
+    height: 300px;
+  }
+}

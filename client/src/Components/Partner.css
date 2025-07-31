@@ -1,0 +1,190 @@
+/* Import Montserrat */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+.partner-page {
+  font-family: 'Montserrat', sans-serif;
+  padding: 60px 20px;
+  background-color: #f9f9f9;
+  color: #333;
+  width: 80%; /* Set the width to 80% */
+  margin: 0 auto; /* Center align the content */
+  max-width: 1200px; /* Max width to avoid too much stretching on large screens */
+}
+
+/* Hero Section */
+.partner-hero {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: #0f8abe;
+  color: white;
+  border-radius: 10px;
+  margin-bottom: 60px;
+}
+
+.partner-hero h1 {
+  font-weight: 600;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  transition: font-size 0.3s ease;
+}
+
+.partner-hero p {
+  font-size: 1.1rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Partner Logos Section */
+.partner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 40px;
+  margin-bottom: 80px;
+  align-items: center;
+}
+
+.partner-card {
+  background: #fff;
+  padding: 30px 20px;
+  border-radius: 10px;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.partner-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.partner-logo {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 20px;
+}
+
+.partner-card h3 {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #0f8abe;
+  margin: 0;
+}
+
+/* CTA Section */
+.partner-cta {
+  background-color: #0f8abe;
+  padding: 60px 20px;
+  border-radius: 10px;
+  text-align: center;
+  color: white;
+}
+
+.partner-cta h2 {
+  font-weight: bold;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.partner-cta p {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+}
+
+.partner-contact-button {
+  cursor: pointer;
+  background: white;
+  color: #0f8abe;
+  padding: 12px 30px;
+  border-radius: 30px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: 0.3s ease;
+  display: inline-block;
+}
+
+.partner-contact-button:hover {
+  background: #0d6f9f;
+  color: white;
+}
+
+/* Media Queries for Responsiveness */
+@media screen and (max-width: 1024px) {
+  .partner-page {
+    width: 90%; /* On tablets, use 90% width */
+  }
+  
+  .partner-hero h1 {
+    font-size: 2rem; /* Slightly smaller h1 on tablets */
+  }
+
+  .partner-hero p {
+    font-size: 1.2rem;
+  }
+
+  .partner-grid {
+    gap: 20px;
+  }
+
+  .partner-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .partner-cta h2 {
+    font-size: 2.2rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .partner-page {
+    width: 95%; /* On mobile devices, use 95% width */
+  }
+
+  .partner-hero h1 {
+    font-size: 1.6rem; /* Smaller font size for mobile */
+  }
+
+  .partner-hero p {
+    font-size: 1rem;
+  }
+
+  .partner-grid {
+    grid-template-columns: 1fr; /* Display one column for smaller screens */
+    gap: 20px;
+  }
+
+  .partner-card h3 {
+    font-size: 1rem;
+  }
+
+  .partner-cta h2 {
+    font-size: 2rem;
+  }
+
+  .partner-contact-button {
+    font-size: 1rem;
+    padding: 10px 25px; /* Adjust padding for mobile */
+  }
+}
+
+/* Extra small devices (mobile portrait) */
+@media screen and (max-width: 480px) {
+  .partner-hero h1 {
+    font-size: 1.4rem; /* Even smaller font size for extra small screens */
+  }
+
+  .partner-hero p {
+    font-size: 0.9rem; /* Adjust paragraph font size for mobile */
+  }
+
+  .partner-contact-button {
+    font-size: 0.9rem;
+    padding: 8px 20px; /* Adjust padding for very small screens */
+  }
+}
