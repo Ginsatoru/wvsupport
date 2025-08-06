@@ -103,7 +103,7 @@ function App() {
             <Route
               path="/admin-panel"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute isAuthenticated={isAuthenticated}>
                   <AdminPanel />
                 </ProtectedRoute>
               }

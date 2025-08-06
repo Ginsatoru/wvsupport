@@ -38,7 +38,7 @@ const FALLBACK_URI = "mongodb://127.0.0.1:27017/wv-support";
 const connectionURI = process.env.MONGO_URI || FALLBACK_URI;
 
 // ======================
-// MIDDLEWARE
+// MIDDLEWARES
 // ======================
 
 app.use(
@@ -46,7 +46,7 @@ app.use(
     origin:
       process.env.NODE_ENV === "production"
         ? "https://wvsupportservices.com"
-        : ["http://localhost:5173", "https://wvsupportservices.com"],
+        : ["http://www.wvsupportservices.com", "https://wvsupportservices.com"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
       "Origin",

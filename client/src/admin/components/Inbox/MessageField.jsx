@@ -83,7 +83,9 @@ const MessageField = ({
 
       // Save to database
       const response = await fetch(
-        `http://localhost:5000/api/messages/${selectedThread.sessionId}/reply`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/messages/${
+          selectedThread.sessionId
+        }/reply`,
         {
           method: "POST",
           headers: {
