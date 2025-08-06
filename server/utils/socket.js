@@ -5,7 +5,7 @@ class SocketServer {
   constructor(server) {
     this.io = socketio(server, {
       cors: {
-        origin: "http://localhost:5173",
+        origin: "http://wvsupportservices.com",
         methods: ["GET", "POST"],
         credentials: true
       }

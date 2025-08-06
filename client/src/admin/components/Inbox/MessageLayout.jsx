@@ -13,7 +13,11 @@ import MessageField from "./MessageField";
 import MessageList from "./MessageList";
 import io from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+const socket = io(import.meta.env.VITE_BACKEND_URL, {
+  transports: ["websocket"],
+  withCredentials: true,
+});
+
 
 const MessagesLayout = ({ status = "open", children }) => {
   const [threads, setThreads] = useState([]);
@@ -68,14 +72,16 @@ const MessagesLayout = ({ status = "open", children }) => {
           return;
         }
 
-        const response = await fetch(
-          `http://localhost:5000/api/messages?status=${status}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+	const response = await fetch(
+         `${import.meta.env.VITE_BACKEND_URL}/api/messages?status=${status}`,
+         {
+          headers: {
+           Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+         }
+       );
+        
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -152,7 +158,7 @@ const MessagesLayout = ({ status = "open", children }) => {
     try {
       const token = localStorage.getItem("adminToken");
       const response = await fetch(
-        `http://localhost:5000/api/messages/${sessionId}/status`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/messages/${sessionId}/status`,
         {
           method: "PATCH",
           headers: {
@@ -160,6 +166,7 @@ const MessagesLayout = ({ status = "open", children }) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ status: newStatus }),
+          credentials: "include", 
         }
       );
 
@@ -195,12 +202,15 @@ const MessagesLayout = ({ status = "open", children }) => {
     try {
       const token = localStorage.getItem("adminToken");
       const response = await fetch(
-        `http://localhost:5000/api/messages/${threadToDelete.sessionId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/messages/${
+          threadToDelete.sessionId
+        }`,
         {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include", // optional: add if needed
         }
       );
 
@@ -255,11 +265,12 @@ const MessagesLayout = ({ status = "open", children }) => {
     try {
       const token = localStorage.getItem("adminToken");
       const response = await fetch(
-        `http://localhost:5000/api/messages?status=${status}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/messages?status=${status}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include", 
         }
       );
 

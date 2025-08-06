@@ -21,16 +21,17 @@ const LoginForm = ({ onLogin }) => {
   setIsLoading(true);
 
   try {
-    const response = await fetch("http://localhost:5000/api/admin/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: email.trim(),
-        password: password.trim(),
-      }),
-    });
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/login`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    email: email.trim(),
+    password: password.trim(),
+  }),
+});
+
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -38,6 +39,7 @@ const LoginForm = ({ onLogin }) => {
     }
 
     const data = await response.json();
+    console.log("Login response", data);
     if (data.token) {
       if (rememberMe) {
         localStorage.setItem("adminToken", data.token);
@@ -57,6 +59,7 @@ const LoginForm = ({ onLogin }) => {
     setIsLoading(false);
   }
 };
+
 
   const handleSignUpClick = (e) => {
     e.preventDefault();

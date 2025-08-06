@@ -13,6 +13,8 @@ import {
 } from "react-icons/fi";
 import ProfileDropdown from "./ProfileDropdown"; // Adjust the path as needed
 import NotificationsDropdown from "./NotificationsDropdown";
+import blueLogo from "../../../Components/Images/bluelogo.png";
+import tranlogo from "../../../Components/Images/tranlogo.png";
 
 const TopBar = ({
   onLogout = () => {},
@@ -43,7 +45,7 @@ const TopBar = ({
       : {
           name: "Admin User",
           email: "admin@wvsupport.com",
-          avatar: "src/Components/Images/bluelogo.png",
+          avatar: blueLogo,
           role: "Administrator",
           // Add other profile fields as needed
         };
@@ -146,7 +148,7 @@ const TopBar = ({
             <div className="relative">
               <div className="h-10 w-10 sm:h-10 sm:w-10 rounded-2xl">
                 <img
-                  src="src/Components/Images/tranlogo.png"
+                  src= {tranlogo}
                   alt="Admin"
                   className="h-full w-full object-contain"
                 />
@@ -355,7 +357,7 @@ const TopBar = ({
                     darkMode ? "border-gray-600" : "border-sky-300"
                   }`}
                   onError={(e) => {
-                    e.target.src = "src/Components/Images/bluelogo.png"; // Fallback image
+                    e.target.src = blueLogo;
                   }}
                 />
               </div>

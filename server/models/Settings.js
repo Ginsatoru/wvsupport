@@ -6,7 +6,7 @@ const SettingsSchema = new mongoose.Schema({
   address: { type: String, required: true },
   phoneNumber: { type: String, required: true },
   email: { type: String, required: true },
-  mapEmbedCode: { type: String, required: true },
+  mapEmbedCode: { type: String, required: false },
   lastUpdated: { type: Date, default: Date.now }
 });
 

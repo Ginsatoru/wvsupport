@@ -3,7 +3,11 @@ import { RiChat3Fill } from "react-icons/ri";
 import logo from "./Images/logo.png";
 import io from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+const socket = io(import.meta.env.VITE_BACKEND_URL, {
+  transports: ["websocket"],
+  withCredentials: true,
+});
+
 
 const ChatBox = () => {
   const [messages, setMessages] = useState([]);
@@ -57,9 +61,7 @@ const ChatBox = () => {
     // Load previous messages from server
     const loadMessages = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5000/api/messages/${session}`
-        );
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/messages/${session}`);
         if (response.ok) {
           const data = await response.json();
           setMessages(data.messages || []);
@@ -142,7 +144,7 @@ const ChatBox = () => {
       }
 
       // Save to database
-      const response = await fetch("http://localhost:5000/api/messages", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newMessage),

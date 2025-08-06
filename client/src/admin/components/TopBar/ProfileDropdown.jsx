@@ -3,6 +3,7 @@ import { FiUser, FiSettings, FiSun, FiMoon, FiLogOut } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import ProfileManager from "./ProfileManager";
 import SettingsManager from "./SettingsManager";
+import blueLogo from "../../../Components/Images/bluelogo.png";
 
 const ProfileDropdown = ({
   showProfile,
@@ -17,10 +18,10 @@ const ProfileDropdown = ({
   const [profileData, setProfileData] = useState({
     name: "Admin User",
     email: "admin@wvsupport.com",
-    phone: "+1 (555) 123-4567",
-    location: "San Francisco, CA",
+    phone: "+855 974 839 135",
+    location: "Phum Thmey, Sangkat Svay Dankum, Siem Reap Cambodia",
     bio: "System Administrator with 5+ years of experience managing enterprise applications.",
-    profileImage: "src/Components/Images/bluelogo.png",
+    profileImage: blueLogo,
   });
 
   const getGreeting = () => {

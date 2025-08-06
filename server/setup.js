@@ -13,20 +13,20 @@ async function createAdmin() {
     if (adminExists) {
       console.log('Admin user already exists:');
       console.log('Email: admin@wvsupport.com');
-      console.log('Password: aaapos!@#'); // Change this in production!
+      console.log('Password: !@#aaapos'); // Change this in production!
       return;
     }
 
     const admin = new User({
       email: 'admin@wvsupport.com',
-      password: 'aaapos!@#', // Change this in production!
+      password: '!@#aaapos', // Change this in production!
       isAdmin: true
     });
 
     await admin.save();
     console.log('Admin user created successfully!');
     console.log('Email: admin@wvsupport.com');
-    console.log('Password: aaapos!@#');
+    console.log('Password: !@#aaapos');
   } catch (err) {
     console.error('Error:', err.message);
   } finally {
