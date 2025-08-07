@@ -21,6 +21,21 @@ function Nav() {
   const [currentLang, setCurrentLang] = useState("en");
   const { settings, loading } = useSettings();
 
+  // Safe translation function that handles nested objects
+  const safeTranslate = (key) => {
+    try {
+      const translation = t(key);
+      if (typeof translation === 'object') {
+        console.warn(`Translation for "${key}" is an object, using key as fallback`);
+        return key.split('.').pop(); // Return the last part of the key as fallback
+      }
+      return translation;
+    } catch (error) {
+      console.warn(`Translation error for "${key}":`, error);
+      return key.split('.').pop(); // Return the last part of the key as fallback
+    }
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       if (isHomePage) {
@@ -104,12 +119,10 @@ function Nav() {
   // Determine navbar positioning and styling based on page
   const getNavbarClasses = () => {
     if (isHomePage) {
-      // Home page: fixed overlay with transparent/blue background based on scroll
       return `fixed w-full z-50 transition-all duration-300 ${
         isScrolled ? "bg-[#0f8abe] shadow-md" : "bg-transparent shadow-none"
       }`;
     } else {
-      // Other pages: sticky top navigation with blue background
       return "sticky top-0 w-full z-50 bg-[#0f8abe] shadow-md";
     }
   };
@@ -171,25 +184,25 @@ function Nav() {
                 to="/"
                 className={`font-medium transition-all duration-300 ${textColor} hover:text-white/90 px-3 py-2 rounded-xl hover:bg-white/10`}
               >
-                {t("home")}
+                {safeTranslate("home")}
               </Link>
               <Link
                 to="/Contact"
                 className={`font-medium transition-all duration-300 ${textColor} hover:text-white/90 px-3 py-2 rounded-xl hover:bg-white/10`}
               >
-                {t("contact")}
+                {safeTranslate("contact")}
               </Link>
               <Link
                 to="/Services"
                 className={`font-medium transition-all duration-300 ${textColor} hover:text-white/90 px-3 py-2 rounded-xl hover:bg-white/10`}
               >
-                {t("servicesnav")}
+                {safeTranslate("servicesnav")}
               </Link>
               <Link
                 to="/Aboutus"
                 className={`font-medium transition-all duration-300 ${textColor} hover:text-white/90 px-3 py-2 rounded-xl hover:bg-white/10`}
               >
-                {t("about")}
+                {safeTranslate("about")}
               </Link>
 
               {/* Pages Dropdown - Modern Design */}
@@ -197,7 +210,7 @@ function Nav() {
                 <button
                   className={`relative flex items-center font-medium transition-all duration-300 ${textColor} hover:text-white/90 px-3 py-2 rounded-xl hover:bg-white/10 no-underline hover:no-underline focus:no-underline`}
                 >
-                  {t("pages")}
+                  {safeTranslate("pages")}
                   <svg
                     className="ml-1 h-4 w-4 transition-all duration-300 group-hover:rotate-180"
                     fill="none"
@@ -220,21 +233,21 @@ function Nav() {
                       className="flex items-center px-5 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#0f8abe]/10 hover:to-[#0f8abe]/5 hover:text-[#0f8abe] transition-all duration-300 group/item"
                     >
                       <div className="w-2 h-2 bg-[#0f8abe]/30 rounded-full mr-3 transition-all duration-300 group-hover/item:bg-[#0f8abe] group-hover/item:scale-125"></div>
-                      <span className="font-medium">{t("project")}</span>
+                      <span className="font-medium">{safeTranslate("project")}</span>
                     </Link>
                     <Link
                       to="/Support"
                       className="flex items-center px-5 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#0f8abe]/10 hover:to-[#0f8abe]/5 hover:text-[#0f8abe] transition-all duration-300 group/item"
                     >
                       <div className="w-2 h-2 bg-[#0f8abe]/30 rounded-full mr-3 transition-all duration-300 group-hover/item:bg-[#0f8abe] group-hover/item:scale-125"></div>
-                      <span className="font-medium">{t("support")}</span>
+                      <span className="font-medium">{safeTranslate("support")}</span>
                     </Link>
                     <Link
                       to="/Whoweare"
                       className="flex items-center px-5 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-[#0f8abe]/10 hover:to-[#0f8abe]/5 hover:text-[#0f8abe] transition-all duration-300 group/item"
                     >
                       <div className="w-2 h-2 bg-[#0f8abe]/30 rounded-full mr-3 transition-all duration-300 group-hover/item:bg-[#0f8abe] group-hover/item:scale-125"></div>
-                      <span className="font-medium">{t("whoWeAre")}</span>
+                      <span className="font-medium">{safeTranslate("whoWeAre")}</span>
                     </Link>
                   </div>
                 </div>
@@ -358,7 +371,7 @@ function Nav() {
                     : "text-white hover:bg-white/20"
                 }`}
               >
-                {t("home")}
+                {safeTranslate("home")}
               </Link>
               <Link
                 to="/Contact"
@@ -369,7 +382,7 @@ function Nav() {
                     : "text-white hover:bg-white/20"
                 }`}
               >
-                {t("contact")}
+                {safeTranslate("contact")}
               </Link>
               <Link
                 to="/Services"
@@ -380,7 +393,7 @@ function Nav() {
                     : "text-white hover:bg-white/20"
                 }`}
               >
-                {t("services")}
+                {safeTranslate("servicesnav")}
               </Link>
               <Link
                 to="/Aboutus"
@@ -391,7 +404,7 @@ function Nav() {
                     : "text-white hover:bg-white/20"
                 }`}
               >
-                {t("about")}
+                {safeTranslate("about")}
               </Link>
 
               {/* Mobile & Tablet Pages Dropdown */}
@@ -404,7 +417,7 @@ function Nav() {
                       : "text-white hover:bg-white/20"
                   }`}
                 >
-                  {t("pages")}
+                  {safeTranslate("pages")}
                   <svg
                     className={`h-5 w-5 transform transition-transform ${
                       pagesDropdownActive ? "rotate-180" : ""
@@ -440,7 +453,7 @@ function Nav() {
                           : "text-white hover:bg-white/20"
                       }`}
                     >
-                      {t("project")}
+                      {safeTranslate("project")}
                     </Link>
                     <Link
                       to="/Support"
@@ -451,7 +464,7 @@ function Nav() {
                           : "text-white hover:bg-white/20"
                       }`}
                     >
-                      {t("support")}
+                      {safeTranslate("support")}
                     </Link>
                     <Link
                       to="/Whoweare"
@@ -462,7 +475,7 @@ function Nav() {
                           : "text-white hover:bg-white/20"
                       }`}
                     >
-                      {t("whoWeAre")}
+                      {safeTranslate("whoWeAre")}
                     </Link>
                   </div>
                 </div>
@@ -492,7 +505,7 @@ function Nav() {
                         className={`${isTablet ? "w-6 h-4" : "w-5 h-3.5"} mr-2`}
                       />
                     )}
-                    <span>{t("Languages")}</span>
+                    <span>{safeTranslate("language")}</span>
                   </div>
                   <svg
                     className={`h-5 w-5 transform transition-transform ${

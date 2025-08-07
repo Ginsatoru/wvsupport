@@ -43,10 +43,23 @@ const connectionURI = process.env.MONGO_URI || FALLBACK_URI;
 
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? "https://wvsupportservices.com"
-        : ["http://www.wvsupportservices.com", "https://wvsupportservices.com"],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        // Production domains
+        "https://wvsupportservices.com",
+        "http://www.wvsupportservices.com",
+        "https://www.wvsupportservices.com",
+
+        // Local development
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+      ];
+
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
       "Origin",
@@ -62,6 +75,7 @@ app.use(
     maxAge: 86400, // Cache preflight response for 24 hours
   })
 );
+
 
 // Enhanced body parsing with security limits
 app.use(
