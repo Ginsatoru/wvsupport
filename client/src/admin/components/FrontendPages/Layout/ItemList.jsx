@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Edit2, Trash2 } from "lucide-react";
 import ConfirmationModal from "../../Modals/ConfirmationModal";
 
@@ -9,20 +9,25 @@ const ItemList = ({
   selectedMembers,
   onSelectMember,
 }) => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode] = useState(false); // Removed unused setter
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
 
-  // Construct full image URL from backend path
+  // Improved image URL construction
   const getFullImageUrl = (imagePath) => {
     if (!imagePath) return null;
     
     // If it's already a full URL, return as is
-    if (imagePath.startsWith('http')) return imagePath;
+    if (/^https?:\/\//i.test(imagePath)) return imagePath;
     
-    // If it's a relative path from backend (/uploads/filename.jpg)
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-    return `${backendUrl}${imagePath}`;
+    // Remove leading slash if present to prevent double slashes
+    const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+    
+    // Get backend URL from environment variables
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    
+    // Ensure proper URL construction
+    return `${backendUrl}/${cleanPath}`;
   };
 
   const handleOpenModal = (id) => {
@@ -43,12 +48,14 @@ const ItemList = ({
     setSelectedId(null);
   };
 
+  // Default placeholder image
+  const placeholderImage = "https://dummyimage.com/48x48/f3f4f6/9ca3af?text=No+Image";
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-700">
           <tr>
-            {/* Add checkbox column header */}
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-12"
@@ -83,23 +90,17 @@ const ItemList = ({
             <tr
               key={member._id}
               className={`transition-all duration-200 ease-in-out border-b border-transparent hover:bg-sky-50 dark:hover:bg-gray-700/40 hover:shadow-sm hover:border-sky-100 dark:hover:border-gray-600 ${
-                selectedMembers && selectedMembers.has(member._id)
+                selectedMembers?.has(member._id)
                   ? "bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-800"
                   : ""
               }`}
             >
-              {/* Checkbox column */}
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <input
                     type="checkbox"
-                    checked={
-                      selectedMembers ? selectedMembers.has(member._id) : false
-                    }
-                    onChange={(e) =>
-                      onSelectMember &&
-                      onSelectMember(member._id, e.target.checked)
-                    }
+                    checked={selectedMembers?.has(member._id) || false}
+                    onChange={(e) => onSelectMember?.(member._id, e.target.checked)}
                     className="w-4 h-4 text-sky-600 bg-gray-100 border-gray-300 rounded focus:ring-sky-500 dark:focus:ring-sky-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
                   />
                 </div>
@@ -109,18 +110,19 @@ const ItemList = ({
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-12 w-12">
                     <img
-                      src={getFullImageUrl(member.image) || "https://dummyimage.com/48x48/f3f4f6/9ca3af?text=No+Image"}
-                      alt={member.name}
+                      src={getFullImageUrl(member.image) || placeholderImage}
+                      alt={member.name || "Team member"}
                       onError={(e) => {
-                        e.target.onerror = null; // Prevent infinite loop
-                        e.target.src = "https://dummyimage.com/48x48/f3f4f6/9ca3af?text=No+Image"; // Fallback placeholder
+                        e.target.onerror = null;
+                        e.target.src = placeholderImage;
                       }}
                       className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
+                      loading="lazy" // Added lazy loading
                     />
                   </div>
                   <div className="ml-4">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      {member.name}
+                      {member.name || "Unnamed Member"}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       {member.department || "Team Member"}
@@ -130,7 +132,7 @@ const ItemList = ({
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-gray-900 dark:text-gray-200">
-                  {member.position}
+                  {member.position || "No position"}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -154,6 +156,7 @@ const ItemList = ({
                   onClick={() => onEdit(member)}
                   className="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors duration-150 ease-in-out p-2 rounded-full hover:bg-sky-50 dark:hover:bg-sky-900/20"
                   title="Edit"
+                  aria-label={`Edit ${member.name}`}
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
@@ -161,6 +164,7 @@ const ItemList = ({
                   onClick={() => handleOpenModal(member._id)}
                   className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors duration-150 ease-in-out p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
                   title="Delete"
+                  aria-label={`Delete ${member.name}`}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
