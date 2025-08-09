@@ -81,21 +81,52 @@ const Team = () => {
     };
   }, []);
 
-  // Improved image URL handling
+  // Improved image URL handling with better error handling
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
     
     // If it's already a full URL, return as is
-    if (/^https?:\/\//i.test(imagePath)) return imagePath;
+    if (/^https?:\/\//i.test(imagePath)) {
+      return imagePath;
+    }
     
     // Remove leading slash if present to prevent double slashes
     const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
     
-    // Get backend URL from environment variables
-    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    // Get backend URL from environment variables with fallback
+    let backendUrl = import.meta.env.VITE_BACKEND_URL;
     
-    // Ensure proper URL construction
-    return `${backendUrl}/${cleanPath}`;
+    // Remove trailing slash from backend URL to prevent double slashes
+    if (backendUrl && backendUrl.endsWith('/')) {
+      backendUrl = backendUrl.slice(0, -1);
+    }
+    
+    // Fallback for production if env var is not set
+    if (!backendUrl) {
+      backendUrl = window.location.origin;
+    }
+    
+    // Construct the full URL
+    const fullUrl = `${backendUrl}/${cleanPath}`;
+    
+    console.log('Image URL constructed:', fullUrl); // Debug log - remove in production
+    
+    return fullUrl;
+  };
+
+  // Enhanced image error handler
+  const handleImageError = (e, memberName) => {
+    console.warn(`Image failed to load for ${memberName}:`, e.target.src);
+    
+    // Try fallback to SVG placeholder
+    if (e.target.src !== placeholderSVG) {
+      e.target.onerror = () => {
+        e.target.src = placeholderImage; // Final fallback
+      };
+      e.target.src = placeholderSVG;
+    } else {
+      e.target.src = placeholderImage;
+    }
   };
 
   // Constants for default values
@@ -178,9 +209,9 @@ const Team = () => {
                     alt={member.name || t('team.defaultAltText')}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = placeholderSVG;
+                    onError={(e) => handleImageError(e, member.name)}
+                    onLoad={(e) => {
+                      console.log('Image loaded successfully:', e.target.src); // Debug log - remove in production
                     }}
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-[#0f8abe]/90 flex justify-center gap-2 sm:gap-3 p-2 sm:p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
