@@ -87,6 +87,26 @@ const Team = () => {
     };
   }, []);
 
+  // Function to get the correct image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    
+    // If it's a relative path, construct the full URL pointing to backend server
+    if (imagePath.startsWith('/uploads/') || imagePath.startsWith('uploads/')) {
+      const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+      // Use the backend URL from environment variables (same as your API calls)
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      return `${backendUrl}${cleanPath}`;
+    }
+    
+    return imagePath;
+  };
+
   // Error state
   if (error) {
     return (
@@ -159,10 +179,11 @@ const Team = () => {
               >
                 <div className="relative h-36 sm:h-40 md:h-48 overflow-hidden group">
                   <img
-                    src={member.image || '/api/placeholder/200/200'}
+                    src={getImageUrl(member.image) || 'https://dummyimage.com/200x200/f3f4f6/9ca3af?text=No+Image'}
                     alt={member.name || t('team.defaultAltText')}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     onError={(e) => {
+                      console.log('Image failed to load:', e.target.src);
                       e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNTBDODYuMTkgNTAgNzUgNjEuMTkgNzUgNzVDNzUgODguODEgODYuMTkgMTAwIDEwMCAxMDBDMTEzLjgxIDEwMCAxMjUgODguODEgMTI1IDc1QzEyNSA2MS4xOSAxMTMuODEgNTAgMTAwIDUwWiIgZmlsbD0iIzkzOTZBMCIvPgo8cGF0aCBkPSJNMTAwIDExMEM3Mi4zODYgMTEwIDUwIDEzMi4zODYgNTAgMTYwSDE1MEMxNTAgMTMyLjM4NiAxMjcuNjE0IDExMCAxMDAgMTEwWiIgZmlsbD0iIzkzOTZBMCIvPgo8L3N2Zz4K';
                     }}
                   />

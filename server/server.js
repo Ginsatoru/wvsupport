@@ -12,6 +12,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const http = require("http");
 const path = require("path");
+const fs = require("fs");
 const { initGeoIP } = require("./utils/geoIP");
 const teamRoutes = require("./routes/teamRoute");
 
@@ -38,6 +39,15 @@ const FALLBACK_URI = "mongodb://127.0.0.1:27017/wv-support";
 const connectionURI = process.env.MONGO_URI || FALLBACK_URI;
 
 // ======================
+// ENSURE UPLOADS DIRECTORY EXISTS
+// ======================
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log("📁 Created uploads directory");
+}
+
+// ======================
 // MIDDLEWARES
 // ======================
 
@@ -53,6 +63,8 @@ app.use(
         // Local development
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
       ];
 
       if (!origin || allowedOrigins.includes(origin)) {
@@ -75,7 +87,6 @@ app.use(
     maxAge: 86400, // Cache preflight response for 24 hours
   })
 );
-
 
 // Enhanced body parsing with security limits
 app.use(
@@ -106,6 +117,46 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-XSS-Protection", "1; mode=block");
 
+  // Updated CSP with proper localhost support for uploads
+  const isDevelopment = process.env.NODE_ENV !== "production";
+  const port = process.env.PORT || 5000;
+  
+  // Build CSP based on environment
+  let imgSrc = [
+    "'self'",
+    "data:",
+    "blob:",
+    "https:",
+    "*.googleusercontent.com",
+    "https://maps.googleapis.com",
+    "https://maps.gstatic.com",
+    "https://via.placeholder.com"
+  ];
+  
+  // Add localhost sources for development
+  if (isDevelopment) {
+    imgSrc.push(
+      `http://localhost:${port}`,
+      `http://127.0.0.1:${port}`,
+      "http://localhost:*",
+      "http://127.0.0.1:*"
+    );
+  }
+
+  const cspDirectives = [
+    "default-src 'self'",
+    `img-src ${imgSrc.join(" ")}`,
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "style-src 'self' 'unsafe-inline'",
+    "connect-src 'self' ws: wss:",
+    "font-src 'self' data:",
+    "object-src 'none'",
+    "media-src 'self'",
+    "frame-src 'none'"
+  ];
+
+  res.setHeader("Content-Security-Policy", cspDirectives.join("; "));
+
   if (process.env.NODE_ENV === "production") {
     res.setHeader(
       "Strict-Transport-Security",
@@ -130,6 +181,45 @@ if (
     next();
   });
 }
+
+// ======================
+// STATIC FILE SERVING
+// ======================
+// Serve uploaded files with proper headers
+app.use(
+  "/uploads",
+  (req, res, next) => {
+    // Add cache headers for images
+    res.setHeader("Cache-Control", "public, max-age=86400"); // 24 hours
+    res.setHeader("Access-Control-Allow-Origin", "*"); // Allow cross-origin for images
+    next();
+  },
+  express.static(path.join(__dirname, "uploads"), {
+    // Add proper MIME types
+    setHeaders: (res, path) => {
+      if (path.endsWith(".jpg") || path.endsWith(".jpeg")) {
+        res.setHeader("Content-Type", "image/jpeg");
+      } else if (path.endsWith(".png")) {
+        res.setHeader("Content-Type", "image/png");
+      } else if (path.endsWith(".gif")) {
+        res.setHeader("Content-Type", "image/gif");
+      } else if (path.endsWith(".webp")) {
+        res.setHeader("Content-Type", "image/webp");
+      }
+    },
+  })
+);
+
+// Debug middleware for uploads
+app.use("/uploads", (req, res, next) => {
+  const filePath = path.join(__dirname, "uploads", req.path);
+  console.log(`📸 Image request: ${req.path}`);
+  console.log(`📁 File exists: ${fs.existsSync(filePath)}`);
+  if (!fs.existsSync(filePath)) {
+    console.log(`❌ File not found: ${filePath}`);
+  }
+  next();
+});
 
 // ======================
 // DATABASE CONNECTION
@@ -160,7 +250,7 @@ mongoose.connection.on("disconnected", () => {
 });
 
 // ======================
-// track analytics
+// TRACK ANALYTICS
 // ======================
 
 initGeoIP().then(() => {
@@ -183,7 +273,32 @@ app.get("/api/health", (req, res) => {
     message: "Server is running",
     timestamp: new Date(),
     dbStatus: mongoose.connection.readyState,
+    uploadsDir: uploadsDir,
+    uploadsDirExists: fs.existsSync(uploadsDir),
   });
+});
+
+// Debug endpoint to check uploaded files
+app.get("/api/debug/uploads", (req, res) => {
+  try {
+    const files = fs.readdirSync(uploadsDir);
+    res.json({
+      success: true,
+      uploadsDir,
+      files: files.map((file) => ({
+        name: file,
+        url: `${req.protocol}://${req.get("host")}/uploads/${file}`,
+        size: fs.statSync(path.join(uploadsDir, file)).size,
+        modified: fs.statSync(path.join(uploadsDir, file)).mtime,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      uploadsDir,
+    });
+  }
 });
 
 // ======================
@@ -287,6 +402,8 @@ const startServer = async () => {
       console.log(`---------------------------------`);
       console.log(`Admin login: http://localhost:${PORT}/api/admin/login`);
       console.log(`Health check: http://localhost:${PORT}/api/health`);
+      console.log(`Uploads debug: http://localhost:${PORT}/api/debug/uploads`);
+      console.log(`Static files: http://localhost:${PORT}/uploads/`);
       console.log(`---------------------------------`);
       console.log(
         `GeoIP Status: ${geoIPReady ? "✅ Ready" : "⚠️ Limited functionality"}`
@@ -296,6 +413,11 @@ const startServer = async () => {
           mongoose.connection.readyState === 1
             ? "✅ Connected"
             : "❌ Disconnected"
+        }`
+      );
+      console.log(
+        `Uploads Directory: ${
+          fs.existsSync(uploadsDir) ? "✅ Ready" : "❌ Missing"
         }`
       );
     });
@@ -309,7 +431,6 @@ const startServer = async () => {
 // Graceful shutdown
 process.on("SIGTERM", () => {
   console.log("\n🔻 SIGTERM received. Shutting down gracefully...");
-  wss.shutdown();
   server.close(() => {
     console.log("✅ Server closed");
     process.exit(0);
