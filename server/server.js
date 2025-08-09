@@ -57,8 +57,9 @@ app.use(
       const allowedOrigins = [
         // Production domains
         "https://wvsupportservices.com",
+        "https://www.wvsupportservices.com", // Added www version
         "http://www.wvsupportservices.com",
-        "https://www.wvsupportservices.com",
+        "http://wvsupportservices.com", // Added non-www http version
 
         // Local development
         "http://localhost:5173",
@@ -67,9 +68,14 @@ app.use(
         "http://127.0.0.1:3000",
       ];
 
+      console.log(`🌐 CORS request from origin: ${origin || 'null'}`);
+      
       if (!origin || allowedOrigins.includes(origin)) {
+        console.log(`✅ CORS allowed for: ${origin || 'null'}`);
         return callback(null, true);
       }
+      
+      console.log(`❌ CORS blocked for: ${origin}`);
       return callback(new Error("Not allowed by CORS"));
     },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -113,16 +119,63 @@ app.use(
 // Debug middleware for uploads (before static serving)
 app.use("/uploads", (req, res, next) => {
   const filePath = path.join(__dirname, "uploads", req.path);
-  console.log(`📸 Image request: ${req.method} ${req.originalUrl}`);
-  console.log(`📁 Requested file path: ${filePath}`);
-  console.log(`📁 File exists: ${fs.existsSync(filePath)}`);
-  if (!fs.existsSync(filePath)) {
-    console.log(`❌ File not found: ${filePath}`);
-  } else {
+  const requestInfo = {
+    method: req.method,
+    url: req.originalUrl,
+    path: req.path,
+    userAgent: req.get('User-Agent') || 'N/A',
+    referer: req.get('Referer') || 'N/A',
+    origin: req.get('Origin') || 'N/A',
+    host: req.get('Host') || 'N/A'
+  };
+  
+  console.log(`\n📸 === IMAGE REQUEST DEBUG ===`);
+  console.log(`🔗 URL: ${req.method} ${req.originalUrl}`);
+  console.log(`📁 Local path: ${filePath}`);
+  console.log(`🌐 Origin: ${requestInfo.origin}`);
+  console.log(`🏠 Host: ${requestInfo.host}`);
+  console.log(`📄 Referer: ${requestInfo.referer}`);
+  
+  if (fs.existsSync(filePath)) {
     const stats = fs.statSync(filePath);
-    console.log(`📊 File size: ${stats.size} bytes`);
-    console.log(`📅 File modified: ${stats.mtime}`);
+    console.log(`✅ File exists!`);
+    console.log(`📊 Size: ${stats.size} bytes`);
+    console.log(`📅 Modified: ${stats.mtime.toISOString()}`);
+    console.log(`🔐 Permissions: ${(stats.mode & parseInt('777', 8)).toString(8)}`);
+  } else {
+    console.log(`❌ File NOT found: ${filePath}`);
+    
+    // List files in the uploads directory
+    try {
+      const uploadFiles = fs.readdirSync(uploadsDir);
+      console.log(`📁 Available files in uploads (${uploadFiles.length}):`);
+      uploadFiles.forEach((file, index) => {
+        if (index < 10) { // Show first 10 files
+          console.log(`   └─ ${file}`);
+        }
+      });
+      if (uploadFiles.length > 10) {
+        console.log(`   └─ ... and ${uploadFiles.length - 10} more`);
+      }
+      
+      // Check if there's a similar filename
+      const requestedFilename = path.basename(req.path);
+      const similarFiles = uploadFiles.filter(file => 
+        file.includes(requestedFilename.split('-')[0]) || 
+        file.includes(requestedFilename.split('.')[0])
+      );
+      
+      if (similarFiles.length > 0) {
+        console.log(`🔍 Similar files found:`);
+        similarFiles.forEach(file => console.log(`   └─ ${file}`));
+      }
+      
+    } catch (dirErr) {
+      console.log(`❌ Cannot read uploads directory: ${dirErr.message}`);
+    }
   }
+  console.log(`=================================\n`);
+  
   next();
 });
 
@@ -224,7 +277,7 @@ app.use((req, res, next) => {
     "https://maps.googleapis.com",
     "https://maps.gstatic.com",
     "https://via.placeholder.com",
-    "https://dummyimage.com"
+    "https://dummyimage.com" // Added for your placeholder images
   ];
   
   // Add localhost sources for development
@@ -386,6 +439,7 @@ app.get("/api/test-image/:filename", (req, res) => {
   if (fs.existsSync(filePath)) {
     const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
     const host = req.get('host');
+    const stats = fs.statSync(filePath);
     
     res.json({
       success: true,
@@ -393,15 +447,62 @@ app.get("/api/test-image/:filename", (req, res) => {
       exists: true,
       url: `${protocol}://${host}/uploads/${filename}`,
       path: filePath,
-      stats: fs.statSync(filePath)
+      stats: {
+        size: stats.size,
+        modified: stats.mtime,
+        isFile: stats.isFile(),
+        permissions: (stats.mode & parseInt('777', 8)).toString(8)
+      }
     });
   } else {
+    const availableFiles = fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : [];
+    
     res.status(404).json({
       success: false,
       filename,
       exists: false,
       path: filePath,
-      availableFiles: fs.readdirSync(uploadsDir)
+      uploadsDir,
+      availableFiles: availableFiles.slice(0, 20), // Show first 20 files
+      totalFiles: availableFiles.length,
+      similarFiles: availableFiles.filter(file => 
+        file.includes(filename.split('-')[0]) || 
+        file.includes(filename.split('.')[0])
+      )
+    });
+  }
+});
+
+// Add endpoint to manually check a team member's image
+app.get("/api/debug/team-image/:memberId", async (req, res) => {
+  try {
+    const memberId = req.params.memberId;
+    
+    // You'll need to import your team model here
+    // const Team = require('./models/Team'); // Adjust path as needed
+    // const member = await Team.findById(memberId);
+    
+    // For now, let's just return debug info
+    const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+    const host = req.get('host');
+    
+    res.json({
+      success: true,
+      memberId,
+      serverInfo: {
+        protocol,
+        host,
+        uploadsDir,
+        nodeEnv: process.env.NODE_ENV,
+        // member: member || 'Member model not imported'
+      },
+      message: "Debug endpoint - implement team member lookup"
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
