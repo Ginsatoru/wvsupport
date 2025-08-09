@@ -107,8 +107,101 @@ app.use(
   })
 );
 
-// Security headers middleware
+// ======================
+// STATIC FILE SERVING - MOVED BEFORE SECURITY HEADERS
+// ======================
+// Debug middleware for uploads (before static serving)
+app.use("/uploads", (req, res, next) => {
+  const filePath = path.join(__dirname, "uploads", req.path);
+  console.log(`📸 Image request: ${req.method} ${req.originalUrl}`);
+  console.log(`📁 Requested file path: ${filePath}`);
+  console.log(`📁 File exists: ${fs.existsSync(filePath)}`);
+  if (!fs.existsSync(filePath)) {
+    console.log(`❌ File not found: ${filePath}`);
+  } else {
+    const stats = fs.statSync(filePath);
+    console.log(`📊 File size: ${stats.size} bytes`);
+    console.log(`📅 File modified: ${stats.mtime}`);
+  }
+  next();
+});
+
+// Serve uploaded files with proper headers
+app.use(
+  "/uploads",
+  (req, res, next) => {
+    // Add cache headers for images
+    res.setHeader("Cache-Control", "public, max-age=86400"); // 24 hours
+    res.setHeader("Access-Control-Allow-Origin", "*"); // Allow cross-origin for images
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    
+    // Handle preflight requests for uploads
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+    
+    next();
+  },
+  express.static(path.join(__dirname, "uploads"), {
+    // Add proper MIME types
+    setHeaders: (res, filePath) => {
+      const ext = path.extname(filePath).toLowerCase();
+      console.log(`📋 Setting headers for file extension: ${ext}`);
+      
+      switch (ext) {
+        case '.jpg':
+        case '.jpeg':
+          res.setHeader("Content-Type", "image/jpeg");
+          break;
+        case '.png':
+          res.setHeader("Content-Type", "image/png");
+          break;
+        case '.gif':
+          res.setHeader("Content-Type", "image/gif");
+          break;
+        case '.webp':
+          res.setHeader("Content-Type", "image/webp");
+          break;
+        case '.svg':
+          res.setHeader("Content-Type", "image/svg+xml");
+          break;
+        default:
+          res.setHeader("Content-Type", "application/octet-stream");
+      }
+    },
+    // Additional options for better file serving
+    dotfiles: 'ignore',
+    etag: true,
+    extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
+    index: false,
+    maxAge: '1d',
+    redirect: false
+  })
+);
+
+// Fallback for uploads 404 - provide better error info
+app.use("/uploads", (req, res) => {
+  const filePath = path.join(__dirname, "uploads", req.path);
+  console.log(`❌ 404 for upload: ${req.path}`);
+  
+  res.status(404).json({
+    success: false,
+    message: "File not found",
+    requestedPath: req.path,
+    absolutePath: filePath,
+    uploadsDir: uploadsDir,
+    fileExists: fs.existsSync(filePath)
+  });
+});
+
+// Security headers middleware (after static files)
 app.use((req, res, next) => {
+  // Skip security headers for uploads to avoid conflicts
+  if (req.path.startsWith('/uploads')) {
+    return next();
+  }
+
   // Remove server header for security
   res.removeHeader("X-Powered-By");
 
@@ -130,7 +223,8 @@ app.use((req, res, next) => {
     "*.googleusercontent.com",
     "https://maps.googleapis.com",
     "https://maps.gstatic.com",
-    "https://via.placeholder.com"
+    "https://via.placeholder.com",
+    "https://dummyimage.com" // Added for your placeholder images
   ];
   
   // Add localhost sources for development
@@ -141,6 +235,9 @@ app.use((req, res, next) => {
       "http://localhost:*",
       "http://127.0.0.1:*"
     );
+  } else {
+    // Add production domain for images
+    imgSrc.push("https://wvsupportservices.com");
   }
 
   const cspDirectives = [
@@ -181,45 +278,6 @@ if (
     next();
   });
 }
-
-// ======================
-// STATIC FILE SERVING
-// ======================
-// Serve uploaded files with proper headers
-app.use(
-  "/uploads",
-  (req, res, next) => {
-    // Add cache headers for images
-    res.setHeader("Cache-Control", "public, max-age=86400"); // 24 hours
-    res.setHeader("Access-Control-Allow-Origin", "*"); // Allow cross-origin for images
-    next();
-  },
-  express.static(path.join(__dirname, "uploads"), {
-    // Add proper MIME types
-    setHeaders: (res, path) => {
-      if (path.endsWith(".jpg") || path.endsWith(".jpeg")) {
-        res.setHeader("Content-Type", "image/jpeg");
-      } else if (path.endsWith(".png")) {
-        res.setHeader("Content-Type", "image/png");
-      } else if (path.endsWith(".gif")) {
-        res.setHeader("Content-Type", "image/gif");
-      } else if (path.endsWith(".webp")) {
-        res.setHeader("Content-Type", "image/webp");
-      }
-    },
-  })
-);
-
-// Debug middleware for uploads
-app.use("/uploads", (req, res, next) => {
-  const filePath = path.join(__dirname, "uploads", req.path);
-  console.log(`📸 Image request: ${req.path}`);
-  console.log(`📁 File exists: ${fs.existsSync(filePath)}`);
-  if (!fs.existsSync(filePath)) {
-    console.log(`❌ File not found: ${filePath}`);
-  }
-  next();
-});
 
 // ======================
 // DATABASE CONNECTION
@@ -275,28 +333,75 @@ app.get("/api/health", (req, res) => {
     dbStatus: mongoose.connection.readyState,
     uploadsDir: uploadsDir,
     uploadsDirExists: fs.existsSync(uploadsDir),
+    environment: process.env.NODE_ENV || 'development',
+    port: process.env.PORT || 5000
   });
 });
 
-// Debug endpoint to check uploaded files
+// Enhanced debug endpoint to check uploaded files
 app.get("/api/debug/uploads", (req, res) => {
   try {
     const files = fs.readdirSync(uploadsDir);
+    const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+    const host = req.get('host');
+    
     res.json({
       success: true,
       uploadsDir,
-      files: files.map((file) => ({
-        name: file,
-        url: `${req.protocol}://${req.get("host")}/uploads/${file}`,
-        size: fs.statSync(path.join(uploadsDir, file)).size,
-        modified: fs.statSync(path.join(uploadsDir, file)).mtime,
-      })),
+      protocol,
+      host,
+      baseUrl: `${protocol}://${host}`,
+      totalFiles: files.length,
+      files: files.map((file) => {
+        const filePath = path.join(uploadsDir, file);
+        const stats = fs.statSync(filePath);
+        return {
+          name: file,
+          url: `${protocol}://${host}/uploads/${file}`,
+          size: stats.size,
+          modified: stats.mtime,
+          isFile: stats.isFile(),
+          extension: path.extname(file)
+        };
+      }),
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: error.message,
       uploadsDir,
+    });
+  }
+});
+
+// Test image serving endpoint
+app.get("/api/test-image/:filename", (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(uploadsDir, filename);
+  
+  console.log(`🧪 Testing image: ${filename}`);
+  console.log(`📁 Full path: ${filePath}`);
+  console.log(`📁 Exists: ${fs.existsSync(filePath)}`);
+  
+  if (fs.existsSync(filePath)) {
+    const protocol = req.secure || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+    const host = req.get('host');
+    
+    res.json({
+      success: true,
+      filename,
+      exists: true,
+      url: `${protocol}://${host}/uploads/${filename}`,
+      path: filePath,
+      stats: fs.statSync(filePath)
+    });
+  } else {
+    res.status(404).json({
+      success: false,
+      filename,
+      exists: false,
+      path: filePath,
+      availableFiles: fs.readdirSync(uploadsDir)
     });
   }
 });
@@ -369,6 +474,7 @@ app.use((err, req, res, next) => {
 
 // 404 Handler
 app.use((req, res) => {
+  console.log(`❌ 404 - Endpoint not found: ${req.method} ${req.path}`);
   res.status(404).json({ success: false, message: "Endpoint not found" });
 });
 
@@ -398,12 +504,16 @@ const startServer = async () => {
     const PORT = process.env.PORT || 5000;
 
     server.listen(PORT, "0.0.0.0", () => {
+      const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+      const domain = process.env.NODE_ENV === 'production' ? 'wvsupportservices.com' : `localhost:${PORT}`;
+      
       console.log(`\n🚀 Server running on port ${PORT}`);
       console.log(`---------------------------------`);
-      console.log(`Admin login: http://localhost:${PORT}/api/admin/login`);
-      console.log(`Health check: http://localhost:${PORT}/api/health`);
-      console.log(`Uploads debug: http://localhost:${PORT}/api/debug/uploads`);
-      console.log(`Static files: http://localhost:${PORT}/uploads/`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`Health check: ${protocol}://${domain}/api/health`);
+      console.log(`Uploads debug: ${protocol}://${domain}/api/debug/uploads`);
+      console.log(`Static files: ${protocol}://${domain}/uploads/`);
+      console.log(`Test endpoint: ${protocol}://${domain}/api/test`);
       console.log(`---------------------------------`);
       console.log(
         `GeoIP Status: ${geoIPReady ? "✅ Ready" : "⚠️ Limited functionality"}`
@@ -418,8 +528,17 @@ const startServer = async () => {
       console.log(
         `Uploads Directory: ${
           fs.existsSync(uploadsDir) ? "✅ Ready" : "❌ Missing"
-        }`
+        } (${uploadsDir})`
       );
+      
+      // Log available files in uploads directory
+      if (fs.existsSync(uploadsDir)) {
+        const files = fs.readdirSync(uploadsDir);
+        console.log(`📁 Files in uploads: ${files.length}`);
+        if (files.length > 0) {
+          console.log(`   └─ ${files.slice(0, 5).join(', ')}${files.length > 5 ? ' ...' : ''}`);
+        }
+      }
     });
   } catch (error) {
     console.error("\n❌ Server startup failed:", error.message);

@@ -13,21 +13,46 @@ const ItemList = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
 
-  // Improved image URL construction
+  // Improved image URL construction with better error handling
   const getFullImageUrl = (imagePath) => {
     if (!imagePath) return null;
     
     // If it's already a full URL, return as is
-    if (/^https?:\/\//i.test(imagePath)) return imagePath;
+    if (/^https?:\/\//i.test(imagePath)) {
+      return imagePath;
+    }
     
     // Remove leading slash if present to prevent double slashes
     const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
     
-    // Get backend URL from environment variables
-    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    // Get backend URL from environment variables with fallback
+    let backendUrl = import.meta.env.VITE_BACKEND_URL;
     
-    // Ensure proper URL construction
-    return `${backendUrl}/${cleanPath}`;
+    // Remove trailing slash from backend URL to prevent double slashes
+    if (backendUrl && backendUrl.endsWith('/')) {
+      backendUrl = backendUrl.slice(0, -1);
+    }
+    
+    // Fallback for production if env var is not set
+    if (!backendUrl) {
+      backendUrl = window.location.origin;
+    }
+    
+    // Construct the full URL
+    const fullUrl = `${backendUrl}/${cleanPath}`;
+    
+    console.log('ItemList Image URL constructed:', fullUrl); // Debug log - remove in production
+    
+    return fullUrl;
+  };
+
+  // Enhanced image error handler
+  const handleImageError = (e, memberName) => {
+    console.warn(`ItemList image failed to load for ${memberName}:`, e.target.src);
+    
+    // Set to placeholder immediately
+    e.target.onerror = null; // Prevent infinite loop
+    e.target.src = placeholderImage;
   };
 
   const handleOpenModal = (id) => {
@@ -112,12 +137,12 @@ const ItemList = ({
                     <img
                       src={getFullImageUrl(member.image) || placeholderImage}
                       alt={member.name || "Team member"}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = placeholderImage;
+                      onError={(e) => handleImageError(e, member.name)}
+                      onLoad={(e) => {
+                        console.log('ItemList image loaded successfully:', e.target.src); // Debug log - remove in production
                       }}
                       className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
-                      loading="lazy" // Added lazy loading
+                      loading="lazy"
                     />
                   </div>
                   <div className="ml-4">
