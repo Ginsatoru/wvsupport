@@ -18,9 +18,7 @@ const Team = () => {
         setLoading(true);
         setError(null);
         
-        console.log('Fetching team members...');
         const response = await getTeamMembers();
-        console.log('API Response:', response);
         
         let members = [];
         if (response?.data) {
@@ -28,11 +26,9 @@ const Team = () => {
         } else if (Array.isArray(response)) {
           members = response;
         } else {
-          console.warn('Unexpected response structure:', response);
           members = [];
         }
         
-        console.log('Processed team members:', members);
         setTeamMembers(members);
         
         if (members.length === 0) {
@@ -40,8 +36,6 @@ const Team = () => {
         }
         
       } catch (error) {
-        console.error('Error fetching team members:', error);
-        
         let errorMessage = t('team.error.default');
         
         if (error.response) {
@@ -87,25 +81,26 @@ const Team = () => {
     };
   }, []);
 
-  // Function to get the correct image URL
+  // Improved image URL handling
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
     
     // If it's already a full URL, return as is
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      return imagePath;
-    }
+    if (/^https?:\/\//i.test(imagePath)) return imagePath;
     
-    // If it's a relative path, construct the full URL pointing to backend server
-    if (imagePath.startsWith('/uploads/') || imagePath.startsWith('uploads/')) {
-      const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-      // Use the backend URL from environment variables (same as your API calls)
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-      return `${backendUrl}${cleanPath}`;
-    }
+    // Remove leading slash if present to prevent double slashes
+    const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
     
-    return imagePath;
+    // Get backend URL from environment variables
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    
+    // Ensure proper URL construction
+    return `${backendUrl}/${cleanPath}`;
   };
+
+  // Constants for default values
+  const placeholderImage = 'https://dummyimage.com/200x200/f3f4f6/9ca3af?text=No+Image';
+  const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNTBDODYuMTkgNTAgNzUgNjEuMTkgNzUgNzVDNzUgODguODEgODYuMTkgMTAwIDEwMCAxMDBDMTEzLjgxIDEwMCAxMjUgODguODEgMTI1IDc1QzEyNSA2MS4xOSAxMTMuODEgNTAgMTAwIDUwWiIgZmlsbD0iIzkzOTZBMCIvPgo8cGF0aCBkPSJNMTAwIDExMEM3Mi4zODYgMTEwIDUwIDEzMi4zODYgNTAgMTYwSDE1MEMxNTAgMTMyLjM4NiAxMjcuNjE0IDExMCAxMDAgMTEwWiIgZmlsbD0iIzkzOTZBMCIvPgo8L3N2Zz4K';
 
   // Error state
   if (error) {
@@ -179,12 +174,13 @@ const Team = () => {
               >
                 <div className="relative h-36 sm:h-40 md:h-48 overflow-hidden group">
                   <img
-                    src={getImageUrl(member.image) || 'https://dummyimage.com/200x200/f3f4f6/9ca3af?text=No+Image'}
+                    src={getImageUrl(member.image) || placeholderImage}
                     alt={member.name || t('team.defaultAltText')}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
                     onError={(e) => {
-                      console.log('Image failed to load:', e.target.src);
-                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNTBDODYuMTkgNTAgNzUgNjEuMTkgNzUgNzVDNzUgODguODEgODYuMTkgMTAwIDEwMCAxMDBDMTEzLjgxIDEwMCAxMjUgODguODEgMTI1IDc1QzEyNSA2MS4xOSAxMTMuODEgNTAgMTAwIDUwWiIgZmlsbD0iIzkzOTZBMCIvPgo8cGF0aCBkPSJNMTAwIDExMEM3Mi4zODYgMTEwIDUwIDEzMi4zODYgNTAgMTYwSDE1MEMxNTAgMTMyLjM4NiAxMjcuNjE0IDExMCAxMDAgMTEwWiIgZmlsbD0iIzkzOTZBMCIvPgo8L3N2Zz4K';
+                      e.target.onerror = null;
+                      e.target.src = placeholderSVG;
                     }}
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-[#0f8abe]/90 flex justify-center gap-2 sm:gap-3 p-2 sm:p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
@@ -194,6 +190,7 @@ const Team = () => {
                         className="text-white text-base sm:text-lg hover:scale-125 transition-transform duration-200"
                         target="_blank"
                         rel="noopener noreferrer"
+                        aria-label={`Contact ${member.name} via Telegram`}
                       >
                         <FaTelegram />
                       </a>
@@ -202,6 +199,7 @@ const Team = () => {
                       <a
                         href={`mailto:${member.contacts.email}`}
                         className="text-white text-base sm:text-lg hover:scale-125 transition-transform duration-200"
+                        aria-label={`Email ${member.name}`}
                       >
                         <FaEnvelope />
                       </a>
@@ -210,6 +208,7 @@ const Team = () => {
                       <a
                         href={`tel:${member.contacts.phone}`}
                         className="text-white text-base sm:text-lg hover:scale-125 transition-transform duration-200"
+                        aria-label={`Call ${member.name}`}
                       >
                         <FaPhone />
                       </a>
