@@ -8,8 +8,7 @@
 
     <!-- Title and Description -->
     <title>
-      WV Support Services Cambodia - Expert IT Support for Australian Clients |
-      Siem Reap
+      WV Support Services Cambodia
     </title>
     <meta
       name="description"
@@ -178,12 +177,10 @@
       gtag("config", "GA_TRACKING_ID");
     </script>
 
-    <!-- Preload hints removed - Vite handles module preloading automatically -->
-
-    <!-- Security Headers - Configured for both localhost development and production -->
+    <!-- Security Headers - Updated CSP to support localhost uploads and fix image loading -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://maps.googleapis.com https://maps.gstatic.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://maps.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: https://maps.googleapis.com https://maps.gstatic.com *.googleusercontent.com; connect-src 'self' ws://localhost:* http://localhost:* https://localhost:* wss://localhost:* wss://www.wvsupportservices.com ws://www.wvsupportservices.com https://www.wvsupportservices.com https://www.google-analytics.com https://maps.googleapis.com; frame-src 'self' https://www.google.com https://maps.google.com;"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://maps.googleapis.com https://maps.gstatic.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://maps.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: http: https: http://localhost:* http://127.0.0.1:* https://localhost:* https://127.0.0.1:* https://maps.googleapis.com https://maps.gstatic.com *.googleusercontent.com https://picsum.photos https://dummyimage.com; connect-src 'self' ws://localhost:* http://localhost:* https://localhost:* wss://localhost:* ws://127.0.0.1:* http://127.0.0.1:* https://127.0.0.1:* wss://127.0.0.1:* wss://www.wvsupportservices.com ws://www.wvsupportservices.com https://www.wvsupportservices.com https://www.google-analytics.com https://maps.googleapis.com; frame-src 'self' https://www.google.com https://maps.google.com; object-src 'none'; media-src 'self';"
     />
 
     <!-- Site Verification (add your verification codes) -->

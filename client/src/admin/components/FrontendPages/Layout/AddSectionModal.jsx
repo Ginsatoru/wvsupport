@@ -1,15 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { addTeamMember } from "../../../../services/api";
 import Modal from "react-modal";
-import { X, Loader2, User, Image as ImageIcon, Briefcase, Mail, Phone, Send } from 'lucide-react';
+import {
+  X,
+  Loader2,
+  User,
+  Image as ImageIcon,
+  Briefcase,
+  Mail,
+  Phone,
+  Send,
+} from "lucide-react";
 
-Modal.setAppElement('#root');
+Modal.setAppElement("#root");
 
 const AddSectionModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: "",
     position: "",
-    image: "",
+    image: null,
+    imageFile: null,
     contacts: {
       telegram: "",
       email: "",
@@ -18,6 +28,7 @@ const AddSectionModal = ({ isOpen, onClose, onSuccess }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -52,26 +63,114 @@ const AddSectionModal = ({ isOpen, onClose, onSuccess }) => {
     }
   };
 
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFormData((prev) => ({
+          ...prev,
+          image: event.target.result,
+          imageFile: file,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation
+    if (!formData.name.trim()) {
+      alert("Name is required");
+      return;
+    }
 
     if (!formData.position.trim()) {
       alert("Position is required");
       return;
     }
 
+    if (!formData.contacts.email.trim()) {
+      alert("Email is required");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await addTeamMember(formData);
-      onSuccess();
+      const formDataToSend = new FormData();
+      
+      // Append required text fields
+      formDataToSend.append("name", formData.name.trim());
+      formDataToSend.append("position", formData.position.trim());
+      
+      // Append contacts in the format expected by backend (nested structure)
+      formDataToSend.append("contacts[email]", formData.contacts.email.trim());
+      formDataToSend.append("contacts[telegram]", formData.contacts.telegram.trim());
+      formDataToSend.append("contacts[phone]", formData.contacts.phone.trim());
+
+      // Append image file with exact field name expected by multer
+      if (formData.imageFile && formData.imageFile instanceof File) {
+        formDataToSend.append("image", formData.imageFile);
+      }
+
+      // Debug logging
+      console.log('FormData being sent:');
+      for (let [key, value] of formDataToSend.entries()) {
+        if (value instanceof File) {
+          console.log(`${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+        } else {
+          console.log(`${key}: "${value}"`);
+        }
+      }
+
+      const response = await addTeamMember(formDataToSend);
+      console.log('Success:', response.data);
+      
+      // Reset form
       setFormData({
         name: "",
         position: "",
-        image: "",
-        contacts: { telegram: "", email: "", phone: "" }
+        image: null,
+        imageFile: null,
+        contacts: { telegram: "", email: "", phone: "" },
       });
+      
+      onSuccess();
+      
     } catch (error) {
       console.error("Error adding team member:", error);
+      console.error("Error response:", error.response?.data);
+      
+      // More detailed error message
+      let errorMessage = 'An error occurred while adding the team member';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(`Error: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +188,7 @@ const AddSectionModal = ({ isOpen, onClose, onSuccess }) => {
       closeTimeoutMS={300}
       className="modal-content bg-transparent border-none shadow-none outline-none"
       overlayClassName={`fixed inset-0 bg-gray-600/50 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity duration-300 ${
-        isMounted && isOpen ? 'opacity-100' : 'opacity-0'
+        isMounted && isOpen ? "opacity-100" : "opacity-0"
       }`}
       shouldCloseOnOverlayClick={true}
       shouldCloseOnEsc={true}
@@ -97,15 +196,21 @@ const AddSectionModal = ({ isOpen, onClose, onSuccess }) => {
     >
       <div
         className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-2xl border border-gray-200/50 dark:border-gray-700/50 transform transition-all duration-300 ${
-          isMounted && isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+          isMounted && isOpen
+            ? "translate-y-0 opacity-100"
+            : "translate-y-4 opacity-0"
         }`}
       >
         <div className="flex justify-between items-start mb-8">
           <div className="transition-opacity duration-200">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Team Member</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Fill in the details to add a new team member</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Add New Team Member
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Fill in the details to add a new team member
+            </p>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors duration-200 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700/50"
             aria-label="Close modal"
@@ -116,7 +221,7 @@ const AddSectionModal = ({ isOpen, onClose, onSuccess }) => {
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {/* Left Column - with staggered animations */}
+            {/* Left Column */}
             <div className="space-y-5">
               <div className="relative transition-all duration-300 delay-75">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 dark:text-gray-500 transition-colors duration-200">
@@ -153,19 +258,25 @@ const AddSectionModal = ({ isOpen, onClose, onSuccess }) => {
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 dark:text-gray-500 transition-colors duration-200">
                   <ImageIcon className="w-5 h-5" />
                 </div>
+                <button
+                  type="button"
+                  onClick={handleImageButtonClick}
+                  className="w-full pl-10 pr-4 py-3 border text-base text-left border-gray-300/70 dark:border-gray-600/50 rounded-xl bg-white dark:bg-gray-700/50 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600/50 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all duration-200"
+                >
+                  {formData.imageFile ? formData.imageFile.name : "Choose image file"}
+                </button>
                 <input
-                  type="text"
+                  ref={fileInputRef}
+                  type="file"
                   name="image"
-                  value={formData.image}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border text-base border-gray-300/70 dark:border-gray-600/50 rounded-xl bg-white dark:bg-gray-700/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-transparent transition-all duration-200"
-                  placeholder="Profile image URL"
-                  required
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
                 />
               </div>
             </div>
 
-            {/* Right Column - with staggered animations */}
+            {/* Right Column */}
             <div className="space-y-5">
               <div className="relative transition-all duration-300 delay-75">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 dark:text-gray-500 transition-colors duration-200">
@@ -212,21 +323,19 @@ const AddSectionModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
           </div>
 
-          {/* Image Preview with smooth appearance */}
+          {/* Image Preview */}
           {formData.image && (
             <div className="mb-8 flex justify-center transition-all duration-300 transform hover:scale-[1.02]">
               <div className="relative group">
-                <img 
-                  src={formData.image} 
-                  alt="Preview" 
+                <img
+                  src={formData.image}
+                  alt="Preview"
                   className="w-32 h-32 rounded-xl object-cover border-2 border-gray-200 dark:border-gray-600 group-hover:border-sky-400 transition-all duration-300"
-                  onError={(e) => {
-                    e.target.onerror = null; 
-                    e.target.src = 'https://via.placeholder.com/128?text=No+Image';
-                  }}
                 />
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 rounded-xl flex items-center justify-center transition-opacity duration-300">
-                  <span className="text-white text-sm font-medium">Image Preview</span>
+                  <span className="text-white text-sm font-medium">
+                    Image Preview
+                  </span>
                 </div>
               </div>
             </div>
@@ -250,7 +359,9 @@ const AddSectionModal = ({ isOpen, onClose, onSuccess }) => {
                   <Loader2 className="w-4 h-4 mr-2 animate-spin transition-all" />
                   Adding...
                 </>
-              ) : 'Add Member'}
+              ) : (
+                "Add Member"
+              )}
             </button>
           </div>
         </form>
