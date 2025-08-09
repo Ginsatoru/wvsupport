@@ -13,86 +13,21 @@ const ItemList = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
 
-  // Improved image URL construction with better error handling
+  // Improved image URL construction
   const getFullImageUrl = (imagePath) => {
     if (!imagePath) return null;
     
     // If it's already a full URL, return as is
-    if (/^https?:\/\//i.test(imagePath)) {
-      return imagePath;
-    }
+    if (/^https?:\/\//i.test(imagePath)) return imagePath;
     
     // Remove leading slash if present to prevent double slashes
     const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
     
-    // Get backend URL from environment variables with fallback
-    let backendUrl = import.meta.env.VITE_BACKEND_URL;
+    // Get backend URL from environment variables
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
     
-    // Remove trailing slash from backend URL to prevent double slashes
-    if (backendUrl && backendUrl.endsWith('/')) {
-      backendUrl = backendUrl.slice(0, -1);
-    }
-    
-    // Enhanced fallback logic for production
-    if (!backendUrl) {
-      const currentOrigin = window.location.origin;
-      
-      // If we're on www.domain.com, try domain.com for API
-      if (currentOrigin.includes('www.')) {
-        backendUrl = currentOrigin.replace('www.', '');
-      } else {
-        backendUrl = currentOrigin;
-      }
-    }
-    
-    // Handle www vs non-www mismatch in production
-    if (backendUrl.includes('www.') && !window.location.hostname.includes('www.')) {
-      backendUrl = backendUrl.replace('www.', '');
-    } else if (!backendUrl.includes('www.') && window.location.hostname.includes('www.')) {
-      // Keep as is - usually API is on non-www subdomain
-    }
-    
-    // Construct the full URL
-    const fullUrl = `${backendUrl}/${cleanPath}`;
-    
-    console.log('ItemList Image URL constructed:', fullUrl); // Debug log - remove in production
-    console.log('ItemList Current origin:', window.location.origin);
-    console.log('ItemList Backend URL used:', backendUrl);
-    
-    return fullUrl;
-  };
-
-  // Enhanced image error handler with retry logic
-  const handleImageError = (e, memberName) => {
-    const currentSrc = e.target.src;
-    console.warn(`ItemList image failed to load for ${memberName}:`, currentSrc);
-    
-    // Try different URL variations before falling back to placeholder
-    if (currentSrc.includes('www.wvsupportservices.com')) {
-      // Try without www
-      const newSrc = currentSrc.replace('www.wvsupportservices.com', 'wvsupportservices.com');
-      console.log('ItemList retrying without www:', newSrc);
-      e.target.onerror = () => {
-        console.warn('ItemList retry without www failed, using placeholder');
-        e.target.onerror = null; // Prevent infinite loop
-        e.target.src = placeholderImage;
-      };
-      e.target.src = newSrc;
-    } else if (currentSrc.includes('wvsupportservices.com') && !currentSrc.includes('www.')) {
-      // Try with www
-      const newSrc = currentSrc.replace('wvsupportservices.com', 'www.wvsupportservices.com');
-      console.log('ItemList retrying with www:', newSrc);
-      e.target.onerror = () => {
-        console.warn('ItemList retry with www failed, using placeholder');
-        e.target.onerror = null; // Prevent infinite loop
-        e.target.src = placeholderImage;
-      };
-      e.target.src = newSrc;
-    } else {
-      // Set to placeholder immediately
-      e.target.onerror = null; // Prevent infinite loop
-      e.target.src = placeholderImage;
-    }
+    // Ensure proper URL construction
+    return `${backendUrl}/${cleanPath}`;
   };
 
   const handleOpenModal = (id) => {
@@ -177,12 +112,12 @@ const ItemList = ({
                     <img
                       src={getFullImageUrl(member.image) || placeholderImage}
                       alt={member.name || "Team member"}
-                      onError={(e) => handleImageError(e, member.name)}
-                      onLoad={(e) => {
-                        console.log('ItemList image loaded successfully:', e.target.src); // Debug log - remove in production
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = placeholderImage;
                       }}
                       className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
-                      loading="lazy"
+                      loading="lazy" // Added lazy loading
                     />
                   </div>
                   <div className="ml-4">
