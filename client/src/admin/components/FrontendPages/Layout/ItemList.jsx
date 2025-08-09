@@ -2,10 +2,28 @@ import React, { useState, useEffect } from "react";
 import { Edit2, Trash2 } from "lucide-react";
 import ConfirmationModal from "../../Modals/ConfirmationModal";
 
-const ItemList = ({ teamMembers, onEdit, onDelete, selectedMembers, onSelectMember }) => {
+const ItemList = ({
+  teamMembers,
+  onEdit,
+  onDelete,
+  selectedMembers,
+  onSelectMember,
+}) => {
   const [darkMode, setDarkMode] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+
+  // Construct full image URL from backend path
+  const getFullImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http')) return imagePath;
+    
+    // If it's a relative path from backend (/uploads/filename.jpg)
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    return `${backendUrl}${imagePath}`;
+  };
 
   const handleOpenModal = (id) => {
     setSelectedId(id);
@@ -53,7 +71,7 @@ const ItemList = ({ teamMembers, onEdit, onDelete, selectedMembers, onSelectMemb
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
             >
-              Email
+              Contact
             </th>
             <th scope="col" className="relative px-6 py-3">
               <span className="sr-only">Actions</span>
@@ -65,9 +83,9 @@ const ItemList = ({ teamMembers, onEdit, onDelete, selectedMembers, onSelectMemb
             <tr
               key={member._id}
               className={`transition-all duration-200 ease-in-out border-b border-transparent hover:bg-sky-50 dark:hover:bg-gray-700/40 hover:shadow-sm hover:border-sky-100 dark:hover:border-gray-600 ${
-                selectedMembers && selectedMembers.has(member._id) 
-                  ? 'bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-800' 
-                  : ''
+                selectedMembers && selectedMembers.has(member._id)
+                  ? "bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-800"
+                  : ""
               }`}
             >
               {/* Checkbox column */}
@@ -75,26 +93,29 @@ const ItemList = ({ teamMembers, onEdit, onDelete, selectedMembers, onSelectMemb
                 <div className="flex items-center">
                   <input
                     type="checkbox"
-                    checked={selectedMembers ? selectedMembers.has(member._id) : false}
-                    onChange={(e) => onSelectMember && onSelectMember(member._id, e.target.checked)}
+                    checked={
+                      selectedMembers ? selectedMembers.has(member._id) : false
+                    }
+                    onChange={(e) =>
+                      onSelectMember &&
+                      onSelectMember(member._id, e.target.checked)
+                    }
                     className="w-4 h-4 text-sky-600 bg-gray-100 border-gray-300 rounded focus:ring-sky-500 dark:focus:ring-sky-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
                   />
                 </div>
               </td>
-              
+
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10">
+                  <div className="flex-shrink-0 h-12 w-12">
                     <img
-                      className="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-600"
-                      src={member.image}
+                      src={getFullImageUrl(member.image) || "https://dummyimage.com/48x48/f3f4f6/9ca3af?text=No+Image"}
                       alt={member.name}
                       onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src =
-                          "https://via.placeholder.com/40?text=" +
-                          member.name.charAt(0);
+                        e.target.onerror = null; // Prevent infinite loop
+                        e.target.src = "https://dummyimage.com/48x48/f3f4f6/9ca3af?text=No+Image"; // Fallback placeholder
                       }}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
                     />
                   </div>
                   <div className="ml-4">
@@ -102,7 +123,7 @@ const ItemList = ({ teamMembers, onEdit, onDelete, selectedMembers, onSelectMemb
                       {member.name}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {member.department || ""}
+                      {member.department || "Team Member"}
                     </div>
                   </div>
                 </div>
@@ -112,8 +133,20 @@ const ItemList = ({ teamMembers, onEdit, onDelete, selectedMembers, onSelectMemb
                   {member.position}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                {member.contacts?.email || "No email"}
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm text-gray-900 dark:text-gray-200">
+                  {member.contacts?.email || "No email"}
+                </div>
+                {member.contacts?.phone && (
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {member.contacts.phone}
+                  </div>
+                )}
+                {member.contacts?.telegram && (
+                  <div className="text-sm text-blue-600 dark:text-blue-400">
+                    {member.contacts.telegram}
+                  </div>
+                )}
               </td>
 
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
