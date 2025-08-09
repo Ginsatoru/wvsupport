@@ -224,7 +224,7 @@ app.use((req, res, next) => {
     "https://maps.googleapis.com",
     "https://maps.gstatic.com",
     "https://via.placeholder.com",
-    "https://dummyimage.com" // Added for your placeholder images
+    "https://dummyimage.com"
   ];
   
   // Add localhost sources for development

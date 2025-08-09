@@ -101,31 +101,71 @@ const Team = () => {
       backendUrl = backendUrl.slice(0, -1);
     }
     
-    // Fallback for production if env var is not set
+    // Enhanced fallback logic for production
     if (!backendUrl) {
-      backendUrl = window.location.origin;
+      const currentOrigin = window.location.origin;
+      
+      // If we're on www.domain.com, try domain.com for API
+      if (currentOrigin.includes('www.')) {
+        backendUrl = currentOrigin.replace('www.', '');
+      } else {
+        backendUrl = currentOrigin;
+      }
+    }
+    
+    // Handle www vs non-www mismatch in production
+    if (backendUrl.includes('www.') && !window.location.hostname.includes('www.')) {
+      backendUrl = backendUrl.replace('www.', '');
+    } else if (!backendUrl.includes('www.') && window.location.hostname.includes('www.')) {
+      // Keep as is - usually API is on non-www subdomain
     }
     
     // Construct the full URL
     const fullUrl = `${backendUrl}/${cleanPath}`;
     
     console.log('Image URL constructed:', fullUrl); // Debug log - remove in production
+    console.log('Current origin:', window.location.origin);
+    console.log('Backend URL used:', backendUrl);
     
     return fullUrl;
   };
 
-  // Enhanced image error handler
+  // Enhanced image error handler with retry logic
   const handleImageError = (e, memberName) => {
-    console.warn(`Image failed to load for ${memberName}:`, e.target.src);
+    const currentSrc = e.target.src;
+    console.warn(`Image failed to load for ${memberName}:`, currentSrc);
     
-    // Try fallback to SVG placeholder
-    if (e.target.src !== placeholderSVG) {
+    // Try different URL variations before falling back to placeholder
+    if (currentSrc.includes('www.wvsupportservices.com')) {
+      // Try without www
+      const newSrc = currentSrc.replace('www.wvsupportservices.com', 'wvsupportservices.com');
+      console.log('Retrying without www:', newSrc);
+      e.target.onerror = (retryE) => {
+        console.warn('Retry without www failed, trying placeholder');
+        retryE.target.onerror = () => {
+          retryE.target.src = placeholderImage;
+        };
+        retryE.target.src = placeholderSVG;
+      };
+      e.target.src = newSrc;
+    } else if (currentSrc.includes('wvsupportservices.com') && !currentSrc.includes('www.')) {
+      // Try with www
+      const newSrc = currentSrc.replace('wvsupportservices.com', 'www.wvsupportservices.com');
+      console.log('Retrying with www:', newSrc);
+      e.target.onerror = (retryE) => {
+        console.warn('Retry with www failed, trying placeholder');
+        retryE.target.onerror = () => {
+          retryE.target.src = placeholderImage;
+        };
+        retryE.target.src = placeholderSVG;
+      };
+      e.target.src = newSrc;
+    } else {
+      // Final fallback to placeholder
       e.target.onerror = () => {
-        e.target.src = placeholderImage; // Final fallback
+        e.target.src = placeholderImage;
       };
       e.target.src = placeholderSVG;
-    } else {
-      e.target.src = placeholderImage;
     }
   };
 

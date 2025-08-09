@@ -33,26 +33,66 @@ const ItemList = ({
       backendUrl = backendUrl.slice(0, -1);
     }
     
-    // Fallback for production if env var is not set
+    // Enhanced fallback logic for production
     if (!backendUrl) {
-      backendUrl = window.location.origin;
+      const currentOrigin = window.location.origin;
+      
+      // If we're on www.domain.com, try domain.com for API
+      if (currentOrigin.includes('www.')) {
+        backendUrl = currentOrigin.replace('www.', '');
+      } else {
+        backendUrl = currentOrigin;
+      }
+    }
+    
+    // Handle www vs non-www mismatch in production
+    if (backendUrl.includes('www.') && !window.location.hostname.includes('www.')) {
+      backendUrl = backendUrl.replace('www.', '');
+    } else if (!backendUrl.includes('www.') && window.location.hostname.includes('www.')) {
+      // Keep as is - usually API is on non-www subdomain
     }
     
     // Construct the full URL
     const fullUrl = `${backendUrl}/${cleanPath}`;
     
     console.log('ItemList Image URL constructed:', fullUrl); // Debug log - remove in production
+    console.log('ItemList Current origin:', window.location.origin);
+    console.log('ItemList Backend URL used:', backendUrl);
     
     return fullUrl;
   };
 
-  // Enhanced image error handler
+  // Enhanced image error handler with retry logic
   const handleImageError = (e, memberName) => {
-    console.warn(`ItemList image failed to load for ${memberName}:`, e.target.src);
+    const currentSrc = e.target.src;
+    console.warn(`ItemList image failed to load for ${memberName}:`, currentSrc);
     
-    // Set to placeholder immediately
-    e.target.onerror = null; // Prevent infinite loop
-    e.target.src = placeholderImage;
+    // Try different URL variations before falling back to placeholder
+    if (currentSrc.includes('www.wvsupportservices.com')) {
+      // Try without www
+      const newSrc = currentSrc.replace('www.wvsupportservices.com', 'wvsupportservices.com');
+      console.log('ItemList retrying without www:', newSrc);
+      e.target.onerror = () => {
+        console.warn('ItemList retry without www failed, using placeholder');
+        e.target.onerror = null; // Prevent infinite loop
+        e.target.src = placeholderImage;
+      };
+      e.target.src = newSrc;
+    } else if (currentSrc.includes('wvsupportservices.com') && !currentSrc.includes('www.')) {
+      // Try with www
+      const newSrc = currentSrc.replace('wvsupportservices.com', 'www.wvsupportservices.com');
+      console.log('ItemList retrying with www:', newSrc);
+      e.target.onerror = () => {
+        console.warn('ItemList retry with www failed, using placeholder');
+        e.target.onerror = null; // Prevent infinite loop
+        e.target.src = placeholderImage;
+      };
+      e.target.src = newSrc;
+    } else {
+      // Set to placeholder immediately
+      e.target.onerror = null; // Prevent infinite loop
+      e.target.src = placeholderImage;
+    }
   };
 
   const handleOpenModal = (id) => {
