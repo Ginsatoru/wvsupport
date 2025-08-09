@@ -81,92 +81,21 @@ const Team = () => {
     };
   }, []);
 
-  // Improved image URL handling with better error handling
+  // Improved image URL handling
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
     
     // If it's already a full URL, return as is
-    if (/^https?:\/\//i.test(imagePath)) {
-      return imagePath;
-    }
+    if (/^https?:\/\//i.test(imagePath)) return imagePath;
     
     // Remove leading slash if present to prevent double slashes
     const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
     
-    // Get backend URL from environment variables with fallback
-    let backendUrl = import.meta.env.VITE_BACKEND_URL;
+    // Get backend URL from environment variables
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
     
-    // Remove trailing slash from backend URL to prevent double slashes
-    if (backendUrl && backendUrl.endsWith('/')) {
-      backendUrl = backendUrl.slice(0, -1);
-    }
-    
-    // Enhanced fallback logic for production
-    if (!backendUrl) {
-      const currentOrigin = window.location.origin;
-      
-      // If we're on www.domain.com, try domain.com for API
-      if (currentOrigin.includes('www.')) {
-        backendUrl = currentOrigin.replace('www.', '');
-      } else {
-        backendUrl = currentOrigin;
-      }
-    }
-    
-    // Handle www vs non-www mismatch in production
-    if (backendUrl.includes('www.') && !window.location.hostname.includes('www.')) {
-      backendUrl = backendUrl.replace('www.', '');
-    } else if (!backendUrl.includes('www.') && window.location.hostname.includes('www.')) {
-      // Keep as is - usually API is on non-www subdomain
-    }
-    
-    // Construct the full URL
-    const fullUrl = `${backendUrl}/${cleanPath}`;
-    
-    console.log('Image URL constructed:', fullUrl); // Debug log - remove in production
-    console.log('Current origin:', window.location.origin);
-    console.log('Backend URL used:', backendUrl);
-    
-    return fullUrl;
-  };
-
-  // Enhanced image error handler with retry logic
-  const handleImageError = (e, memberName) => {
-    const currentSrc = e.target.src;
-    console.warn(`Image failed to load for ${memberName}:`, currentSrc);
-    
-    // Try different URL variations before falling back to placeholder
-    if (currentSrc.includes('www.wvsupportservices.com')) {
-      // Try without www
-      const newSrc = currentSrc.replace('www.wvsupportservices.com', 'wvsupportservices.com');
-      console.log('Retrying without www:', newSrc);
-      e.target.onerror = (retryE) => {
-        console.warn('Retry without www failed, trying placeholder');
-        retryE.target.onerror = () => {
-          retryE.target.src = placeholderImage;
-        };
-        retryE.target.src = placeholderSVG;
-      };
-      e.target.src = newSrc;
-    } else if (currentSrc.includes('wvsupportservices.com') && !currentSrc.includes('www.')) {
-      // Try with www
-      const newSrc = currentSrc.replace('wvsupportservices.com', 'www.wvsupportservices.com');
-      console.log('Retrying with www:', newSrc);
-      e.target.onerror = (retryE) => {
-        console.warn('Retry with www failed, trying placeholder');
-        retryE.target.onerror = () => {
-          retryE.target.src = placeholderImage;
-        };
-        retryE.target.src = placeholderSVG;
-      };
-      e.target.src = newSrc;
-    } else {
-      // Final fallback to placeholder
-      e.target.onerror = () => {
-        e.target.src = placeholderImage;
-      };
-      e.target.src = placeholderSVG;
-    }
+    // Ensure proper URL construction
+    return `${backendUrl}/${cleanPath}`;
   };
 
   // Constants for default values
@@ -249,9 +178,9 @@ const Team = () => {
                     alt={member.name || t('team.defaultAltText')}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
-                    onError={(e) => handleImageError(e, member.name)}
-                    onLoad={(e) => {
-                      console.log('Image loaded successfully:', e.target.src); // Debug log - remove in production
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = placeholderSVG;
                     }}
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-[#0f8abe]/90 flex justify-center gap-2 sm:gap-3 p-2 sm:p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
