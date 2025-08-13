@@ -1,5 +1,6 @@
 import React from "react";
 import "./Partner.css";
+import { useTranslation } from 'react-i18next';
 
 const partners = [
   { name: "Microsoft", logo: "https://static.vecteezy.com/system/resources/previews/027/127/592/non_2x/microsoft-logo-microsoft-icon-transparent-free-png.png" },
@@ -11,27 +12,29 @@ const partners = [
 ];
 
 const Partner = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="partner-page">
       <div className="partner-hero">
-        <h1>Our Trusted Partners</h1>
-        <p>We collaborate with leading organizations to deliver top-notch solutions and innovations.</p>
+        <h1>{t('partnerPage.hero.title')}</h1>
+        <p>{t('partnerPage.hero.subtitle')}</p>
       </div>
 
       <div className="partner-grid">
         {partners.map((partner, index) => (
           <div key={index} className="partner-card">
-            <img src={partner.logo} alt={partner.name} className="partner-logo" />
+            <img src={partner.logo} alt={t('partnerPage.partnerLogos.altText', { name: partner.name })} className="partner-logo" />
             <h3>{partner.name}</h3>
           </div>
         ))}
       </div>
 
       <div className="partner-cta">
-        <h2>Let's Build the Future Together</h2>
-        <p>Interested in partnering with us? We'd love to hear from you.</p>
+        <h2>{t('partnerPage.cta.title')}</h2>
+        <p>{t('partnerPage.cta.subtitle')}</p>
         <a onClick={() => window.location.href = '/contact'} className="partner-contact-button">
-          Contact Our Team
+          {t('partnerPage.cta.buttonText')}
         </a>
       </div>
     </div>

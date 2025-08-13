@@ -1,52 +1,43 @@
 // LegalPage.js
 import React from "react";
 import "./legal.css";
+import { useTranslation } from 'react-i18next';
 
 const Legal = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="legal-container">
-      <h1 className="legal-title">Terms & Conditions</h1>
+      <h1 className="legal-title">{t('legalPage.title')}</h1>
 
       <section className="legal-section">
-        <h2>Welcome</h2>
-        <p>
-          Thank you for choosing WV Support Services Cambodia. By accessing our website, you agree to be bound by these terms and conditions.
-        </p>
+        <h2>{t('legalPage.welcome.title')}</h2>
+        <p>{t('legalPage.welcome.description')}</p>
       </section>
 
       <section className="legal-section">
-        <h2>Use of Our Services</h2>
-        <p>
-          You agree to use our website responsibly. Any misuse or unauthorized use is strictly prohibited.
-        </p>
+        <h2>{t('legalPage.useOfServices.title')}</h2>
+        <p>{t('legalPage.useOfServices.description')}</p>
       </section>
 
       <section className="legal-section">
-        <h2>Intellectual Property</h2>
-        <p>
-          All content, including logos, images, and written material, is owned by WV Support Services Cambodia and protected under copyright laws.
-        </p>
+        <h2>{t('legalPage.intellectualProperty.title')}</h2>
+        <p>{t('legalPage.intellectualProperty.description')}</p>
       </section>
 
       <section className="legal-section">
-        <h2>Limitation of Liability</h2>
-        <p>
-          We are not liable for any damages that may occur from using our website or services.
-        </p>
+        <h2>{t('legalPage.limitationOfLiability.title')}</h2>
+        <p>{t('legalPage.limitationOfLiability.description')}</p>
       </section>
 
       <section className="legal-section">
-        <h2>Changes</h2>
-        <p>
-          We may update these terms at any time. Continued use after changes means you accept the new terms.
-        </p>
+        <h2>{t('legalPage.changes.title')}</h2>
+        <p>{t('legalPage.changes.description')}</p>
       </section>
 
       <section className="legal-section">
-        <h2>Contact Us</h2>
-        <p>
-          Have questions? Reach out to us at support@aaapos.com.
-        </p>
+        <h2>{t('legalPage.contactUs.title')}</h2>
+        <p>{t('legalPage.contactUs.description')}</p>
       </section>
     </div>
   );
