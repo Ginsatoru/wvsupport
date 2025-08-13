@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import styled, { keyframes } from 'styled-components';
 import headerImage from './Images/header.png';
 
@@ -362,33 +363,33 @@ const StepContent = styled.div`
 
 // ================ COMPONENT ================
 const Support = () => {
+  const { t } = useTranslation();
+
   return (
     <>
       <SupportHeader>
-        <h1>Premium Support Services</h1>
-        <p>
-          Expert technical assistance tailored to your RetailManager ecosystem, ensuring seamless operations and maximum uptime.
-        </p>
+        <h1>{t('supportPage.hero.title')}</h1>
+        <p>{t('supportPage.hero.subtitle')}</p>
       </SupportHeader>
       
       <MainContainer>
         {/* SERVICES SECTION */}
-        <SectionTitle>Our Comprehensive Support</SectionTitle>
+        <SectionTitle>{t('supportPage.services.sectionTitle')}</SectionTitle>
         <ServicesGrid>
           <ServiceCard delay="0.2s">
             <CardImage>
               <img 
                 src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
-                alt="Remote support" 
+                alt={t('supportPage.services.remoteTroubleshooting.altText')}
               />
             </CardImage>
             <CardContent>
-              <h3>Remote Troubleshooting</h3>
-              <p>Immediate assistance for your RetailManager system with secure remote access and real-time diagnostics.</p>
+              <h3>{t('supportPage.services.remoteTroubleshooting.title')}</h3>
+              <p>{t('supportPage.services.remoteTroubleshooting.description')}</p>
               <FeatureList>
-                <li>Under 15 minute response for critical issues</li>
-                <li>Military-grade encrypted connections</li>
-                <li>24/7 availability for emergencies</li>
+                <li>{t('supportPage.services.remoteTroubleshooting.features.responseTime')}</li>
+                <li>{t('supportPage.services.remoteTroubleshooting.features.encryption')}</li>
+                <li>{t('supportPage.services.remoteTroubleshooting.features.availability')}</li>
               </FeatureList>
             </CardContent>
           </ServiceCard>
@@ -397,16 +398,16 @@ const Support = () => {
             <CardImage>
               <img 
                 src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
-                alt="System optimization" 
+                alt={t('supportPage.services.systemOptimization.altText')}
               />
             </CardImage>
             <CardContent>
-              <h3>System Optimization</h3>
-              <p>Proactive maintenance and performance tuning to keep your RetailManager running at peak efficiency.</p>
+              <h3>{t('supportPage.services.systemOptimization.title')}</h3>
+              <p>{t('supportPage.services.systemOptimization.description')}</p>
               <FeatureList>
-                <li>Database optimization</li>
-                <li>Integration health checks</li>
-                <li>Custom reporting setup</li>
+                <li>{t('supportPage.services.systemOptimization.features.database')}</li>
+                <li>{t('supportPage.services.systemOptimization.features.integration')}</li>
+                <li>{t('supportPage.services.systemOptimization.features.reporting')}</li>
               </FeatureList>
             </CardContent>
           </ServiceCard>
@@ -415,76 +416,76 @@ const Support = () => {
             <CardImage>
               <img 
                 src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
-                alt="Team support" 
+                alt={t('supportPage.services.dedicatedTeam.altText')}
               />
             </CardImage>
             <CardContent>
-              <h3>Dedicated Team</h3>
-              <p>Our Siem Reap-based specialists combine technical expertise with deep RetailManager knowledge.</p>
+              <h3>{t('supportPage.services.dedicatedTeam.title')}</h3>
+              <p>{t('supportPage.services.dedicatedTeam.description')}</p>
               <FeatureList>
-                <li>Australia-facing support</li>
-                <li>Bilingual technicians</li>
-                <li>Cultural understanding</li>
+                <li>{t('supportPage.services.dedicatedTeam.features.australiaFacing')}</li>
+                <li>{t('supportPage.services.dedicatedTeam.features.bilingual')}</li>
+                <li>{t('supportPage.services.dedicatedTeam.features.cultural')}</li>
               </FeatureList>
             </CardContent>
           </ServiceCard>
         </ServicesGrid>
 
         {/* STATS SECTION */}
-        <SectionTitle>Our Performance Metrics</SectionTitle>
+        <SectionTitle>{t('supportPage.stats.sectionTitle')}</SectionTitle>
         <StatsContainer>
           <StatsGrid>
             <StatCard>
-              <h3>24/7</h3>
-              <p>Availability for critical issues</p>
+              <h3>{t('supportPage.stats.availability.value')}</h3>
+              <p>{t('supportPage.stats.availability.description')}</p>
             </StatCard>
             <StatCard>
-              <h3>98%</h3>
-              <p>First-contact resolution rate</p>
+              <h3>{t('supportPage.stats.resolution.value')}</h3>
+              <p>{t('supportPage.stats.resolution.description')}</p>
             </StatCard>
             <StatCard>
-              <h3>15min</h3>
-              <p>Average response time</p>
+              <h3>{t('supportPage.stats.responseTime.value')}</h3>
+              <p>{t('supportPage.stats.responseTime.description')}</p>
             </StatCard>
             <StatCard>
-              <h3>500+</h3>
-              <p>Systems supported annually</p>
+              <h3>{t('supportPage.stats.systemsSupported.value')}</h3>
+              <p>{t('supportPage.stats.systemsSupported.description')}</p>
             </StatCard>
           </StatsGrid>
         </StatsContainer>
 
         {/* PROCESS SECTION */}
-        <SectionTitle>Our Support Process</SectionTitle>
+        <SectionTitle>{t('supportPage.process.sectionTitle')}</SectionTitle>
         <ProcessContainer>
           <ProcessStep delay="0.2s">
             <StepNumber>1</StepNumber>
             <StepContent>
-              <h4>Initial Contact</h4>
-              <p>Reach us via phone, email, or our support portal. Our system automatically prioritizes your request based on urgency and impact to your business operations.</p>
+              <h4>{t('supportPage.process.initialContact.title')}</h4>
+              <p>{t('supportPage.process.initialContact.description')}</p>
             </StepContent>
           </ProcessStep>
 
           <ProcessStep delay="0.4s">
             <StepNumber>2</StepNumber>
             <StepContent>
-              <h4>Diagnostic Analysis</h4>
-              <p>We perform comprehensive remote diagnostics using advanced tools to quickly identify the root cause, whether it's software, hardware, or integration related.</p>
+              <h4>{t('supportPage.process.diagnosticAnalysis.title')}</h4>
+              <p>{t('supportPage.process.diagnosticAnalysis.description')}</p>
             </StepContent>
           </ProcessStep>
 
           <ProcessStep delay="0.6s">
             <StepNumber>3</StepNumber>
             <StepContent>
-              <h4>Solution Implementation</h4>
-              <p>After your approval, we implement the solution while maintaining full communication throughout the process, with options for after-hours support when needed.</p>
+              <h4>{t('supportPage.process.solutionImplementation.title')}</h4>
+              <p>{t('supportPage.process.solutionImplementation.description')}</p>
             </StepContent>
           </ProcessStep>
 
           <ProcessStep delay="0.8s">
             <StepNumber>4</StepNumber>
             <StepContent>
-              <h4>Verification & Follow-up</h4>
-              <p>We confirm the resolution with you and schedule any necessary follow-up to ensure continued stability, including optional training for your staff.</p>
+              <h4>{t('supportPage.process.verificationFollowup.title')}</h4>
+              <p>{t('supportPage.process.verificationFollowup.description')}</p>
             </StepContent>
           </ProcessStep>
         </ProcessContainer>
