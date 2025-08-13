@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaTelegram, FaEnvelope, FaPhone } from "react-icons/fa";
-import { getTeamMembers } from '../services/api';
+import { getTeamMembers } from "../services/api";
 
 const Team = () => {
   const { t } = useTranslation();
@@ -17,9 +17,9 @@ const Team = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await getTeamMembers();
-        
+
         let members = [];
         if (response?.data) {
           members = Array.isArray(response.data) ? response.data : [];
@@ -28,27 +28,26 @@ const Team = () => {
         } else {
           members = [];
         }
-        
+
         setTeamMembers(members);
-        
+
         if (members.length === 0) {
-          setError(t('team.error.noMembers'));
+          setError(t("team.error.noMembers"));
         }
-        
       } catch (error) {
-        let errorMessage = t('team.error.default');
-        
+        let errorMessage = t("team.error.default");
+
         if (error.response) {
-          errorMessage = t('team.error.server', {
+          errorMessage = t("team.error.server", {
             status: error.response.status,
-            statusText: error.response.statusText
+            statusText: error.response.statusText,
           });
         } else if (error.request) {
-          errorMessage = t('team.error.network');
+          errorMessage = t("team.error.network");
         } else if (error.message) {
-          errorMessage = t('team.error.generic', { message: error.message });
+          errorMessage = t("team.error.generic", { message: error.message });
         }
-        
+
         setError(errorMessage);
         setTeamMembers([]);
       } finally {
@@ -84,23 +83,27 @@ const Team = () => {
   // Improved image URL handling
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
-    
+
     // If it's already a full URL, return as is
     if (/^https?:\/\//i.test(imagePath)) return imagePath;
-    
+
     // Remove leading slash if present to prevent double slashes
-    const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-    
+    const cleanPath = imagePath.startsWith("/")
+      ? imagePath.substring(1)
+      : imagePath;
+
     // Get backend URL from environment variables
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
-    
+
     // Ensure proper URL construction
     return `${backendUrl}/${cleanPath}`;
   };
 
   // Constants for default values
-  const placeholderImage = 'https://dummyimage.com/200x200/f3f4f6/9ca3af?text=No+Image';
-  const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNTBDODYuMTkgNTAgNzUgNjEuMTkgNzUgNzVDNzUgODguODEgODYuMTkgMTAwIDEwMCAxMDBDMTEzLjgxIDEwMCAxMjUgODguODEgMTI1IDc1QzEyNSA2MS4xOSAxMTMuODEgNTAgMTAwIDUwWiIgZmlsbD0iIzkzOTZBMCIvPgo8cGF0aCBkPSJNMTAwIDExMEM3Mi4zODYgMTEwIDUwIDEzMi4zODYgNTAgMTYwSDE1MEMxNTAgMTMyLjM4NiAxMjcuNjE0IDExMCAxMDAgMTEwWiIgZmlsbD0iIzkzOTZBMCIvPgo8L3N2Zz4K';
+  const placeholderImage =
+    "https://dummyimage.com/200x200/f3f4f6/9ca3af?text=No+Image";
+  const placeholderSVG =
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNTBDODYuMTkgNTAgNzUgNjEuMTkgNzUgNzVDNzUgODguODEgODYuMTkgMTAwIDEwMCAxMDBDMTEzLjgxIDEwMCAxMjUgODguODEgMTI1IDc1QzEyNSA2MS4xOSAxMTMuODEgNTAgMTAwIDUwWiIgZmlsbD0iIzkzOTZBMCIvPgo8cGF0aCBkPSJNMTAwIDExMEM3Mi4zODYgMTEwIDUwIDEzMi4zODYgNTAgMTYwSDE1MEMxNTAgMTMyLjM4NiAxMjcuNjE0IDExMCAxMDAgMTEwWiIgZmlsbD0iIzkzOTZBMCIvPgo8L3N2Zz4K";
 
   // Error state
   if (error) {
@@ -108,20 +111,54 @@ const Team = () => {
       <div className="bg-white">
         <div className="w-full mx-auto py-12 md:py-16 max-w-full lg:max-w-[1250px] 2xl:max-w-[1350px] [@media(min-width:1700px)]:max-w-[1585px]">
           <div className="w-full text-center mb-8 md:mb-10">
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#0f8abe] mb-4 font-montserrat">
-              {t('team.title')}
-            </h1>
-            <p className="text-base sm:text-lg text-red-600 max-w-3xl mx-auto font-montserrat px-4">
-              {error}
-            </p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-4 px-6 py-2 bg-[#0f8abe] text-white rounded-xl hover:bg-[#0d7aa3] transition-colors"
-            >
-              {t('team.retryButton')}
-            </button>
+            {/* Title skeleton */}
+            <div className="h-8 sm:h-10 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse rounded-lg mx-auto max-w-xs mb-4"></div>
+            {/* Subtitle skeleton */}
+            <div className="h-4 sm:h-5 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse rounded-lg mx-auto max-w-2xl mb-2"></div>
+            <div className="h-4 sm:h-5 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse rounded-lg mx-auto max-w-lg"></div>
+          </div>
+
+          {/* Team members skeleton grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4">
+            {[...Array(8)].map((_, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse"
+              >
+                {/* Profile image skeleton */}
+                <div className="w-20 h-20 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] rounded-full mx-auto mb-4 animate-shimmer"></div>
+
+                {/* Name skeleton */}
+                <div className="h-5 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] rounded-lg mb-2 animate-shimmer"></div>
+
+                {/* Position skeleton */}
+                <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] rounded-lg mb-3 w-3/4 mx-auto animate-shimmer"></div>
+
+                {/* Description skeleton */}
+                <div className="space-y-2">
+                  <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] rounded-lg animate-shimmer"></div>
+                  <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] rounded-lg w-5/6 animate-shimmer"></div>
+                  <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] rounded-lg w-4/5 animate-shimmer"></div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+
+        <style jsx>{`
+          @keyframes shimmer {
+            0% {
+              background-position: -200% 0;
+            }
+            100% {
+              background-position: 200% 0;
+            }
+          }
+
+          .animate-shimmer {
+            animation: shimmer 2s ease-in-out infinite;
+          }
+        `}</style>
       </div>
     );
   }
@@ -133,10 +170,10 @@ const Team = () => {
         <div className="w-full mx-auto py-12 md:py-16 max-w-full lg:max-w-[1250px] 2xl:max-w-[1350px] [@media(min-width:1700px)]:max-w-[1585px]">
           <div className="w-full text-center mb-8 md:mb-10">
             <h1 className="text-2xl sm:text-3xl font-bold text-[#0f8abe] mb-4 font-montserrat">
-              {t('team.title')}
+              {t("team.title")}
             </h1>
             <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto font-montserrat px-4">
-              {t('team.emptyMessage')}
+              {t("team.emptyMessage")}
             </p>
           </div>
         </div>
@@ -150,15 +187,17 @@ const Team = () => {
         ref={sectionRef}
         className={`w-full mx-auto py-12 md:py-16 transition-all duration-300 ease-in-out
           max-w-full lg:max-w-[1250px] 2xl:max-w-[1350px] [@media(min-width:1700px)]:max-w-[1585px]
-          ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}
+          ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+          }
         `}
       >
         <div className="w-full text-center mb-8 md:mb-10">
           <h1 className="text-2xl sm:text-3xl font-bold text-[#0f8abe] mb-4 font-montserrat">
-            {t('team.title')}
+            {t("team.title")}
           </h1>
           <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto font-montserrat px-4">
-            {t('team.subtitle')}
+            {t("team.subtitle")}
           </p>
         </div>
 
@@ -168,14 +207,16 @@ const Team = () => {
               <div
                 key={member._id || member.id || `member-${index}`}
                 className={`bg-white rounded-xl shadow-md border overflow-hidden transition-all duration-500 ease-in-out ${
-                  isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+                  isVisible
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-12"
                 }`}
                 style={{ transitionDelay: `${index * 150}ms` }}
               >
                 <div className="relative h-36 sm:h-40 md:h-48 overflow-hidden group">
                   <img
                     src={getImageUrl(member.image) || placeholderImage}
-                    alt={member.name || t('team.defaultAltText')}
+                    alt={member.name || t("team.defaultAltText")}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                     onError={(e) => {
@@ -186,7 +227,10 @@ const Team = () => {
                   <div className="absolute bottom-0 left-0 right-0 bg-[#0f8abe]/90 flex justify-center gap-2 sm:gap-3 p-2 sm:p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                     {member.contacts?.telegram && (
                       <a
-                        href={`https://t.me/${member.contacts.telegram.replace("@", "")}`}
+                        href={`https://t.me/${member.contacts.telegram.replace(
+                          "@",
+                          ""
+                        )}`}
                         className="text-white text-base sm:text-lg hover:scale-125 transition-transform duration-200"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -217,10 +261,10 @@ const Team = () => {
                 </div>
                 <div className="p-3 sm:p-4 text-center">
                   <h3 className="font-semibold text-gray-800 text-sm sm:text-base md:text-lg mb-1">
-                    {member.name || t('team.defaultName')}
+                    {member.name || t("team.defaultName")}
                   </h3>
                   <p className="text-[#0f8abe] font-medium text-xs sm:text-sm mb-1 sm:mb-2">
-                    {member.position || t('team.defaultPosition')}
+                    {member.position || t("team.defaultPosition")}
                   </p>
                 </div>
               </div>
