@@ -1,10 +1,12 @@
 import React, { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   FaBullseye,
   FaGlobeAsia,
   FaChartLine,
   FaHandsHelping,
   FaAward,
+  FaLightbulb,
 } from "react-icons/fa";
 import headerImage from "./Images/header.png";
 import missionImage from "./Images/mission.png";
@@ -14,8 +16,71 @@ import timelineImage2 from "./Images/visual2.png";
 import timelineImage3 from "./Images/visual3.png";
 
 const AboutUs = () => {
+  const { t } = useTranslation();
+
   // Timeline images array
   const timelineImages = [timelineImage1, timelineImage2, timelineImage3];
+
+  // Vision items data
+  const visionItems = [
+    {
+      icon: <FaHandsHelping className="w-8 h-8" />,
+      titleKey: "aboutPage.vision.items.empowerment.title",
+      descriptionKey: "aboutPage.vision.items.empowerment.description",
+    },
+    {
+      icon: <FaAward className="w-8 h-8" />,
+      titleKey: "aboutPage.vision.items.excellence.title",
+      descriptionKey: "aboutPage.vision.items.excellence.description",
+    },
+    {
+      icon: <FaGlobeAsia className="w-8 h-8" />,
+      titleKey: "aboutPage.vision.items.globalReach.title",
+      descriptionKey: "aboutPage.vision.items.globalReach.description",
+    },
+    {
+      icon: <FaChartLine className="w-8 h-8" />,
+      titleKey: "aboutPage.vision.items.growth.title",
+      descriptionKey: "aboutPage.vision.items.growth.description",
+    },
+    {
+      icon: <FaBullseye className="w-8 h-8" />,
+      titleKey: "aboutPage.vision.items.impact.title",
+      descriptionKey: "aboutPage.vision.items.impact.description",
+    },
+    {
+      icon: <FaLightbulb className="w-8 h-8" />,
+      titleKey: "aboutPage.vision.items.innovation.title",
+      descriptionKey: "aboutPage.vision.items.innovation.description",
+    },
+  ];
+
+  // Mission benefits data
+  const missionBenefits = [
+    "aboutPage.mission.benefits.competitive",
+    "aboutPage.mission.benefits.technology",
+    "aboutPage.mission.benefits.platform",
+    "aboutPage.mission.benefits.satisfaction",
+  ];
+
+  // Timeline data
+  const timelineData = [
+    {
+      yearKey: "aboutPage.timeline.items.founded.year",
+      titleKey: "aboutPage.timeline.items.founded.title",
+      contentKey: "aboutPage.timeline.items.founded.content",
+    },
+    {
+      yearKey: "aboutPage.timeline.items.expanding.year",
+      titleKey: "aboutPage.timeline.items.expanding.title",
+      contentKey: "aboutPage.timeline.items.expanding.content",
+    },
+    {
+      yearKey: "aboutPage.timeline.items.future.year",
+      titleKey: "aboutPage.timeline.items.future.title",
+      contentKey: "aboutPage.timeline.items.future.content",
+    },
+  ];
 
   useEffect(() => {
     const observerOptions = {
@@ -52,11 +117,10 @@ const AboutUs = () => {
         <div className="max-w-7xl mx-auto">
           <div className="animate-on-scroll transition-all duration-700 ease-out opacity-0 translate-y-8">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              About <span className="text-[#f8f9fa]">WV Support</span>
+              {t("aboutPage.hero.title")} <span className="text-[#f8f9fa]">{t("aboutPage.hero.company")}</span>
             </h1>
             <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed">
-              Bridging Cambodian talent with global opportunities through
-              exceptional IT support
+              {t("aboutPage.hero.subtitle")}
             </p>
           </div>
         </div>
@@ -67,23 +131,16 @@ const AboutUs = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="animate-on-scroll transition-all duration-700 ease-out opacity-0 translate-y-8 delay-100">
-              <span className="text-[#0f8abe] font-semibold">OUR MISSION</span>
+              <span className="text-[#0f8abe] font-semibold">{t("aboutPage.mission.label")}</span>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mt-2 mb-6">
-                Empowering Cambodian{" "}
-                <span className="text-[#0f8abe]">Tech Talent</span>
+                {t("aboutPage.mission.title.part1")}{" "}
+                <span className="text-[#0f8abe]">{t("aboutPage.mission.title.part2")}</span>
               </h2>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                WV Support Services Cambodia specializes in providing
-                world-class IT support services to Australian businesses while
-                creating meaningful opportunities for Cambodian professionals.
+                {t("aboutPage.mission.description")}
               </p>
               <ul className="space-y-4 mb-8">
-                {[
-                  "Competitive benefits and growth opportunities",
-                  "Cutting-edge technology environment",
-                  "Global platform for Cambodian innovation",
-                  "Unmatched customer satisfaction",
-                ].map((item, index) => (
+                {missionBenefits.map((benefitKey, index) => (
                   <li key={index} className="flex items-start">
                     <div className="flex-shrink-0 mt-1">
                       <div className="w-5 h-5 rounded-full bg-[#0f8abe] flex items-center justify-center">
@@ -102,13 +159,12 @@ const AboutUs = () => {
                         </svg>
                       </div>
                     </div>
-                    <span className="ml-3 text-gray-700">{item}</span>
+                    <span className="ml-3 text-gray-700">{t(benefitKey)}</span>
                   </li>
                 ))}
               </ul>
               <p className="text-lg text-gray-600 leading-relaxed">
-                We're building a future where Cambodian tech professionals
-                compete on the global stage.
+                {t("aboutPage.mission.conclusion")}
               </p>
             </div>
             <div className="animate-on-scroll transition-all duration-700 ease-out opacity-0 translate-y-8 delay-200">
@@ -116,17 +172,17 @@ const AboutUs = () => {
                 <div className="aspect-w-16 aspect-h-9">
                   <img
                     src={missionImage}
-                    alt="Our team"
+                    alt={t("aboutPage.mission.imageAlt")}
                     className="object-cover w-full h-full transition-transform duration-500 hover:scale-105"
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-8">
                   <div className="text-white">
                     <p className="text-sm uppercase tracking-wider">
-                      Siem Reap, Cambodia
+                      {t("aboutPage.mission.location")}
                     </p>
                     <h3 className="text-xl font-bold mt-1">
-                      Our Professional Environment
+                      {t("aboutPage.mission.imageTitle")}
                     </h3>
                   </div>
                 </div>
@@ -140,9 +196,9 @@ const AboutUs = () => {
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-on-scroll transition-all duration-700 ease-out opacity-0 translate-y-8">
-            <span className="text-[#0f8abe] font-semibold">OUR JOURNEY</span>
+            <span className="text-[#0f8abe] font-semibold">{t("aboutPage.timeline.label")}</span>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mt-2">
-              Building <span className="text-[#0f8abe]">Trust</span> Since 2021
+              {t("aboutPage.timeline.title.part1")} <span className="text-[#0f8abe]">{t("aboutPage.timeline.title.part2")}</span> {t("aboutPage.timeline.title.part3")}
             </h2>
           </div>
 
@@ -150,26 +206,7 @@ const AboutUs = () => {
             {/* Timeline line */}
             <div className="hidden lg:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#0f8abe] to-[#1ac8db] transform -translate-x-1/2"></div>
 
-            {[
-              {
-                year: "2021",
-                title: "Founded in Siem Reap",
-                content:
-                  "WV Support Services Cambodia was established with a vision to connect Cambodian talent with global opportunities.",
-              },
-              {
-                year: "2024",
-                title: "Expanding Our Reach",
-                content:
-                  "Now serving over 10,000 customers with a dedicated team of IT professionals.",
-              },
-              {
-                year: "Future",
-                title: "Continuing Innovation",
-                content:
-                  "We're committed to growing our impact and expanding our services across the region.",
-              },
-            ].map((item, index) => (
+            {timelineData.map((item, index) => (
               <div
                 key={index}
                 className={`relative mb-12 lg:mb-16 ${
@@ -194,12 +231,12 @@ const AboutUs = () => {
                       }`}
                     >
                       <div className="text-2xl font-bold text-[#0f8abe] mb-2">
-                        {item.year}
+                        {t(item.yearKey)}
                       </div>
                       <h3 className="text-xl font-bold text-gray-800 mb-3">
-                        {item.title}
+                        {t(item.titleKey)}
                       </h3>
-                      <p className="text-gray-600">{item.content}</p>
+                      <p className="text-gray-600">{t(item.contentKey)}</p>
                     </div>
                   </div>
                   <div className="lg:w-1/2 flex justify-center lg:justify-start">
@@ -213,7 +250,7 @@ const AboutUs = () => {
                       >
                         <img
                           src={timelineImages[index]}
-                          alt={item.title}
+                          alt={t(item.titleKey)}
                           className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                         />
                       </div>
@@ -230,55 +267,17 @@ const AboutUs = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-on-scroll transition-all duration-700 ease-out opacity-0 translate-y-8">
-            <span className="text-[#0f8abe] font-semibold">OUR VISION</span>
+            <span className="text-[#0f8abe] font-semibold">{t("aboutPage.vision.label")}</span>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mt-2">
-              Shaping the <span className="text-[#0f8abe]">Future</span> of IT
-              Support
+              {t("aboutPage.vision.title.part1")} <span className="text-[#0f8abe]">{t("aboutPage.vision.title.part2")}</span> {t("aboutPage.vision.title.part3")}
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto mt-6">
-              We envision a world where Cambodian tech talent is recognized
-              globally for its excellence and innovation.
+              {t("aboutPage.vision.subtitle")}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: <FaHandsHelping className="w-8 h-8" />,
-                title: "Empowerment",
-                description:
-                  "Creating career paths for Cambodian professionals in the tech industry",
-              },
-              {
-                icon: <FaAward className="w-8 h-8" />,
-                title: "Excellence",
-                description:
-                  "Delivering premium IT support services with Cambodian expertise",
-              },
-              {
-                icon: <FaGlobeAsia className="w-8 h-8" />,
-                title: "Global Reach",
-                description:
-                  "Connecting local talent with international opportunities",
-              },
-              {
-                icon: <FaChartLine className="w-8 h-8" />,
-                title: "Growth",
-                description:
-                  "Fostering continuous learning and professional development",
-              },
-              {
-                icon: <FaBullseye className="w-8 h-8" />,
-                title: "Impact",
-                description:
-                  "Making a measurable difference in Cambodia's tech ecosystem",
-              },
-              {
-                icon: <FaHandsHelping className="w-8 h-8" />,
-                title: "Innovation",
-                description: "Pioneering new approaches to IT support services",
-              },
-            ].map((item, index) => (
+            {visionItems.map((item, index) => (
               <div
                 key={index}
                 className="animate-on-scroll transition-all duration-700 ease-out opacity-0 translate-y-8 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
@@ -289,9 +288,9 @@ const AboutUs = () => {
                     {item.icon}
                   </div>
                   <h3 className="text-xl font-bold text-gray-800 mb-3">
-                    {item.title}
+                    {t(item.titleKey)}
                   </h3>
-                  <p className="text-gray-600 text-lg">{item.description}</p>
+                  <p className="text-gray-600 text-lg">{t(item.descriptionKey)}</p>
                 </div>
               </div>
             ))}
@@ -304,24 +303,23 @@ const AboutUs = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="animate-on-scroll transition-all duration-700 ease-out opacity-0 translate-y-8">
             <h2 className="text-3xl md:text-4xl font-bold text-[#0f8abe] mb-6">
-              Join Our Growing Team
+              {t("aboutPage.cta.title")}
             </h2>
             <p className="text-xl text-gray-900 mb-8 max-w-2xl mx-auto leading-relaxed">
-              We're always looking for talented professionals to join our
-              mission of showcasing Cambodian tech excellence.
+              {t("aboutPage.cta.description")}
             </p>
             <button
               onClick={() => (window.location.href = "/Careers")}
               className="bg-white text-lg text-[#0f8abe] px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
             >
-              Explore Career Opportunities
+              {t("aboutPage.cta.buttonText")}
             </button>
           </div>
         </div>
       </section>
 
       {/* Add these styles to your global CSS */}
-      <style jsx global>{`
+      <style>{`
         .contact-header {
           background: linear-gradient(
               rgba(15, 138, 190, 0.8),

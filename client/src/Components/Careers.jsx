@@ -10,8 +10,10 @@ import {
 } from "react-icons/fa";
 import { FiMail, FiPhone, FiMapPin } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 const Careers = () => {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [showUnavailableModal, setShowUnavailableModal] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState(null);
@@ -35,126 +37,125 @@ const Careers = () => {
 
   const positions = [
     {
-      title: "Customer Support Specialist",
+      title: t('careersPage.positions.customerSupport.title'),
       fullDescription: [
-        "WV Support Services is a software support company serving customers throughout Australia, New Zealand, and the Asia/Pacific Region. As a Customer Support Specialist, you'll be the frontline of our customer experience. You'll handle inquiries via phone, email, and chat, providing solutions that delight our clients.",
-        "This role requires troubleshooting technical issues, guiding customers through our products, and documenting solutions for our knowledge base. You'll work closely with our product team to communicate customer needs and feedback.",
-        "We're looking for someone with a minimum of 1 year customer service experience, excellent problem-solving skills, and patience in handling diverse customer personalities. Computer knowledge is required. Bilingual candidates are highly preferred.",
-        "You should be able to speak, read, and write English fluently and have excellent communication skills combined with a nice, friendly personality. The ability to work in a team environment is essential.",
-        "Working hours are Monday to Friday, 6am to 3pm (with a 1-hour lunch break), plus 6am to 1pm on two Saturdays per month. The working week is 43 hours."
+        t('careersPage.positions.customerSupport.description.paragraph1'),
+        t('careersPage.positions.customerSupport.description.paragraph2'),
+        t('careersPage.positions.customerSupport.description.paragraph3'),
+        t('careersPage.positions.customerSupport.description.paragraph4'),
+        t('careersPage.positions.customerSupport.description.paragraph5')
       ],
       requirements: [
-        "Minimum 1 year customer service experience",
-        "Computer knowledge is required",
-        "Fluent in English (speaking, reading, writing)",
-        "Excellent verbal and written communication skills",
-        "Friendly personality and ability to work in a team environment",
-        "Technical troubleshooting skills",
-        "Ability to work rotating shifts, including Saturdays"
+        t('careersPage.positions.customerSupport.requirements.experience'),
+        t('careersPage.positions.customerSupport.requirements.computerKnowledge'),
+        t('careersPage.positions.customerSupport.requirements.englishFluency'),
+        t('careersPage.positions.customerSupport.requirements.communication'),
+        t('careersPage.positions.customerSupport.requirements.teamwork'),
+        t('careersPage.positions.customerSupport.requirements.troubleshooting'),
+        t('careersPage.positions.customerSupport.requirements.shiftWork')
       ],
       benefits: [
-        "Competitive salary",
-        "Performance bonuses",
-        "Comprehensive health insurance included",
-        "Annual leave and public holidays as per Cambodian laws",
-        "Opportunity to learn and advance your career",
-        "Work with the latest technology",
-        "Flexible work arrangements"
+        t('careersPage.positions.customerSupport.benefits.salary'),
+        t('careersPage.positions.customerSupport.benefits.bonuses'),
+        t('careersPage.positions.customerSupport.benefits.insurance'),
+        t('careersPage.positions.customerSupport.benefits.leave'),
+        t('careersPage.positions.customerSupport.benefits.career'),
+        t('careersPage.positions.customerSupport.benefits.technology'),
+        t('careersPage.positions.customerSupport.benefits.flexibility')
       ],
-      type: "Full-time",
-      location: "Siem Reap, Cambodia",
+      type: t('careersPage.positions.customerSupport.type'),
+      location: t('careersPage.positions.customerSupport.location'),
       contact: {
         phone: "0974839135",
         telegram: "0974839135",
         email: "wvservicescambodia@gmail.com",
-        address: "Phum Thmey, Sangkat Svay Dankum, Siem Reap, Cambodia"
+        address: t('careersPage.positions.customerSupport.contact.address')
       }
     },
     {
-      title: "Backend Developer",
+      title: t('careersPage.positions.backendDeveloper.title'),
       fullDescription: [
-        "Join our engineering team to design, develop, and maintain the backend services that power our applications. You'll work with modern technologies including Node.js, Express, MongoDB, and AWS services.",
-        "Responsibilities include implementing new features, optimizing performance, writing unit tests, and participating in code reviews. You'll collaborate with frontend developers to create seamless integrations.",
-        "Ideal candidates have 3+ years of backend development experience, strong knowledge of RESTful API design, and experience with database optimization. Open source contributions are a plus."
+        t('careersPage.positions.backendDeveloper.description.paragraph1'),
+        t('careersPage.positions.backendDeveloper.description.paragraph2'),
+        t('careersPage.positions.backendDeveloper.description.paragraph3')
       ],
       requirements: [
-        "3+ years Node.js experience",
-        "Proficient with MongoDB/PostgreSQL",
-        "Experience with AWS services",
-        "Understanding of CI/CD pipelines"
+        t('careersPage.positions.backendDeveloper.requirements.nodejs'),
+        t('careersPage.positions.backendDeveloper.requirements.database'),
+        t('careersPage.positions.backendDeveloper.requirements.aws'),
+        t('careersPage.positions.backendDeveloper.requirements.cicd')
       ],
       benefits: [
-        "Above-market compensation",
-        "Stock options package",
-        "Conference/training budget",
-        "Remote work options"
+        t('careersPage.positions.backendDeveloper.benefits.compensation'),
+        t('careersPage.positions.backendDeveloper.benefits.stocks'),
+        t('careersPage.positions.backendDeveloper.benefits.training'),
+        t('careersPage.positions.backendDeveloper.benefits.remote')
       ],
-      type: "Full-time",
-      location: "Remote (Cambodia-based)"
+      type: t('careersPage.positions.backendDeveloper.type'),
+      location: t('careersPage.positions.backendDeveloper.location')
     },
     {
-      title: "UI/UX Designer",
+      title: t('careersPage.positions.uiuxDesigner.title'),
       fullDescription: [
-        "As our UI/UX Designer, you'll lead the design of our digital products from concept to implementation. You'll conduct user research, create wireframes and prototypes, and collaborate with developers to bring designs to life.",
-        "You'll establish and maintain our design system, ensuring consistency across all platforms. We value designers who can balance aesthetic appeal with functional usability.",
-        "The perfect candidate has 3+ years of product design experience, proficiency in Figma/Sketch, and a portfolio demonstrating user-centered design solutions. Experience with front-end development is a bonus."
+        t('careersPage.positions.uiuxDesigner.description.paragraph1'),
+        t('careersPage.positions.uiuxDesigner.description.paragraph2'),
+        t('careersPage.positions.uiuxDesigner.description.paragraph3')
       ],
       requirements: [
-        "3+ years UI/UX design experience",
-        "Expertise in Figma/Sketch",
-        "Strong portfolio of work",
-        "Understanding of design systems"
+        t('careersPage.positions.uiuxDesigner.requirements.experience'),
+        t('careersPage.positions.uiuxDesigner.requirements.tools'),
+        t('careersPage.positions.uiuxDesigner.requirements.portfolio'),
+        t('careersPage.positions.uiuxDesigner.requirements.designSystems')
       ],
       benefits: [
-        "Creative freedom on projects",
-        "Latest hardware/software",
-        "Flexible schedule",
-        "Annual design retreat"
+        t('careersPage.positions.uiuxDesigner.benefits.freedom'),
+        t('careersPage.positions.uiuxDesigner.benefits.hardware'),
+        t('careersPage.positions.uiuxDesigner.benefits.schedule'),
+        t('careersPage.positions.uiuxDesigner.benefits.retreat')
       ],
-      type: "Contract",
-      location: "Siem Reap, Cambodia"
+      type: t('careersPage.positions.uiuxDesigner.type'),
+      location: t('careersPage.positions.uiuxDesigner.location')
     },
     {
-      title: "Marketing Specialist",
+      title: t('careersPage.positions.marketingSpecialist.title'),
       fullDescription: [
-        "Our Marketing Specialist will develop and execute campaigns across digital and traditional channels. You'll create content, manage social media, analyze performance metrics, and help shape our brand voice.",
-        "This role involves coordinating with external agencies, planning events, and developing strategies to increase brand awareness and customer acquisition.",
-        "We're looking for someone with 2+ years in digital marketing, strong writing skills, and experience with analytics tools. Video editing and graphic design skills are advantageous."
+        t('careersPage.positions.marketingSpecialist.description.paragraph1'),
+        t('careersPage.positions.marketingSpecialist.description.paragraph2'),
+        t('careersPage.positions.marketingSpecialist.description.paragraph3')
       ],
       requirements: [
-        "2+ years marketing experience",
-        "Proficiency in digital analytics",
-        "Excellent copywriting skills",
-        "Social media management"
+        t('careersPage.positions.marketingSpecialist.requirements.experience'),
+        t('careersPage.positions.marketingSpecialist.requirements.analytics'),
+        t('careersPage.positions.marketingSpecialist.requirements.copywriting'),
+        t('careersPage.positions.marketingSpecialist.requirements.socialMedia')
       ],
       benefits: [
-        "Performance-based bonuses",
-        "Creative campaign budgets",
-        "Networking opportunities",
-        "Travel for industry events"
+        t('careersPage.positions.marketingSpecialist.benefits.bonuses'),
+        t('careersPage.positions.marketingSpecialist.benefits.budget'),
+        t('careersPage.positions.marketingSpecialist.benefits.networking'),
+        t('careersPage.positions.marketingSpecialist.benefits.travel')
       ],
-      type: "Full-time",
-      location: "Siem Reap, Cambodia"
+      type: t('careersPage.positions.marketingSpecialist.type'),
+      location: t('careersPage.positions.marketingSpecialist.location')
     },
   ];
 
   return (
-    <div className="max-w-[1100px] mx-auto my-8 px-4 sm:px-6 py-8 sm:py-10 bg-white rounded-xl shadow-md font-[Montserrat]">
+    <div className="max-w-[1100px] mx-auto my-8 px-4 sm:px-6 py-8 sm:py-10 bg-white rounded-xl shadow-md font-[var(--font-primary)]">
       <header className="text-center mb-8">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl text-[#0f8abe] font-bold mb-3">Join Our Growing Team</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl text-[#0f8abe] font-bold mb-3">{t('careersPage.hero.title')}</h1>
         <p className="text-base sm:text-lg text-[#555] max-w-2xl mx-auto">
-          Be part of something amazing. We're building the future of business solutions in Cambodia.
+          {t('careersPage.hero.subtitle')}
         </p>
       </header>
 
       <section className="mb-12">
         <div className="bg-gradient-to-r from-[#0f8abe] to-[#0c6f94] rounded-xl p-6 text-white">
-          <h2 className="text-xl sm:text-2xl font-semibold mb-4">Why Work With Us?</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4">{t('careersPage.whyWorkWithUs.title')}</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <p className="text-sm sm:text-base leading-relaxed mb-4">
-                At WV Support Services Cambodia, we believe in creativity, collaboration, and growth.
-                We're passionate about building a team that feels like family while achieving remarkable things together.
+                {t('careersPage.whyWorkWithUs.description')}
               </p>
               <div className="flex items-center space-x-3 mb-3 text-sm sm:text-base">
                 <FiPhone className="text-lg" />
@@ -166,29 +167,29 @@ const Careers = () => {
               </div>
               <div className="flex items-center space-x-3 text-sm sm:text-base">
                 <FiMapPin className="text-lg" />
-                <span>Phum Thmey, Sangkat Svay Dankum, Siem Reap Cambodia</span>
+                <span>{t('careersPage.contact.address')}</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white bg-opacity-20 p-3 rounded-xl">
                 <FaRegLightbulb className="text-xl mb-1" />
-                <h3 className="font-medium text-sm mb-1">Innovation</h3>
-                <p className="text-xs opacity-90">Cutting-edge projects</p>
+                <h3 className="font-medium text-sm mb-1">{t('careersPage.whyWorkWithUs.values.innovation.title')}</h3>
+                <p className="text-xs opacity-90">{t('careersPage.whyWorkWithUs.values.innovation.description')}</p>
               </div>
               <div className="bg-white bg-opacity-20 p-3 rounded-xl">
                 <FaHandshake className="text-xl mb-1" />
-                <h3 className="font-medium text-sm mb-1">Collaboration</h3>
-                <p className="text-xs opacity-90">Team-oriented culture</p>
+                <h3 className="font-medium text-sm mb-1">{t('careersPage.whyWorkWithUs.values.collaboration.title')}</h3>
+                <p className="text-xs opacity-90">{t('careersPage.whyWorkWithUs.values.collaboration.description')}</p>
               </div>
               <div className="bg-white bg-opacity-20 p-3 rounded-xl">
                 <FaShieldAlt className="text-xl mb-1" />
-                <h3 className="font-medium text-sm mb-1">Security</h3>
-                <p className="text-xs opacity-90">Stable environment</p>
+                <h3 className="font-medium text-sm mb-1">{t('careersPage.whyWorkWithUs.values.security.title')}</h3>
+                <p className="text-xs opacity-90">{t('careersPage.whyWorkWithUs.values.security.description')}</p>
               </div>
               <div className="bg-white bg-opacity-20 p-3 rounded-xl">
                 <FaMedal className="text-xl mb-1" />
-                <h3 className="font-medium text-sm mb-1">Growth</h3>
-                <p className="text-xs opacity-90">Career development</p>
+                <h3 className="font-medium text-sm mb-1">{t('careersPage.whyWorkWithUs.values.growth.title')}</h3>
+                <p className="text-xs opacity-90">{t('careersPage.whyWorkWithUs.values.growth.description')}</p>
               </div>
             </div>
           </div>
@@ -196,7 +197,7 @@ const Careers = () => {
       </section>
 
       <section className="mb-12">
-        <h2 className="text-xl sm:text-2xl text-[#0f8abe] font-semibold mb-6 text-center">Current Openings</h2>
+        <h2 className="text-xl sm:text-2xl text-[#0f8abe] font-semibold mb-6 text-center">{t('careersPage.openings.title')}</h2>
 
         <div className="space-y-4">
           {positions.map((position, index) => (
@@ -219,7 +220,7 @@ const Careers = () => {
                   onClick={() => toggleModal(position)}
                   className="flex items-center gap-1 bg-[#0f8abe] text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl hover:bg-[#0c6f94] transition-colors text-sm sm:text-base"
                 >
-                  View Details <FaArrowRight className="text-xs" />
+                  {t('careersPage.buttons.viewDetails')} <FaArrowRight className="text-xs" />
                 </button>
               </div>
             </motion.div>
@@ -229,7 +230,7 @@ const Careers = () => {
 
       <footer className="text-center mt-12">
         <p className="text-sm sm:text-base text-[#666] mb-3">
-          Don't see the perfect match for your skills?
+          {t('careersPage.footer.noMatch')}
         </p>
         <motion.a
           href="mailto:careers@wvsupport.com.kh"
@@ -237,7 +238,7 @@ const Careers = () => {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
         >
-          Send Us Your Resume
+          {t('careersPage.buttons.sendResume')}
         </motion.a>
       </footer>
 
@@ -286,7 +287,7 @@ const Careers = () => {
                 {/* Modal Body */}
                 <div className="p-4 sm:p-5 space-y-4">
                   <div className="mb-4">
-                    <h3 className="text-base sm:text-lg font-semibold text-[#0f8abe] mb-2">Position Overview</h3>
+                    <h3 className="text-base sm:text-lg font-semibold text-[#0f8abe] mb-2">{t('careersPage.modal.positionOverview')}</h3>
                     {selectedPosition.fullDescription.map((paragraph, idx) => (
                       <p key={idx} className="text-xs sm:text-sm text-[#555] mb-2 leading-relaxed">
                         {paragraph}
@@ -296,7 +297,7 @@ const Careers = () => {
 
                   <div className="grid md:grid-cols-2 gap-4 mb-4">
                     <div>
-                      <h3 className="text-base sm:text-lg font-semibold text-[#0f8abe] mb-2">Requirements</h3>
+                      <h3 className="text-base sm:text-lg font-semibold text-[#0f8abe] mb-2">{t('careersPage.modal.requirements')}</h3>
                       <ul className="space-y-1.5">
                         {selectedPosition.requirements.map((req, idx) => (
                           <motion.li 
@@ -313,7 +314,7 @@ const Careers = () => {
                       </ul>
                     </div>
                     <div>
-                      <h3 className="text-base sm:text-lg font-semibold text-[#0f8abe] mb-2">Benefits</h3>
+                      <h3 className="text-base sm:text-lg font-semibold text-[#0f8abe] mb-2">{t('careersPage.modal.benefits')}</h3>
                       <ul className="space-y-1.5">
                         {selectedPosition.benefits.map((benefit, idx) => (
                           <motion.li 
@@ -340,7 +341,7 @@ const Careers = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    Close
+                    {t('careersPage.buttons.close')}
                   </motion.button>
                   <motion.button
                     onClick={handleApplyClick}
@@ -348,7 +349,7 @@ const Careers = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    Apply Now
+                    {t('careersPage.buttons.applyNow')}
                   </motion.button>
                 </div>
               </motion.div>
@@ -390,10 +391,10 @@ const Careers = () => {
                   >
                     <FaSadTear className="h-5 w-5 text-red-600" />
                   </motion.div>
-                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-1.5">Position Unavailable</h3>
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-1.5">{t('careersPage.unavailableModal.title')}</h3>
                   <div className="mt-1.5">
                     <p className="text-xs sm:text-sm text-gray-500">
-                      We're sorry, but this job position is currently unavailable. Please check back later or explore our other open positions.
+                      {t('careersPage.unavailableModal.message')}
                     </p>
                   </div>
                   <div className="mt-4">
@@ -404,7 +405,7 @@ const Careers = () => {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                     >
-                      Understood
+                      {t('careersPage.buttons.understood')}
                     </motion.button>
                   </div>
                 </div>

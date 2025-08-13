@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 
 // Styled Components
 const FAQPage = styled.div`
@@ -94,6 +95,7 @@ const Answer = styled.p`
 `;
 
 const FAQ = () => {
+  const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(null);
 
   const toggleQuestion = (index) => {
@@ -105,19 +107,34 @@ const FAQ = () => {
   };
 
   const faqData = [
-    { question: "What is your service?", answer: "We provide a full range of IT solutions, including web development, mobile applications, and consulting services." },
-    { question: "How can I contact support?", answer: "You can reach out to our support team by email or by clicking the 'Contact Support' button on our website." },
-    { question: "Do you offer any discounts?", answer: "We offer discounts for long-term partnerships and bulk purchases. Please contact us for more details." },
-    { question: "What is your refund policy?", answer: "We offer a 30-day money-back guarantee for all of our services. If you are not satisfied, you can get a full refund." },
-    { question: "Can I get a free trial?", answer: "Yes! We offer a 7-day free trial for most of our services so that you can test them out before committing." },
+    { 
+      question: t('faqPage.questions.whatIsService.question'), 
+      answer: t('faqPage.questions.whatIsService.answer')
+    },
+    { 
+      question: t('faqPage.questions.contactSupport.question'), 
+      answer: t('faqPage.questions.contactSupport.answer')
+    },
+    { 
+      question: t('faqPage.questions.discounts.question'), 
+      answer: t('faqPage.questions.discounts.answer')
+    },
+    { 
+      question: t('faqPage.questions.refundPolicy.question'), 
+      answer: t('faqPage.questions.refundPolicy.answer')
+    },
+    { 
+      question: t('faqPage.questions.freeTrial.question'), 
+      answer: t('faqPage.questions.freeTrial.answer')
+    },
   ];
 
   return (
     <FAQPage>
       <FAQSection>
-        <SectionTitle>Frequently Asked Questions</SectionTitle>
+        <SectionTitle>{t('faqPage.hero.title')}</SectionTitle>
         <SectionDescription>
-          Here are some of the most commonly asked questions. If you don’t see the answer to your question, feel free to contact us!
+          {t('faqPage.hero.description')}
         </SectionDescription>
       </FAQSection>
 
