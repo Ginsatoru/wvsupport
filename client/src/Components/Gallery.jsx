@@ -172,14 +172,14 @@ const Gallery = () => {
 
         {/* First Row */}
         <div className="relative w-full overflow-hidden mb-4 md:mb-6">
-          <div className="absolute left-0 top-0 bottom-0 w-10 md:w-20 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-10 md:w-20 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-10 md:w-20 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-6 sm:w-10 md:w-20 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
 
-          <div className="flex space-x-4 md:space-x-6 animate-scroll-continuous hover:pause-animation">
+          <div className="flex space-x-3 sm:space-x-4 md:space-x-6 animate-scroll-continuous hover:pause-animation">
             {[...filteredFirstRow, ...filteredFirstRow].map((item, index) => (
               <div 
                 key={`first-${item.id}-${index}`}
-                className="flex-shrink-0 w-64 h-48 sm:w-72 sm:h-56 md:w-80 md:h-64 rounded-xl overflow-hidden shadow-md cursor-pointer relative group"
+                className="flex-shrink-0 w-48 h-36 sm:w-72 sm:h-56 md:w-80 md:h-64 rounded-xl overflow-hidden shadow-md cursor-pointer relative group"
                 onClick={() => openImage(item)}
               >
                 <img
@@ -187,11 +187,11 @@ const Gallery = () => {
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 md:p-6">
-                  <span className="bg-[#0f8abe] text-white text-[10px] md:text-xs px-2 py-0.5 md:px-3 md:py-1 rounded-full mb-1 md:mb-2 self-start">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4 md:p-6">
+                  <span className="bg-[#0f8abe] text-white text-[9px] sm:text-[10px] md:text-xs px-1.5 py-0.5 sm:px-2 md:px-3 md:py-1 rounded-full mb-1 md:mb-2 self-start">
                     {item.category}
                   </span>
-                  <h3 className="text-white text-sm sm:text-base md:text-xl font-semibold">{item.title}</h3>
+                  <h3 className="text-white text-xs sm:text-base md:text-xl font-semibold">{item.title}</h3>
                 </div>
               </div>
             ))}
@@ -200,14 +200,14 @@ const Gallery = () => {
 
         {/* Second Row */}
         <div className="relative w-full overflow-hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-10 md:w-10 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-10 md:w-10 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-10 md:w-10 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-6 sm:w-10 md:w-10 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
 
-          <div className="flex space-x-4 md:space-x-6 animate-scroll-continuous hover:pause-animation">
+          <div className="flex space-x-3 sm:space-x-4 md:space-x-6 animate-scroll-continuous hover:pause-animation">
             {[...filteredSecondRow, ...filteredSecondRow].map((item, index) => (
               <div 
                 key={`second-${item.id}-${index}`}
-                className="flex-shrink-0 w-64 h-48 sm:w-72 sm:h-56 md:w-80 md:h-64 rounded-xl overflow-hidden shadow-md cursor-pointer relative group"
+                className="flex-shrink-0 w-48 h-36 sm:w-72 sm:h-56 md:w-80 md:h-64 rounded-xl overflow-hidden shadow-md cursor-pointer relative group"
                 onClick={() => openImage(item)}
               >
                 <img
@@ -215,11 +215,11 @@ const Gallery = () => {
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 md:p-6">
-                  <span className="bg-[#0f8abe] text-white text-[10px] md:text-xs px-2 py-0.5 md:px-3 md:py-1 rounded-full mb-1 md:mb-2 self-start">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4 md:p-6">
+                  <span className="bg-[#0f8abe] text-white text-[9px] sm:text-[10px] md:text-xs px-1.5 py-0.5 sm:px-2 md:px-3 md:py-1 rounded-full mb-1 md:mb-2 self-start">
                     {item.category}
                   </span>
-                  <h3 className="text-white text-sm sm:text-base md:text-xl font-semibold">{item.title}</h3>
+                  <h3 className="text-white text-xs sm:text-base md:text-xl font-semibold">{item.title}</h3>
                 </div>
               </div>
             ))}
@@ -230,7 +230,7 @@ const Gallery = () => {
       {/* Modal */}
       {selectedImage && (
         <div className="fixed inset-0 bg-black/80 z-[1000] flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-white rounded-lg md:rounded-xl max-w-full sm:max-w-3xl md:max-w-4xl w-full max-h-[90vh] overflow-auto relative">
+          <div className="bg-white rounded-xl md:rounded-xl max-w-full sm:max-w-3xl md:max-w-4xl w-full max-h-[90vh] overflow-auto relative">
             <button
               onClick={closeImage}
               className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-[#0f8abe] text-white w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-lg sm:text-xl z-10 hover:bg-[#0d79a8] transition-colors"
