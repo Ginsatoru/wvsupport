@@ -110,7 +110,7 @@ const ServiceCard = styled.div`
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   animation: ${fadeIn} 0.8s ease-out;
-  animation-delay: ${props => props.delay || '0s'};
+  animation-delay: ${props => props.$delay || '0s'};
   animation-fill-mode: both;
   position: relative;
   z-index: 1;
@@ -244,7 +244,7 @@ const StatCard = styled.div`
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   animation: ${fadeIn} 0.8s ease-out;
-  animation-delay: ${props => props.delay || '0s'};
+  animation-delay: ${props => props.$delay || '0s'};
   animation-fill-mode: both;
 
   &:hover {
@@ -281,7 +281,7 @@ const ProcessStep = styled.div`
   margin-bottom: 3rem;
   position: relative;
   animation: ${fadeIn} 0.8s ease-out;
-  animation-delay: ${props => props.delay || '0s'};
+  animation-delay: ${props => props.$delay || '0s'};
   animation-fill-mode: both;
 
   &::before {
@@ -376,7 +376,7 @@ const Support = () => {
         {/* SERVICES SECTION */}
         <SectionTitle>{t('supportPage.services.sectionTitle')}</SectionTitle>
         <ServicesGrid>
-          <ServiceCard delay="0.2s">
+          <ServiceCard $delay="0.2s">
             <CardImage>
               <img 
                 src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
@@ -394,7 +394,7 @@ const Support = () => {
             </CardContent>
           </ServiceCard>
 
-          <ServiceCard delay="0.4s">
+          <ServiceCard $delay="0.4s">
             <CardImage>
               <img 
                 src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
@@ -412,7 +412,7 @@ const Support = () => {
             </CardContent>
           </ServiceCard>
 
-          <ServiceCard delay="0.6s">
+          <ServiceCard $delay="0.6s">
             <CardImage>
               <img 
                 src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
@@ -457,7 +457,7 @@ const Support = () => {
         {/* PROCESS SECTION */}
         <SectionTitle>{t('supportPage.process.sectionTitle')}</SectionTitle>
         <ProcessContainer>
-          <ProcessStep delay="0.2s">
+          <ProcessStep $delay="0.2s">
             <StepNumber>1</StepNumber>
             <StepContent>
               <h4>{t('supportPage.process.initialContact.title')}</h4>
@@ -465,7 +465,7 @@ const Support = () => {
             </StepContent>
           </ProcessStep>
 
-          <ProcessStep delay="0.4s">
+          <ProcessStep $delay="0.4s">
             <StepNumber>2</StepNumber>
             <StepContent>
               <h4>{t('supportPage.process.diagnosticAnalysis.title')}</h4>
@@ -473,7 +473,7 @@ const Support = () => {
             </StepContent>
           </ProcessStep>
 
-          <ProcessStep delay="0.6s">
+          <ProcessStep $delay="0.6s">
             <StepNumber>3</StepNumber>
             <StepContent>
               <h4>{t('supportPage.process.solutionImplementation.title')}</h4>
@@ -481,7 +481,7 @@ const Support = () => {
             </StepContent>
           </ProcessStep>
 
-          <ProcessStep delay="0.8s">
+          <ProcessStep $delay="0.8s">
             <StepNumber>4</StepNumber>
             <StepContent>
               <h4>{t('supportPage.process.verificationFollowup.title')}</h4>

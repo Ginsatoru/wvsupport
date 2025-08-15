@@ -5,6 +5,76 @@ import { useSettings } from "./context/SettingsContext";
 import enFlag from "./Components/Images/en.png";
 import khFlag from "./Components/Images/kh.png";
 
+// Font loading optimization hook
+const useFontLoader = () => {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Check if fonts are loaded to prevent FOUT (Flash of Unstyled Text)
+    const checkFonts = async () => {
+      try {
+        await Promise.all([
+          document.fonts.load('400 16px Montserrat'),
+          document.fonts.load('400 16px Battambang')
+        ]);
+        setFontsLoaded(true);
+      } catch (error) {
+        console.warn('Font loading failed:', error);
+        // Fallback: assume fonts are loaded after timeout
+        setTimeout(() => setFontsLoaded(true), 1000);
+      }
+    };
+
+    // Check if Font Loading API is supported
+    if (document.fonts && document.fonts.load) {
+      checkFonts();
+    } else {
+      // Fallback for browsers without Font Loading API
+      setTimeout(() => setFontsLoaded(true), 500);
+    }
+  }, []);
+
+  return fontsLoaded;
+};
+
+// Language font switcher hook
+const useLanguageFontSwitcher = () => {
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    const updateBodyClass = () => {
+      const body = document.body;
+      const html = document.documentElement;
+      
+      // Remove existing language classes
+      body.classList.remove('lang-en', 'lang-km');
+      html.classList.remove('lang-en', 'lang-km');
+      
+      // Add new language class based on current language
+      const langClass = `lang-${i18n.language}`;
+      body.classList.add(langClass);
+      html.classList.add(langClass);
+      
+      // Update CSS custom properties for dynamic access
+      document.documentElement.style.setProperty(
+        '--current-lang-font',
+        i18n.language === 'km' ? 'var(--font-khmer)' : 'var(--font-primary)'
+      );
+    };
+
+    // Update on initial load
+    updateBodyClass();
+
+    // Listen for language changes
+    i18n.on('languageChanged', updateBodyClass);
+
+    // Cleanup listener
+    return () => {
+      i18n.off('languageChanged', updateBodyClass);
+    };
+  }, [i18n]);
+};
+
 function Nav() {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
@@ -20,6 +90,10 @@ function Nav() {
   const { t, i18n } = useTranslation();
   const [currentLang, setCurrentLang] = useState("en");
   const { settings, loading } = useSettings();
+
+  // Initialize font hooks
+  const fontsLoaded = useFontLoader();
+  useLanguageFontSwitcher();
 
   // Safe translation function that handles nested objects
   const safeTranslate = (key) => {
@@ -87,6 +161,7 @@ function Nav() {
   };
 
   const changeLanguage = (lang) => {
+    // Font switching will happen automatically via useLanguageFontSwitcher hook
     i18n.changeLanguage(lang);
     localStorage.setItem("language", lang);
     setCurrentLang(lang);
@@ -100,7 +175,7 @@ function Nav() {
         <nav
           className={`w-full z-50 bg-[#0f8abe] shadow-md ${
             isHomePage ? "fixed" : "sticky top-0"
-          }`}
+          } ${fontsLoaded ? 'font-loaded' : 'font-loading'}`}
         >
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
             <div className="flex items-center space-x-2 animate-pulse">
@@ -118,12 +193,13 @@ function Nav() {
 
   // Determine navbar positioning and styling based on page
   const getNavbarClasses = () => {
+    const baseClasses = `${fontsLoaded ? 'font-loaded' : 'font-loading'}`;
     if (isHomePage) {
       return `fixed w-full z-50 transition-all duration-300 ${
         isScrolled ? "bg-[#0f8abe] shadow-md" : "bg-transparent shadow-none"
-      }`;
+      } ${baseClasses}`;
     } else {
-      return "sticky top-0 w-full z-50 bg-[#0f8abe] shadow-md";
+      return `sticky top-0 w-full z-50 bg-[#0f8abe] shadow-md ${baseClasses}`;
     }
   };
 

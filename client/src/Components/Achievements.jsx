@@ -69,7 +69,7 @@ const AchievementsGrid = styled.div`
 
 const AchievementCard = styled.div`
   background: white;
-  padding: 30px 20px;
+  padding: 30px 30px;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   transition: all 0.4s ease-out;
@@ -99,14 +99,17 @@ const AchievementCard = styled.div`
 `;
 
 const AchievementNumber = styled.div`
-  font-size: 2.3rem;
+  font-size: 2.3rem; /* bigger number */
   font-weight: 700;
-  margin-bottom: 10px;
+  line-height: 0.2; /* more vertical space inside */
+  margin-bottom: 10px; /* more space below */
+  padding: 15px 0; /* extra breathing room above and below */
   background-color: #0f8abe;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 `;
+
 
 const AchievementLabel = styled.p`
   font-size: 1.1rem;
