@@ -12,6 +12,7 @@ import ConfirmationModal from "../components/Modals/ConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
 import WelcomeModal from "./WelcomeModal";
 import Soon from "../components/Temp/AvailableSoon.jsx";
+import News from "../components/Managements/CMSNewsletter.jsx";
 
 const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -150,7 +151,7 @@ const AdminPanel = () => {
             {activeTab === "blog" && <Soon darkMode={darkMode} />}
             {activeTab === "reports" && <Soon darkMode={darkMode} />}
             {activeTab === "statistics" && <Soon darkMode={darkMode} />}
-            {activeTab === "users" && <Soon darkMode={darkMode} />}
+            {activeTab === "subscribers" && <News darkMode={darkMode} />}
             {activeTab === "orders" && <Soon darkMode={darkMode} />}
             {activeTab === "settings" && <Settings darkMode={darkMode} />}
           </div>

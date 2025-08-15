@@ -804,6 +804,7 @@ const resources = {
 
       // Footer
       footer: {
+        alreadySubscribed: "Already subscribed to our newsletter.",
         company: "Company",
         logo: "Logo",
         defaultDescription:
@@ -823,7 +824,6 @@ const resources = {
         newsletterText:
           "Get the latest WV Support Services Cambodia news delivered to your inbox.",
         emailPlaceholder: "Enter your email",
-        recaptchaVerified: "Verified! Click 'Send' again",
         recaptchaFailed: "Verification failed.",
         invalidEmail: "Please enter a valid email address.",
         verifyHuman: "Please verify that you are a human.",

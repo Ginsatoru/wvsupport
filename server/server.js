@@ -15,6 +15,7 @@ const path = require("path");
 const fs = require("fs");
 const { initGeoIP } = require("./utils/geoIP");
 const teamRoutes = require("./routes/teamRoute");
+const newsletterRoutes = require('./routes/newsletterRoutes');
 
 // Security and authentication
 const bcrypt = require("bcryptjs");
@@ -63,8 +64,8 @@ app.use(
         // Local development
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
+        "http://localhost:5000",
+        "http://127.0.0.1:5000",
       ];
 
       if (!origin || allowedOrigins.includes(origin)) {
@@ -283,6 +284,7 @@ app.use("/api/settings", settingsRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/team", teamRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 // ======================
 // ADMIN AUTHENTICATION
