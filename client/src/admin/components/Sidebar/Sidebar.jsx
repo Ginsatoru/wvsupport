@@ -439,7 +439,7 @@ const Sidebar = ({
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        V1.0
+        V1.1
       </motion.div>
     </motion.div>
   );
