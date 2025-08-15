@@ -1,12 +1,55 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
+// Enhanced font switching function that works with our CSS system
 const updateFontFamily = (lng) => {
-  document.documentElement.style.setProperty(
-    "--font-primary",
-    lng === "km" ? "Dangrek, sans-serif" : "Montserrat, sans-serif"
-  );
+  if (typeof document === "undefined") return; // SSR safety check
+  
+  const body = document.body;
+  const html = document.documentElement;
+  
+  // Remove existing language classes
+  body.classList.remove('lang-en', 'lang-km');
+  html.classList.remove('lang-en', 'lang-km');
+  
+  // Add new language class based on current language
+  const langClass = `lang-${lng}`;
+  body.classList.add(langClass);
+  html.classList.add(langClass);
+  
+  // Update CSS custom properties for dynamic access
+  if (lng === "km") {
+    document.documentElement.style.setProperty('--current-lang-font', 'var(--font-khmer)');
+    // Update the primary font variable to use Battambang for Khmer
+    document.documentElement.style.setProperty(
+      '--font-primary', 
+      "'Battambang', serif"
+    );
+  } else {
+    document.documentElement.style.setProperty('--current-lang-font', 'var(--font-primary)');
+    // Update the primary font variable to use Montserrat for English
+    document.documentElement.style.setProperty(
+      '--font-primary', 
+      "'Montserrat', sans-serif"
+    );
+  }
+  
+  // Also set the lang attribute for accessibility
+  setHtmlLang(lng);
+  
+  // Debug log to verify font switching
+  console.log(`Font switched to: ${lng === 'km' ? 'Battambang (Khmer)' : 'Montserrat (English)'}`);
 };
+
+// Set HTML lang attribute function
+function setHtmlLang(lng) {
+  if (typeof document !== "undefined" && document.documentElement) {
+    // Use setTimeout to defer update and avoid race conditions
+    setTimeout(() => {
+      document.documentElement.lang = lng;
+    }, 0);
+  }
+}
 
 const resources = {
   en: {
@@ -1069,7 +1112,7 @@ const resources = {
   },
   km: {
     translation: {
-      font: "Dangrek",
+      font: "Battambang",
       // Careers Page translations
       careersPage: {
         hero: {
@@ -2118,15 +2161,6 @@ const resources = {
   },
 };
 
-function setHtmlLang(lng) {
-  if (typeof document !== "undefined" && document.documentElement) {
-    // Use setTimeout to defer update and avoid race conditions
-    setTimeout(() => {
-      document.documentElement.lang = lng;
-    }, 0);
-  }
-}
-
 i18n.use(initReactI18next).init({
   resources,
   lng: "en",
@@ -2134,12 +2168,35 @@ i18n.use(initReactI18next).init({
   interpolation: {
     escapeValue: false,
   },
+  
+  // React specific options
+  react: {
+    useSuspense: false, // Disable suspense for better compatibility
+  },
+  
+  // Debug mode (disable in production)
+  debug: process.env.NODE_ENV === 'development',
 });
 
-// Set initial font
+// Set initial font and language
 updateFontFamily(i18n.language);
 
-// Listen to language changes and force update lang attr
-i18n.on("languageChanged", updateFontFamily);
+// Listen to language changes and update fonts
+i18n.on("languageChanged", (lng) => {
+  updateFontFamily(lng);
+  
+  // Optional: Save language preference to localStorage
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('language', lng);
+  }
+});
+
+// Initialize from saved language preference
+if (typeof localStorage !== 'undefined') {
+  const savedLang = localStorage.getItem('language');
+  if (savedLang && (savedLang === 'en' || savedLang === 'km')) {
+    i18n.changeLanguage(savedLang);
+  }
+}
 
 export default i18n;
