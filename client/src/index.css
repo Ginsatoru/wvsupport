@@ -2,29 +2,168 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Google Fonts for font switching - Fixed Battambang URL */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Battambang:wght@100;300;400;700;900&display=swap');
 
-/* Base Tailwind layer */
+/* Explicit font-face declarations to ensure proper loading */
+@font-face {
+  font-family: 'Battambang';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/battambang/v24/uk-mEGe7raEw-HjkzZabNhGp5A.woff2') format('woff2');
+  unicode-range: U+1780-17FF, U+19E0-19FF, U+200C-200D, U+25CC;
+}
+
+@font-face {
+  font-family: 'Battambang';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/battambang/v24/uk-lEGe7raEw-HjkzZabDm-j4xfr8Q.woff2') format('woff2');
+  unicode-range: U+1780-17FF, U+19E0-19FF, U+200C-200D, U+25CC;
+}
+
+/* CSS Custom Properties for font management */
+:root {
+  --font-primary: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-khmer: 'Battambang', 'Khmer OS System', 'Khmer OS', 'Leelawadee UI', 'Khmer UI', serif;
+  --font-fallback: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Base Tailwind layer with font switching support */
 @layer base {
   html {
     @apply text-gray-800 bg-gray-50 scroll-smooth;
-    font-family: 'Dangrek', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-      'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
-      'Helvetica Neue', sans-serif;
+    font-family: var(--font-fallback);
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
   }
+  
   html.dark {
     @apply text-gray-100 bg-gray-900;
   }
 
   body {
     margin: 0;
+    font-family: inherit;
+    font-weight: 400;
+    font-style: normal;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-display: swap;
   }
 
   code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-      monospace;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
   }
+}
+
+/* Language-specific font classes - CORRECTED */
+.lang-en {
+  font-family: var(--font-primary) !important;
+}
+
+.lang-en * {
+  font-family: inherit !important;
+}
+
+/* FIXED: Ensure Battambang is applied correctly with same sizing */
+.lang-km {
+  font-family: var(--font-khmer) !important;
+  line-height: 1.5 !important; /* Same as English for consistency */
+  word-spacing: 0.05em !important;
+  letter-spacing: 0.01em !important;
+}
+
+.lang-km * {
+  font-family: inherit !important;
+}
+
+/* Stronger selectors to override any conflicting styles */
+html.lang-km,
+html.lang-km body,
+html.lang-km * {
+  font-family: 'Battambang', 'Khmer OS System', 'Khmer OS', serif !important;
+}
+
+html.lang-en,
+html.lang-en body,
+html.lang-en * {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+/* Override for code elements */
+html.lang-km code,
+html.lang-en code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace !important;
+}
+
+/* Optimize font loading and prevent layout shift */
+.font-loading {
+  visibility: hidden;
+}
+
+.font-loaded {
+  visibility: visible;
+}
+
+/* Font size adjustments - Same size for both languages */
+.lang-en,
+.lang-km {
+  font-size: 16px;
+}
+
+/* Responsive font sizes - Same size for both languages */
+@media (max-width: 768px) {
+  .lang-en,
+  .lang-km {
+    font-size: 14px;
+  }
+}
+
+/* Headings with proper font inheritance */
+h1, h2, h3, h4, h5, h6 {
+  font-family: inherit !important;
+}
+
+/* Khmer headings specific styling */
+.lang-km h1, .lang-km h2, .lang-km h3 {
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+}
+
+.lang-km h4, .lang-km h5, .lang-km h6 {
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+}
+
+/* Form elements font inheritance */
+input, textarea, select, button {
+  font-family: inherit !important;
+  font-size: inherit;
+}
+
+/* Ensure all text elements inherit the language font */
+p, span, div, a, li, td, th, label, article, section {
+  font-family: inherit !important;
+}
+
+/* Special handling for Khmer text rendering */
+.lang-km {
+  text-rendering: optimizeLegibility;
+  -webkit-font-feature-settings: "liga" 1, "kern" 1;
+  font-feature-settings: "liga" 1, "kern" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Test class to verify Battambang is loading */
+.test-battambang {
+  font-family: 'Battambang', serif !important;
+  font-size: 24px !important;
+  color: red !important;
 }
 
 /* Scrollbar styles */
@@ -52,7 +191,7 @@
   background: #718096;
 }
 
-/* Floating animation keyframes */
+/* Animation keyframes */
 @keyframes float1 {
   0%, 100% { transform: translateY(0) translateX(0); }
   50% { transform: translateY(-20px) translateX(10px); }
@@ -110,4 +249,31 @@
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
+}
+
+/* Additional font optimization for different components */
+.navbar, nav {
+  font-family: inherit !important;
+}
+
+/* Ensure Tailwind components inherit fonts properly */
+@layer components {
+  .btn, .card, .dropdown-menu {
+    font-family: inherit !important;
+  }
+}
+
+/* Form elements specific handling */
+.lang-km input,
+.lang-km textarea,
+.lang-km select {
+  font-family: 'Battambang', serif !important;
+  font-size: 16px;
+}
+
+.lang-en input,
+.lang-en textarea,
+.lang-en select {
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 16px;
 }

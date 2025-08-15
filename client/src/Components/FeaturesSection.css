@@ -11,7 +11,7 @@
 }
 
 .main-feature{
-  min-height: 100vh;
+  min-height: 87vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
 }
 
@@ -159,7 +159,7 @@
 .right-div button {
   margin-top: auto;
   align-self: flex-start;
-  padding: 0.40rem 1.1rem;
+  padding: 0.60rem 1rem;
   background-color: #0f8abe;
   color: white;
   border: none;
