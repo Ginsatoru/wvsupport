@@ -13,6 +13,7 @@ import {
   FiStar,
   FiTrendingUp,
   FiArchive,
+  FiUserPlus,
 } from "react-icons/fi";
 import MessagesContainer from "../Inbox/MessagesContainer";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,11 +23,6 @@ const Sidebar = ({
   darkMode = false,
   setActiveTab = () => {},
   isOpen = true,
-  notifications = {
-    inbox: 12,
-    users: 3,
-    orders: 5,
-  },
 }) => {
   const [expandedSections, setExpandedSections] = useState({
     analytics: false,
@@ -116,26 +112,25 @@ const Sidebar = ({
           icon: FiArchive,
           component: <MessagesContainer status="closed" />,
         },
+        
       ],
     },
     {
       id: "management",
-      label: "Management",
+      label: "Contacts",
       icon: FiUsers,
       isExpandable: true,
       isExpanded: expandedSections.management,
       children: [
         {
-          id: "users",
-          label: "Users",
-          icon: FiUsers,
-          notification: notifications.users,
+          id: "subscribers",
+          label: "Subscribers",
+          icon: FiUserPlus,
         },
         {
           id: "orders",
           label: "Orders",
           icon: FiShoppingCart,
-          notification: notifications.orders,
         },
       ],
     },
