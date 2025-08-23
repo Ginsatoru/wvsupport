@@ -198,6 +198,7 @@
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
 }
 
 .contact-methods {
@@ -255,7 +256,7 @@
   width: 100% !important;
   max-width: none !important;
   min-width: 100%;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
 }
 

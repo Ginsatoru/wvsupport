@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
 import logoImage from "./Images/logo.png";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import speakingVideo from "./Images/speaking.mov";
+import { FaEye, FaEyeSlash, FaTimes } from "react-icons/fa";
 import { RiShieldKeyholeLine } from "react-icons/ri";
 
 const LoginForm = ({ onLogin }) => {
@@ -13,494 +13,275 @@ const LoginForm = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
-  setIsLoading(true);
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-  try {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/login`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    email: email.trim(),
-    password: password.trim(),
-  }),
-});
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password.trim(),
+        }),
+      });
 
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Login failed");
-    }
-
-    const data = await response.json();
-    console.log("Login response", data);
-    if (data.token) {
-      if (rememberMe) {
-        localStorage.setItem("adminToken", data.token);
-      } else {
-        sessionStorage.setItem("adminToken", data.token);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Login failed");
       }
-      // Set a flag in sessionStorage
-      sessionStorage.setItem("LoginTime", Date.now());
-      onLogin();
-      navigate("/admin-panel", { state: { fromLogin: true } });
-    } else {
-      throw new Error("No token received");
-    }
-  } catch (err) {
-    setError(err.message || "Login failed. Please try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
 
+      const data = await response.json();
+      if (data.token) {
+        if (rememberMe) {
+          localStorage.setItem("adminToken", data.token);
+        } else {
+          sessionStorage.setItem("adminToken", data.token);
+        }
+        sessionStorage.setItem("LoginTime", Date.now());
+        onLogin();
+        navigate("/admin-panel", { state: { fromLogin: true } });
+      } else {
+        throw new Error("No token received");
+      }
+    } catch (err) {
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSignUpClick = (e) => {
     e.preventDefault();
     setShowPopup(true);
   };
 
+  const handleForgotPasswordClick = (e) => {
+    e.preventDefault();
+    setShowForgotPasswordModal(true);
+  };
+
   const closePopup = () => {
     setShowPopup(false);
   };
 
+  const closeForgotPasswordModal = () => {
+    setShowForgotPasswordModal(false);
+  };
+
   return (
-    <LoginContainer>
-      <FormCard>
-        <LogoContainer>
-          <Logo src={logoImage} alt="Logo" />
-          <WelcomeText>Hi, Welcome Back</WelcomeText>
-          <SubText>Enter your credentials to continue</SubText>
-        </LogoContainer>
-        <FormContainer onSubmit={handleSubmit}>
-          {error && <ErrorText>{error}</ErrorText>}
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+      {/* Video Background */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0"
+      >
+        <source src={speakingVideo} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
 
-          <InputGroup>
-            <InputLabel htmlFor="email">Email Address</InputLabel>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/30 z-10"></div>
+
+      {/* Login Card */}
+      <div className="relative z-20 w-full max-w-md">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl overflow-hidden">
+          {/* Header Section */}
+          <div className="p-8 text-center">
+            <img
+              src={logoImage}
+              alt="Logo"
+              className="h-20 w-auto mx-auto mb-4 drop-shadow-lg"
             />
-          </InputGroup>
+            <h2 className="text-white text-2xl font-semibold mb-2 drop-shadow-lg">
+              Hi, Welcome Back
+            </h2>
+            <p className="text-white/90 text-sm drop-shadow">
+              Enter your credentials to continue
+            </p>
+          </div>
 
-          <InputGroup>
-            <InputLabel htmlFor="password">Password</InputLabel>
-            <PasswordContainer>
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
-              <EyeIcon onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </EyeIcon>
-            </PasswordContainer>
-          </InputGroup>
+          {/* Form Section */}
+          <div className="p-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="bg-red-500/20 backdrop-blur-sm border border-red-400/30 text-white px-4 py-3 rounded-xl text-sm text-center">
+                  {error}
+                </div>
+              )}
 
-          <OptionsContainer>
-            <RememberMe>
-              <Checkbox
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              <Label htmlFor="rememberMe">Keep me logged in</Label>
-            </RememberMe>
-            <ForgotPassword href="#">Forgot Password?</ForgotPassword>
-          </OptionsContainer>
+              {/* Email Input */}
+              <div className="space-y-2">
+                <label htmlFor="email" className="block text-white/90 text-sm font-medium drop-shadow">
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:border-[#0f8abe] focus:ring-2 focus:ring-[#0f8abe]/30 transition-all duration-200"
+                />
+              </div>
 
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Spinner /> Logging in...
-              </>
-            ) : (
-              "Login"
-            )}
-          </Button>
+              {/* Password Input */}
+              <div className="space-y-2">
+                <label htmlFor="password" className="block text-white/90 text-sm font-medium drop-shadow">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    className="w-full px-4 py-3 pr-12 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-white/60 focus:outline-none focus:border-[#0f8abe] focus:ring-2 focus:ring-[#0f8abe]/30 transition-all duration-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-black/50 hover:gray-black/60 transition-colors duration-200"
+                  >
+                    {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                  </button>
+                </div>
+              </div>
 
-          <SignUpText>
-            Don't have an account?{" "}
-            <SignUpLink href="#" onClick={handleSignUpClick}>
-              Sign up
-            </SignUpLink>
-          </SignUpText>
-        </FormContainer>
-      </FormCard>
+              {/* Options */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <input
+                    id="rememberMe"
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 text-[#0f8abe] bg-white/20 border-white/30 rounded focus:ring-[#0f8abe] backdrop-blur-sm"
+                  />
+                  <label htmlFor="rememberMe" className="ml-2 text-sm text-white/90 cursor-pointer drop-shadow">
+                    Keep me logged in
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleForgotPasswordClick}
+                  className="text-sm text-[white] hover:text-white/80 transition-colors duration-200 drop-shadow"
+                >
+                  Forgot Password?
+                </button>
+              </div>
 
-      {showPopup && (
-        <PopupOverlay>
-          <PopupContainer>
-            <RestrictedIcon>
-              <RiShieldKeyholeLine />
-            </RestrictedIcon>
-            <PopupTitle>Account Creation Restricted</PopupTitle>
-            <PopupMessage>
-              Apologies, but you do not have permission to create an account for
-              the admin dashboard. Please contact the administrator for access.
-            </PopupMessage>
-            <PopupButton onClick={closePopup}>OK</PopupButton>
-          </PopupContainer>
-        </PopupOverlay>
+              {/* Login Button */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-[#0f8abe]/80 backdrop-blur-sm hover:bg-[#0f8abe] text-white py-3 px-6 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-[#0f8abe]/50 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center border border-[#0f8abe]/30"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white mr-2"></div>
+                    Logging in...
+                  </>
+                ) : (
+                  "Login"
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Modal Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={closeForgotPasswordModal}
+          ></div>
+          
+          {/* Modal Content */}
+          <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl w-full max-w-md p-6">
+            {/* Close Button */}
+            <button
+              onClick={closeForgotPasswordModal}
+              className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors duration-200"
+            >
+              <FaTimes size={20} />
+            </button>
+
+            {/* Modal Header */}
+            <div className="text-center mb-6">
+              <div className="mx-auto mb-4 w-16 h-16 bg-[#0f8abe]/20 rounded-full flex items-center justify-center">
+                <RiShieldKeyholeLine size={32} className="text-[#0f8abe]" />
+              </div>
+              <h3 className="text-white text-xl font-semibold mb-2 drop-shadow-lg">
+                Password Recovery
+              </h3>
+              <p className="text-white/80 text-sm drop-shadow">
+                Need help accessing your admin panel?
+              </p>
+            </div>
+
+            {/* Modal Body */}
+            <div className="text-center mb-6">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-4 mb-4">
+                <p className="text-white/90 text-sm leading-relaxed">
+                  For security reasons, password recovery requires manual verification. 
+                  Please contact the developer to obtain new credentials or reset your password.
+                </p>
+              </div>
+              
+              <div className="text-left space-y-2">
+                <p className="text-white/70 text-xs">
+                  <span className="font-medium">Contact Information:</span>
+                </p>
+                <p className="text-white/90 text-sm">
+                  📧 Email: naibo2002@gmail.com
+                </p>
+                <p className="text-white/90 text-sm">
+                  💬 Phone: +855 879 688 50
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex space-x-3">
+              <button
+                onClick={closeForgotPasswordModal}
+                className="flex-1 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white py-2.5 px-4 rounded-xl font-medium transition-all duration-200 border border-white/20"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  window.location.href = 'mailto:naibo200@gmail.com?subject=Password Reset Request';
+                }}
+                className="flex-1 bg-[#0f8abe]/80 backdrop-blur-sm hover:bg-[#0f8abe] text-white py-2.5 px-4 rounded-xl font-medium transition-all duration-200 border border-[#0f8abe]/30"
+              >
+                Contact Developer
+              </button>
+            </div>
+          </div>
+        </div>
       )}
-    </LoginContainer>
+    </div>
   );
 };
-
-// Styled Components
-
-const PopupOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  animation: fadeIn 0.3s ease-out;
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-`;
-
-const PopupContainer = styled.div`
-  background-color: white;
-  padding: 2rem;
-  border-radius: 12px;
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-
-  @keyframes scaleIn {
-    from {
-      transform: scale(0.9);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-`;
-
-const RestrictedIcon = styled.div`
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 3rem;
-  color: #e53e3e;
-  margin-bottom: 1rem;
-`;
-
-const PopupTitle = styled.h3`
-  color: #0f8abe;
-  margin-bottom: 1rem;
-  font-size: 1.3rem;
-  font-weight: bold;
-`;
-
-const PopupMessage = styled.p`
-  color: #475569;
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
-  font-size: 1rem;
-  animation: fadeIn 0.5s ease-out;
-`;
-
-const PopupButton = styled.button`
-  background-color: #0f8abe;
-  color: white;
-  border: none;
-  padding: 0.6rem 3rem;
-  border-radius: 10px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  animation: fadeIn 0.6s ease-out;
-
-  &:hover {
-    background-color: #0d7ba8;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-`;
-
-const Spinner = styled.div`
-  display: inline-block;
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 1s ease-in-out infinite;
-  margin-right: 0.5rem;
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
-const LoginContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 2rem;
-`;
-
-const FormCard = styled.div`
-  width: 100%;
-  max-width: 480px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-`;
-
-const LogoContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2.5rem 2rem 1.5rem;
-  background: #0f8abe;
-`;
-
-const Logo = styled.img`
-  height: 80px;
-  width: auto;
-  object-fit: contain;
-  margin-bottom: 1rem;
-`;
-
-const WelcomeText = styled.h2`
-  color: white;
-  margin: 0.5rem 0 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-`;
-
-const SubText = styled.p`
-  color: rgba(255, 255, 255, 0.9);
-  margin: 0.5rem 0 0;
-  font-size: 0.95rem;
-`;
-
-const FormContainer = styled.form`
-  padding: 2rem;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 1.25rem;
-`;
-
-const InputLabel = styled.label`
-  color: #475569;
-  font-size: 0.95rem;
-  margin-bottom: 0.5rem;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1.05rem;
-  transition: all 0.2s ease;
-
-  &:focus {
-    outline: none;
-    border-color: #0f8abe;
-    box-shadow: 0 0 0 3px rgba(15, 138, 190, 0.1);
-  }
-
-  &::placeholder {
-    color: #94a3b8;
-  }
-`;
-
-const PasswordContainer = styled.div`
-  position: relative;
-  width: 100%;
-`;
-
-const EyeIcon = styled.span`
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: #64748b;
-  }
-`;
-
-const OptionsContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-`;
-
-const RememberMe = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const Checkbox = styled.input.attrs({ type: "checkbox" })`
-  appearance: none;
-  width: 1.2rem;
-  height: 1.2rem;
-  margin-right: 0.5rem;
-  border: 2px solid #ccc;
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-  background-color: #fff;
-
-  &:hover {
-    border-color: #0f8abe;
-  }
-
-  &:checked {
-    background-color: #0f8abe;
-    border-color: #0f8abe;
-  }
-
-  &:checked::after {
-    content: "";
-    position: absolute;
-    top: 2px;
-    left: 5px;
-    width: 4px;
-    height: 8px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-  }
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(15, 138, 190, 0.3);
-  }
-`;
-
-const Label = styled.label`
-  color: #64748b;
-  font-size: 0.9rem;
-  cursor: pointer;
-`;
-
-const ForgotPassword = styled.a`
-  color: #0f8abe;
-  font-size: 0.9rem;
-  text-decoration: none;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: #0d7ba8;
-  }
-`;
-
-const Button = styled.button`
-  width: 100%;
-  padding: 1rem;
-  background-color: #0f8abe;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.05rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background-color: #0d7ba8;
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &:disabled {
-    background-color: #e2e8f0;
-    cursor: not-allowed;
-  }
-`;
-
-const ErrorText = styled.p`
-  color: #e53e3e;
-  text-align: center;
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  background-color: #fff5f5;
-  border-radius: 4px;
-`;
-
-const SignUpText = styled.p`
-  text-align: center;
-  margin-top: 1.5rem;
-  color: #64748b;
-  font-size: 0.95rem;
-`;
-
-const SignUpLink = styled.a`
-  color: #0f8abe;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: #0d7ba8;
-  }
-`;
 
 export default LoginForm;
