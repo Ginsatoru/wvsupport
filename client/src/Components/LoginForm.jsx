@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logoImage from "./Images/logo.png";
-import speakingVideo from "./Images/speaking.mov";
+import backgroundImage from "./Images/speaking.jpg"; // Change this to your preferred image
 import { FaEye, FaEyeSlash, FaTimes } from "react-icons/fa";
 import { RiShieldKeyholeLine } from "react-icons/ri";
 
@@ -78,20 +78,16 @@ const LoginForm = ({ onLogin }) => {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-      {/* Video Background */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover z-0"
-      >
-        <source src={speakingVideo} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+      {/* Image Background */}
+      <div 
+        className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat z-0"
+        style={{
+          backgroundImage: `url(${backgroundImage})`,
+        }}
+      ></div>
 
       {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/30 z-10"></div>
+      <div className="absolute inset-0 bg-black/40 z-10"></div>
 
       {/* Login Card */}
       <div className="relative z-20 w-full max-w-md">
@@ -156,7 +152,7 @@ const LoginForm = ({ onLogin }) => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-black/50 hover:gray-black/60 transition-colors duration-200"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white/90 transition-colors duration-200"
                   >
                     {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                   </button>
@@ -180,7 +176,7 @@ const LoginForm = ({ onLogin }) => {
                 <button
                   type="button"
                   onClick={handleForgotPasswordClick}
-                  className="text-sm text-[white] hover:text-white/80 transition-colors duration-200 drop-shadow"
+                  className="text-sm text-white/90 hover:text-white transition-colors duration-200 drop-shadow"
                 >
                   Forgot Password?
                 </button>
