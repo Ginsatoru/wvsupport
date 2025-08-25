@@ -4,6 +4,79 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "./context/SettingsContext";
 import enFlag from "./Components/Images/en.png";
 import khFlag from "./Components/Images/kh.png";
+import Support from "./Components/Images/supportm.jpg";
+import Projects from "./Components/Images/projectsm.jpg";
+import Who from "./Components/Images/whowearem.jpg";
+
+// Font loading optimization hook
+const useFontLoader = () => {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Check if fonts are loaded to prevent FOUT (Flash of Unstyled Text)
+    const checkFonts = async () => {
+      try {
+        await Promise.all([
+          document.fonts.load("400 16px Montserrat"),
+          document.fonts.load("400 16px Battambang"),
+        ]);
+        setFontsLoaded(true);
+      } catch (error) {
+        console.warn("Font loading failed:", error);
+        // Fallback: assume fonts are loaded after timeout
+        setTimeout(() => setFontsLoaded(true), 1000);
+      }
+    };
+
+    // Check if Font Loading API is supported
+    if (document.fonts && document.fonts.load) {
+      checkFonts();
+    } else {
+      // Fallback for browsers without Font Loading API
+      setTimeout(() => setFontsLoaded(true), 500);
+    }
+  }, []);
+
+  return fontsLoaded;
+};
+
+// Language font switcher hook
+const useLanguageFontSwitcher = () => {
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    const updateBodyClass = () => {
+      const body = document.body;
+      const html = document.documentElement;
+
+      // Remove existing language classes
+      body.classList.remove("lang-en", "lang-km");
+      html.classList.remove("lang-en", "lang-km");
+
+      // Add new language class based on current language
+      const langClass = `lang-${i18n.language}`;
+      body.classList.add(langClass);
+      html.classList.add(langClass);
+
+      // Update CSS custom properties for dynamic access
+      document.documentElement.style.setProperty(
+        "--current-lang-font",
+        i18n.language === "km" ? "var(--font-khmer)" : "var(--font-primary)"
+      );
+    };
+
+    // Update on initial load
+    updateBodyClass();
+
+    // Listen for language changes
+    i18n.on("languageChanged", updateBodyClass);
+
+    // Cleanup listener
+    return () => {
+      i18n.off("languageChanged", updateBodyClass);
+    };
+  }, [i18n]);
+};
 
 // Font loading optimization hook
 const useFontLoader = () => {
@@ -102,11 +175,17 @@ function Nav() {
       if (typeof translation === 'object') {
         console.warn(`Translation for "${key}" is an object, using key as fallback`);
         return key.split('.').pop(); // Return the last part of the key as fallback
+      if (typeof translation === "object") {
+        console.warn(
+          `Translation for "${key}" is an object, using key as fallback`
+        );
+        return key.split(".").pop(); // Return the last part of the key as fallback
       }
       return translation;
     } catch (error) {
       console.warn(`Translation error for "${key}":`, error);
       return key.split('.').pop(); // Return the last part of the key as fallback
+      return key.split(".").pop(); // Return the last part of the key as fallback
     }
   };
 
@@ -176,6 +255,7 @@ function Nav() {
           className={`w-full z-50 bg-[#0f8abe] shadow-md ${
             isHomePage ? "fixed" : "sticky top-0"
           } ${fontsLoaded ? 'font-loaded' : 'font-loading'}`}
+          } ${fontsLoaded ? "font-loaded" : "font-loading"}`}
         >
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
             <div className="flex items-center space-x-2 animate-pulse">
@@ -194,6 +274,7 @@ function Nav() {
   // Determine navbar positioning and styling based on page
   const getNavbarClasses = () => {
     const baseClasses = `${fontsLoaded ? 'font-loaded' : 'font-loading'}`;
+    const baseClasses = `${fontsLoaded ? "font-loaded" : "font-loading"}`;
     if (isHomePage) {
       return `fixed w-full z-50 transition-all duration-300 ${
         isScrolled ? "bg-[#0f8abe] shadow-md" : "bg-transparent shadow-none"
@@ -213,7 +294,6 @@ function Nav() {
       <nav className={getNavbarClasses()}>
         <div className="w-full px-4 sm:px-6 lg:px-0">
           <div className="flex justify-between items-center h-[52px] md:h-[56px] lg:h-[82px] mx-auto w-full lg:w-[88%] xl:w-[83%] 2xl:max-w-[1400px] [@media(min-width:1700px)]:max-w-[1500px]">
-
             {/* Logo */}
             <div className="flex items-center space-x-2">
               <Link
@@ -325,6 +405,81 @@ function Nav() {
                       <div className="w-2 h-2 bg-[#0f8abe]/30 rounded-full mr-3 transition-all duration-300 group-hover/item:bg-[#0f8abe] group-hover/item:scale-125"></div>
                       <span className="font-medium">{safeTranslate("whoWeAre")}</span>
                     </Link>
+                <div className="absolute right-0 mt-2 w-[64rem] origin-top-right rounded-2xl bg-white/95 backdrop-blur-xl shadow-2xl border border-white/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 group-hover:scale-100 scale-95">
+                  <div className="p-4">
+                    <div className="flex flex-row flex-wrap justify-between gap-1">
+                      {/* Project */}
+                      <Link
+                        to="/Project"
+                        className="flex flex-col items-center text-center p-3 rounded-xl hover:bg-gradient-to-b hover:from-[#0f8abe]/10 hover:to-[#0f8abe]/5 hover:shadow-md transition-all duration-300 group/item border border-transparent hover:border-[#0f8abe]/20 flex-1 min-w-[20rem] max-w-[22rem]"
+                      >
+                        <div className="space-y-1 mb-2">
+                          <h3 className="font-semibold text-base text-gray-900 group-hover/item:text-[#0f8abe] transition-colors duration-300">
+                            {safeTranslate("project")}
+                          </h3>
+                          <p className="text-xs text-gray-600 leading-snug group-hover/item:text-gray-700 transition-colors duration-300">
+                            Explore our innovative projects and cutting-edge
+                            solutions
+                          </p>
+                        </div>
+
+                        <div className="w-full h-48 rounded-xl overflow-hidden transition-transform duration-300 group-hover/item:scale-102 group-hover/item:shadow-lg">
+                          <img
+                            src={Projects}
+                            alt="Project"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover/item:scale-105"
+                          />
+                        </div>
+                      </Link>
+
+                      {/* Support */}
+                      <Link
+                        to="/Support"
+                        className="flex flex-col items-center text-center p-3 rounded-xl hover:bg-gradient-to-b hover:from-[#0f8abe]/10 hover:to-[#0f8abe]/5 hover:shadow-md transition-all duration-300 group/item border border-transparent hover:border-[#0f8abe]/20 flex-1 min-w-[20rem] max-w-[22rem]"
+                      >
+                        <div className="space-y-1 mb-2">
+                          <h3 className="font-semibold text-base text-gray-900 group-hover/item:text-[#0f8abe] transition-colors duration-300">
+                            {safeTranslate("support")}
+                          </h3>
+                          <p className="text-xs text-gray-600 leading-snug group-hover/item:text-gray-700 transition-colors duration-300">
+                            Get help and assistance from our dedicated support
+                            team
+                          </p>
+                        </div>
+
+                        <div className="w-full h-48 rounded-xl overflow-hidden transition-transform duration-300 group-hover/item:scale-102 group-hover/item:shadow-lg">
+                          <img
+                            src={Support}
+                            alt="Support"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover/item:scale-105"
+                          />
+                        </div>
+                      </Link>
+
+                      {/* Who We Are */}
+                      <Link
+                        to="/Whoweare"
+                        className="flex flex-col items-center text-center p-3 rounded-xl hover:bg-gradient-to-b hover:from-[#0f8abe]/10 hover:to-[#0f8abe]/5 hover:shadow-md transition-all duration-300 group/item border border-transparent hover:border-[#0f8abe]/20 flex-1 min-w-[20rem] max-w-[22rem]"
+                      >
+                        <div className="space-y-1 mb-2">
+                          <h3 className="font-semibold text-base text-gray-900 group-hover/item:text-[#0f8abe] transition-colors duration-300">
+                            {safeTranslate("whoWeAre")}
+                          </h3>
+                          <p className="text-xs text-gray-600 leading-snug group-hover/item:text-gray-700 transition-colors duration-300">
+                            Learn about our mission, values, and passionate team
+                            work
+                          </p>
+                        </div>
+
+                        <div className="w-full h-48 rounded-xl overflow-hidden transition-transform duration-300 group-hover/item:scale-102 group-hover/item:shadow-lg">
+                          <img
+                            src={Who}
+                            alt="Who We Are"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover/item:scale-105"
+                          />
+                        </div>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>

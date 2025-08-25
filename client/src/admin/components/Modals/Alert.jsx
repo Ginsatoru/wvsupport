@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle, X, AlertCircle } from 'lucide-react';
 
-export const ModernAlert = ({ message, type = 'success', onClose }) => {
+export const ModernAlert = ({ message, type = 'success', onClose, autoHide = true, duration = 5000 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -9,18 +9,23 @@ export const ModernAlert = ({ message, type = 'success', onClose }) => {
     // Trigger entrance animation
     setIsVisible(true);
 
-    // Auto-hide after 5 seconds
-    const timer = setTimeout(() => {
-      handleClose();
-    }, 5000);
+    // Auto-hide after specified duration (only if autoHide is true)
+    if (autoHide) {
+      const timer = setTimeout(() => {
+        handleClose();
+      }, duration);
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [autoHide, duration]);
 
   const handleClose = () => {
     setIsExiting(true);
     setTimeout(() => {
-      onClose();
+      // Only call onClose if it's provided and is a function
+      if (onClose && typeof onClose === 'function') {
+        onClose();
+      }
     }, 300); // Match exit animation duration
   };
 
@@ -28,9 +33,9 @@ export const ModernAlert = ({ message, type = 'success', onClose }) => {
     switch (type) {
       case 'success':
         return {
-          bgColor: 'bg-sky-500',
+          bgColor: 'bg-emerald-500',
           icon: <CheckCircle className="w-5 h-5" />,
-          borderColor: 'border-sky-400'
+          borderColor: 'border-emerald-400'
         };
       case 'error':
         return {
@@ -52,9 +57,9 @@ export const ModernAlert = ({ message, type = 'success', onClose }) => {
         };
       default:
         return {
-          bgColor: 'bg-sky-500',
+          bgColor: 'bg-emerald-500',
           icon: <CheckCircle className="w-5 h-5" />,
-          borderColor: 'border-sky-400'
+          borderColor: 'border-emerald-400'
         };
     }
   };
@@ -88,25 +93,29 @@ export const ModernAlert = ({ message, type = 'success', onClose }) => {
         <span className="text-sm font-medium leading-relaxed">{message}</span>
       </div>
       
-      {/* Close button with hover effect */}
-      <button 
-        onClick={handleClose}
-        className="flex-shrink-0 ml-2 p-1 rounded-full hover:bg-white/20 
-                   focus:outline-none focus:ring-2 focus:ring-white/50 
-                   transition-all duration-200 ease-in-out transform hover:scale-110"
-        aria-label="Close notification"
-      >
-        <X className="w-4 h-4" />
-      </button>
+      {/* Close button with hover effect - only show if onClose is provided */}
+      {onClose && (
+        <button 
+          onClick={handleClose}
+          className="flex-shrink-0 ml-2 p-1 rounded-full hover:bg-white/20 
+                     focus:outline-none focus:ring-2 focus:ring-white/50 
+                     transition-all duration-200 ease-in-out transform hover:scale-110"
+          aria-label="Close notification"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
 
-      {/* Progress bar */}
-      <div 
-        className="absolute bottom-0 left-0 h-1 bg-white/30 rounded-b-2xl"
-        style={{
-          width: '100%',
-          animation: isVisible && !isExiting ? 'progress 5s linear' : 'none'
-        }}
-      />
+      {/* Progress bar - only show if autoHide is enabled */}
+      {autoHide && (
+        <div 
+          className="absolute bottom-0 left-0 h-1 bg-white/30 rounded-b-2xl"
+          style={{
+            width: '100%',
+            animation: isVisible && !isExiting ? `progress ${duration}ms linear` : 'none'
+          }}
+        />
+      )}
 
       <style>{`
         @keyframes slideIn {

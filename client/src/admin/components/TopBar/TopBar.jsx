@@ -148,19 +148,16 @@ const TopBar = ({
             <div className="relative">
               <div className="h-10 w-10 sm:h-10 sm:w-10 rounded-2xl">
                 <img
-                  src= {tranlogo}
+                  src={tranlogo}
                   alt="Admin"
                   className="h-full w-full object-contain"
                 />
               </div>
             </div>
 
-            <h1
-              className="text-lg sm:text-3xl font-black bg-clip-text text-sky-400 hidden md:block"
-            >
+            <h1 className="text-lg sm:text-3xl font-bold bg-clip-text text-sky-400 hidden md:block">
               Dashboard
             </h1>
-
           </div>
 
           {/* Sidebar Toggle Button */}
@@ -253,7 +250,7 @@ const TopBar = ({
             className={`md:hidden p-1.5 rounded-xl ${
               darkMode
                 ? "text-sky-400 bg-gray-700 hover:bg-gray-600"
-                  : "text-sky-400 bg-gray-100 hover:bg-gray-200"
+                : "text-sky-400 bg-gray-100 hover:bg-gray-200"
             } transition-all duration-200`}
           >
             <FiSearch className="h-5 w-5" />
@@ -313,7 +310,7 @@ const TopBar = ({
             className={`p-1.5 sm:p-2.5 rounded-xl ${
               darkMode
                 ? "text-sky-400 bg-gray-700 hover:bg-gray-600"
-                  : "text-sky-400 bg-gray-100 hover:bg-gray-200"
+                : "text-sky-400 bg-gray-100 hover:bg-gray-200"
             } transition-all duration-200`}
           >
             {darkMode ? (
@@ -330,7 +327,7 @@ const TopBar = ({
             className={`p-1.5 sm:p-2.5 rounded-xl ${
               darkMode
                 ? "text-sky-400 bg-gray-700 hover:bg-gray-600"
-                  : "text-sky-400 bg-gray-100 hover:bg-gray-200"
+                : "text-sky-400 bg-gray-100 hover:bg-gray-200"
             } transition-all duration-200`}
             title="Visit Main Website"
           >

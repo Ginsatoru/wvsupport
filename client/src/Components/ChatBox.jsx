@@ -8,7 +8,6 @@ const socket = io(import.meta.env.VITE_BACKEND_URL, {
   withCredentials: true,
 });
 
-
 const ChatBox = () => {
   const [messages, setMessages] = useState([]);
   const [name, setName] = useState("");
@@ -175,6 +174,7 @@ const ChatBox = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 bg-[#0f8abe] rounded-full p-3 sm:p-4 text-white cursor-pointer z-[1002] flex items-center justify-center shadow-lg hover:bg-[#0d7ba8] transition-colors"
+        style={{ fontFamily: 'Montserrat, sans-serif' }}
       >
         <RiChat3Fill size={20} className="sm:w-6 sm:h-6" />
       </button>
@@ -185,27 +185,37 @@ const ChatBox = () => {
           <div className="sm:hidden absolute inset-0 bg-black bg-opacity-50" onClick={() => setIsOpen(false)} />
           
           {/* Chat container - Full screen on mobile, floating on desktop */}
-          <div className="absolute inset-0 sm:relative sm:inset-auto w-full h-full sm:w-[350px] sm:h-[450px] md:w-[380px] md:h-[600px] bg-white sm:rounded-xl shadow-xl flex flex-col overflow-hidden font-thin">
+          <div 
+            className="absolute inset-0 sm:relative sm:inset-auto w-full h-full sm:w-[350px] sm:h-[450px] md:w-[380px] md:h-[600px] bg-white sm:rounded-xl shadow-xl flex flex-col overflow-hidden font-normal"
+            style={{ fontFamily: 'Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+          >
             
             {/* Header */}
-            <div className="flex justify-between items-center p-3 bg-[#0f8abe] text-white">
+            <div 
+              className="flex justify-between items-center p-3 bg-[#0f8abe] text-white"
+              style={{ fontFamily: 'inherit' }}
+            >
               <div className="flex items-center gap-2">
                 <img src={logo} alt="Logo" className="h-5" />
-                <span className="text-lg font-semibold">Chat with us</span>
+                <span className="text-lg font-semibold" style={{ fontFamily: 'inherit' }}>Chat with us</span>
               </div>
               {/* Close button for mobile */}
               <button 
                 onClick={() => setIsOpen(false)}
                 className="sm:hidden text-white hover:text-gray-200 text-xl font-bold p-1"
+                style={{ fontFamily: 'inherit' }}
               >
                 ×
               </button>
             </div>
 
             {/* Messages area */}
-            <div className="flex-1 p-3 overflow-y-auto bg-gray-100">
+            <div className="flex-1 p-3 overflow-y-auto bg-gray-100" style={{ fontFamily: 'inherit' }}>
               {messages.length === 0 ? (
-                <div className="text-center text-gray-600 py-5 italic text-sm px-4">
+                <div 
+                  className="text-center text-gray-600 py-5 italic text-sm px-4"
+                  style={{ fontFamily: 'inherit' }}
+                >
                   Got any questions? We are here to help.
                 </div>
               ) : (
@@ -217,18 +227,28 @@ const ChatBox = () => {
                         ? "mr-4 sm:mr-16 bg-white text-gray-800 self-start"
                         : "ml-4 sm:ml-16 bg-[#0f8abe] text-white self-end"
                     }`}
+                    style={{ fontFamily: 'inherit' }}
                   >
-                    <div className="mb-1">
-                      <strong className={`text-xs font-bold ${msg.isAdmin ? "text-gray-800" : "text-white"}`}>
+                    <div className="mb-1" style={{ fontFamily: 'inherit' }}>
+                      <strong 
+                        className={`text-xs font-bold ${msg.isAdmin ? "text-gray-800" : "text-white"}`}
+                        style={{ fontFamily: 'inherit' }}
+                      >
                         {msg.name}:
                       </strong>
                     </div>
-                    <div className={`text-sm leading-relaxed ${msg.isAdmin ? "text-gray-700" : "text-white"}`}>
+                    <div 
+                      className={`text-sm leading-relaxed ${msg.isAdmin ? "text-gray-700" : "text-white"}`}
+                      style={{ fontFamily: 'inherit' }}
+                    >
                       {msg.content}
                     </div>
-                    <div className={`text-xs text-right mt-1 ${
-                      msg.isAdmin ? "text-gray-500" : "text-white/80"
-                    }`}>
+                    <div 
+                      className={`text-xs text-right mt-1 ${
+                        msg.isAdmin ? "text-gray-500" : "text-white/80"
+                      }`}
+                      style={{ fontFamily: 'inherit' }}
+                    >
                       {msg.time}
                     </div>
                   </div>
@@ -238,13 +258,18 @@ const ChatBox = () => {
             </div>
 
             {/* Input form */}
-            <form onSubmit={handleSubmit} className="p-3 bg-white border-t border-gray-200 space-y-2">
+            <form 
+              onSubmit={handleSubmit} 
+              className="p-3 bg-white border-t border-gray-200 space-y-2"
+              style={{ fontFamily: 'inherit' }}
+            >
               <input
                 type="text"
                 placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-3 py-1.5 h-8 border border-gray-300 rounded text-sm focus:border-[#0f8abe] focus:outline-none"
+                style={{ fontFamily: 'inherit' }}
               />
               <input
                 type="email"
@@ -252,6 +277,7 @@ const ChatBox = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3 py-1.5 h-8 border border-gray-300 rounded text-sm focus:border-[#0f8abe] focus:outline-none"
+                style={{ fontFamily: 'inherit' }}
               />
               <textarea
                 placeholder="Type your message..."
@@ -260,6 +286,7 @@ const ChatBox = () => {
                 required
                 rows={2}
                 className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:border-[#0f8abe] focus:outline-none min-h-[60px] max-h-[100px] resize-none"
+                style={{ fontFamily: 'inherit' }}
               />
               <button
                 type="submit"
@@ -269,6 +296,7 @@ const ChatBox = () => {
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-[#0f8abe] hover:bg-[#0d7ba8] cursor-pointer"
                 }`}
+                style={{ fontFamily: 'inherit' }}
               >
                 {status === "sending" ? (
                   <>
@@ -280,7 +308,10 @@ const ChatBox = () => {
                 )}
               </button>
               {status === "error" && (
-                <div className="mt-2 px-3 py-2 bg-red-100 text-red-800 text-sm text-center rounded">
+                <div 
+                  className="mt-2 px-3 py-2 bg-red-100 text-red-800 text-sm text-center rounded"
+                  style={{ fontFamily: 'inherit' }}
+                >
                   {error}
                 </div>
               )}

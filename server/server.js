@@ -30,6 +30,7 @@ const settingsRouter = require("./routes/settings");
 const authRouter = require("./routes/auth");
 const analyticsRouter = require("./routes/analytics");
 const analyticsController = require("./controllers/analyticsController");
+const contactRoutes = require("./routes/contactRoutes");
 
 // Initialize Express and HTTP server
 const app = express();
@@ -285,6 +286,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/team", teamRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use("/api/contact", contactRoutes);
 
 // ======================
 // ADMIN AUTHENTICATION
