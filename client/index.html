@@ -201,7 +201,7 @@
     />
 
     <!-- Site Verification (add your verification codes) -->
-    <meta name="msvalidate.01" content="9A596A3158324C28BB5FA28892CBDDD8" />
+    <meta name="msvalidate.01" content="6A50D396F6D8ADAC15684AB87388A411" />
 
     <!-- <meta name="msvalidate.01" content="your-bing-verification-code" /> -->
   </head>
@@ -221,11 +221,15 @@
     >
 
     <!-- SEO-friendly fallback content with proper H1 structure -->
-    <div id="seo-fallback" style="display: none;">
+    <div id="seo-fallback" style="display: none">
       <h1>WV Support Services Cambodia - Professional IT Support</h1>
       <h2>Expert Technical Assistance for Australian Clients</h2>
-      <p>Based in Siem Reap, Cambodia, we provide comprehensive IT support services including software troubleshooting, connectivity solutions, and database management for Australian businesses.</p>
-      
+      <p>
+        Based in Siem Reap, Cambodia, we provide comprehensive IT support
+        services including software troubleshooting, connectivity solutions, and
+        database management for Australian businesses.
+      </p>
+
       <h2>Our IT Support Services</h2>
       <ul>
         <li>Software Error Resolution</li>
@@ -234,9 +238,12 @@
         <li>Technical Troubleshooting</li>
         <li>Remote IT Assistance</li>
       </ul>
-      
+
       <h2>Why Choose WV Support Services?</h2>
-      <p>Professional, reliable IT support tailored specifically for Australian clients, delivered by experienced technicians based in Cambodia.</p>
+      <p>
+        Professional, reliable IT support tailored specifically for Australian
+        clients, delivered by experienced technicians based in Cambodia.
+      </p>
     </div>
 
     <!-- Main Application -->
@@ -265,19 +272,24 @@
           assistance to resolve software errors, connectivity problems, and
           database issues for Australian businesses and individuals.
         </p>
-        
+
         <h3>Our Services Include:</h3>
-        <ul style="text-align: left; display: inline-block;">
+        <ul style="text-align: left; display: inline-block">
           <li>Software Error Resolution</li>
           <li>Connectivity Problem Solving</li>
           <li>Database Issue Management</li>
           <li>Technical Troubleshooting</li>
           <li>Remote IT Assistance</li>
         </ul>
-        
-        <p><strong>Please enable JavaScript to access our full website experience.</strong></p>
-        
-        <div style="margin-top: 30px;">
+
+        <p>
+          <strong
+            >Please enable JavaScript to access our full website
+            experience.</strong
+          >
+        </p>
+
+        <div style="margin-top: 30px">
           <h3>Contact Information</h3>
           <p>Location: Siem Reap City Center, Cambodia</p>
           <p>Serving: Australian Clients Worldwide</p>
@@ -291,28 +303,29 @@
     <!-- SEO Enhancement Script -->
     <script>
       // Ensure H1 tag is visible to crawlers even with JavaScript
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener("DOMContentLoaded", function () {
         // Make SEO fallback content temporarily visible for crawlers
-        const seoFallback = document.getElementById('seo-fallback');
+        const seoFallback = document.getElementById("seo-fallback");
         if (seoFallback) {
           // Show briefly for crawlers, then hide for users
-          seoFallback.style.display = 'block';
-          seoFallback.style.position = 'absolute';
-          seoFallback.style.left = '-9999px';
-          seoFallback.style.top = '0';
-          
+          seoFallback.style.display = "block";
+          seoFallback.style.position = "absolute";
+          seoFallback.style.left = "-9999px";
+          seoFallback.style.top = "0";
+
           // For crawlers that execute JavaScript, ensure content is discoverable
-          setTimeout(function() {
+          setTimeout(function () {
             if (window.navigator && window.navigator.userAgent) {
               const userAgent = window.navigator.userAgent.toLowerCase();
-              const isCrawler = userAgent.includes('bot') || 
-                               userAgent.includes('crawler') || 
-                               userAgent.includes('spider') ||
-                               userAgent.includes('googlebot') ||
-                               userAgent.includes('bingbot');
-              
+              const isCrawler =
+                userAgent.includes("bot") ||
+                userAgent.includes("crawler") ||
+                userAgent.includes("spider") ||
+                userAgent.includes("googlebot") ||
+                userAgent.includes("bingbot");
+
               if (!isCrawler) {
-                seoFallback.style.display = 'none';
+                seoFallback.style.display = "none";
               }
             }
           }, 100);
