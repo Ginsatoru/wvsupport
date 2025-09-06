@@ -9,7 +9,8 @@ import {
   Search,
   ChevronLeft,
 } from "lucide-react";
-import Team from "../TeamSection"; // Import the CMSTeam component
+import Team from "./TeamSection/TeamManagement";
+import Hero from "./HeroSection/HeroManagement";
 
 const CMSContainer = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -186,7 +187,9 @@ const CMSContainer = () => {
     // Handle specific section views
     switch (currentSection.id) {
       case "team":
-        return <Team />; // Use the imported CMSTeam component
+        return <Team />;
+      case "hero":
+        return <Hero />;
       default:
         return (
           <div className="p-6">

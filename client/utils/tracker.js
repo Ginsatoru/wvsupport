@@ -122,7 +122,7 @@ class AnalyticsTracker {
     const timeSpent = Math.round((new Date() - this.pageLoadTime) / 1000); // in seconds
     const path = window.location.pathname;
 
-    const data = JSON.stringify({
+    const data = {
       path,
       visitorId: this.visitorId,
       engagement: {
@@ -130,11 +130,14 @@ class AnalyticsTracker {
         scrollDepth: this.maxScrollDepth,
         timeSpent: timeSpent
       }
-    });
+    };
 
-    // Use sendBeacon for reliable data transmission during page unload
+    // Use sendBeacon with Blob to ensure proper Content-Type
     if (navigator.sendBeacon) {
-      navigator.sendBeacon('/api/analytics/track', data);
+      const blob = new Blob([JSON.stringify(data)], {
+        type: 'application/json'
+      });
+      navigator.sendBeacon('/api/analytics/track', blob);
     } else {
       // Fallback for browsers that don't support sendBeacon
       try {
@@ -143,7 +146,7 @@ class AnalyticsTracker {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: data,
+          body: JSON.stringify(data),
           keepalive: true
         });
       } catch (error) {

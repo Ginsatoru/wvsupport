@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { getTeamMembers, deleteTeamMember } from "../../../services/api";
+import { getTeamMembers, deleteTeamMember } from "../../../../services/api";
 import { Layout, Plus, Loader2, Search, Trash2 } from "lucide-react";
-import ItemList from "./Layout/ItemList";
-import AddSectionModal from "./Layout/AddSectionModal";
-import EditModal from "./Layout/EditModal";
-import { ModernAlert } from "../Modals/Alert";
+import ItemList from "./ItemList";
+import AddSectionModal from "./AddSectionModal";
+import EditModal from "./EditModal";
+import { ModernAlert } from "../../Modals/Alert";
 
 const CMSTeam = () => {
   const [teamMembers, setTeamMembers] = useState([]);

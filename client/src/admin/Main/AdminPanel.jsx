@@ -11,7 +11,7 @@ import TopBar from "../components/TopBar/TopBar";
 import Dashboard from "../components/Dashbaord/Dashboard";
 import OpenMessage from "../components/Inbox/OpenMessagesPage";
 import ClosedMessage from "../components/Inbox/ClosedMessagesPage";
-import CMS from "../components/FrontendPages/Layout/CMSContainer.jsx";
+import CMS from "../components/FrontendPages/CMSContainer.jsx";
 import Settings from "../components/Settings/Settings";
 import ConfirmationModal from "../components/Modals/ConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";

@@ -6,13 +6,13 @@ const { getCountryFromIP } = require("../utils/geoIP");
 // Track a new visit - POST /api/analytics/track
 exports.trackVisit = async (req, res) => {
   try {
-    const { path, visitorId } = req.body;
+    const { path, visitorId } = req.body || {};
 
     // Validate required fields
     if (!path || !visitorId) {
       return res.status(400).json({
         success: false,
-        error: "Missing required fields: path and visitorId are required",
+        error: "Missing required fields: path and visitorId are required"
       });
     }
 
@@ -71,8 +71,7 @@ exports.trackVisit = async (req, res) => {
     console.error("Error tracking visit:", error);
     res.status(500).json({
       success: false,
-      error: "Server error",
-      message: error.message,
+      error: "Server error"
     });
   }
 };
