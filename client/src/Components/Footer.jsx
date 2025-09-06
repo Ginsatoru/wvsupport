@@ -11,7 +11,7 @@ import {
   FaCheckCircle,
   FaTimes,
 } from "react-icons/fa";
-import { FiInfo } from "react-icons/fi"; 
+import { FiInfo } from "react-icons/fi";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useSettings } from "../context/SettingsContext";
 import { useTranslation } from "react-i18next";
