@@ -38,6 +38,7 @@ function App() {
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [trackerInitialized, setTrackerInitialized] = useState(false);
 
   // Define paths where Nav, Footer, and ChatBox should be hidden
   const hideLayoutPaths = ["/admin", "/admin/login", "/admin-panel"];
@@ -45,8 +46,21 @@ function App() {
     location.pathname.startsWith(path)
   );
 
+  // Initialize tracker only once when app starts (not on admin pages)
   useEffect(() => {
-    initTracker(); // Initialize the analytics tracker
+    if (!trackerInitialized && !hideLayout) {
+      try {
+        initTracker();
+        setTrackerInitialized(true);
+        console.log("Analytics tracker initialized");
+      } catch (error) {
+        console.error("Failed to initialize analytics tracker:", error);
+      }
+    }
+  }, [hideLayout, trackerInitialized]);
+
+  // Handle scroll to top on route changes
+  useEffect(() => {
     window.scrollTo(0, 0);
   }, [location]);
 

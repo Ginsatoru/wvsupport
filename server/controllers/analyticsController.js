@@ -3,7 +3,136 @@ const Visit = require("../models/Visit");
 const { parseUserAgent } = require("../utils/userAgentParser");
 const { getCountryFromIP } = require("../utils/geoIP");
 
-// Get today's stats
+// Track a new visit - POST /api/analytics/track
+exports.trackVisit = async (req, res) => {
+  try {
+    const { path, visitorId } = req.body;
+
+    // Validate required fields
+    if (!path || !visitorId) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing required fields: path and visitorId are required",
+      });
+    }
+
+    // Get IP address
+    const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || 
+              req.connection.remoteAddress || 
+              req.socket.remoteAddress || 
+              "unknown";
+
+    // Get user agent
+    const userAgent = req.headers["user-agent"] || "";
+
+    // Parse user agent for browser, OS, device info
+    let browser = "unknown", deviceType = "unknown", os = "unknown";
+    try {
+      const parsed = parseUserAgent(userAgent);
+      browser = parsed.browser || "unknown";
+      deviceType = parsed.deviceType || "unknown";
+      os = parsed.os || "unknown";
+    } catch (error) {
+      console.warn("Error parsing user agent:", error);
+    }
+
+    // Get country from IP
+    let country = "Unknown";
+    try {
+      country = await getCountryFromIP(ip) || "Unknown";
+    } catch (error) {
+      console.warn("Error getting country from IP:", error);
+    }
+
+    // Create visit record
+    const visit = new Visit({
+      path,
+      ip,
+      visitorId,
+      userAgent,
+      country,
+      browser,
+      deviceType,
+      os,
+      engagement: {
+        clicks: 0,
+        scrollDepth: 0,
+        timeSpent: 0,
+      },
+    });
+
+    await visit.save();
+    
+    res.status(201).json({ 
+      success: true,
+      message: "Visit tracked successfully"
+    });
+  } catch (error) {
+    console.error("Error tracking visit:", error);
+    res.status(500).json({
+      success: false,
+      error: "Server error",
+      message: error.message,
+    });
+  }
+};
+
+// Get overview stats - GET /api/analytics/overview
+exports.getOverviewStats = async (req, res) => {
+  try {
+    // Get today's date range
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
+    // Get today's stats
+    const todayStats = await Visit.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startOfToday, $lte: endOfToday }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          todayViews: { $sum: 1 },
+          todayVisitors: { $addToSet: "$visitorId" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          todayViews: 1,
+          todayVisitors: { $size: "$todayVisitors" }
+        }
+      }
+    ]);
+
+    // Get total views (all time)
+    const totalViews = await Visit.countDocuments();
+
+    // Prepare response
+    const result = {
+      todayViews: todayStats[0]?.todayViews || 0,
+      todayVisitors: todayStats[0]?.todayVisitors || 0,
+      totalViews: totalViews
+    };
+
+    // Cache control - 5 minutes for dashboard
+    res.set('Cache-Control', 'public, max-age=300');
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching overview stats:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error' 
+    });
+  }
+};
+
+// Get today's stats only - GET /api/analytics/today
 exports.getTodayStats = async (req, res) => {
   try {
     // Get start of today and now
@@ -17,7 +146,7 @@ exports.getTodayStats = async (req, res) => {
     const stats = await Visit.aggregate([
       {
         $match: {
-          timestamp: { $gte: startOfToday, $lte: endOfToday }
+          createdAt: { $gte: startOfToday, $lte: endOfToday }
         }
       },
       {
@@ -48,68 +177,7 @@ exports.getTodayStats = async (req, res) => {
   }
 };
 
-// Track a new visit
-exports.trackVisit = async (req, res) => {
-  try {
-    // Validate request body
-    if (!req.body || typeof req.body !== "object") {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid request body",
-      });
-    }
-
-    const { path, sessionId, engagement = {} } = req.body;
-
-    // Validate required fields
-    if (!path || !sessionId) {
-      return res.status(400).json({
-        success: false,
-        error: "Missing required fields: path and sessionId are required",
-      });
-    }
-
-    const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-
-    // Parse user agent
-    const userAgent = req.headers["user-agent"] || "";
-    const {
-      browser = "unknown",
-      deviceType = "unknown",
-      os = "unknown",
-    } = parseUserAgent(userAgent);
-
-    // Get country from IP
-    const country = await getCountryFromIP(ip);
-
-    const visit = new Visit({
-      path,
-      ip,
-      country,
-      browser,
-      deviceType,
-      os,
-      sessionId,
-      engagement: {
-        clicks: engagement.clicks || 0,
-        scrollDepth: engagement.scrollDepth || 0,
-        timeSpent: engagement.timeSpent || 0,
-      },
-    });
-
-    await visit.save();
-    res.status(201).json({ success: true });
-  } catch (error) {
-    console.error("Error tracking visit:", error);
-    res.status(500).json({
-      success: false,
-      error: "Server error",
-      message: error.message,
-    });
-  }
-};
-
-// Get analytics summary for dashboard
+// Get analytics summary for dashboard - GET /api/analytics/summary
 exports.getAnalyticsSummary = async (req, res) => {
   try {
     // Time frame (default: last 30 days)
@@ -121,9 +189,10 @@ exports.getAnalyticsSummary = async (req, res) => {
     const totalVisits = await Visit.countDocuments({
       createdAt: { $gte: startDate },
     });
-    const uniqueVisitors = await Visit.distinct("ip", {
+    
+    const uniqueVisitors = await Visit.distinct("visitorId", {
       createdAt: { $gte: startDate },
-    }).then((ips) => ips.length);
+    }).then((ids) => ids.length);
 
     // Top countries
     const topCountries = await Visit.aggregate([

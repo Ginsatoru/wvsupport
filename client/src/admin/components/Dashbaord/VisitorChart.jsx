@@ -5,7 +5,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   Area,
   AreaChart,
@@ -26,7 +25,9 @@ const CustomTooltip = ({ active, payload, label, darkMode }) => {
           WebkitBackdropFilter: "blur(8px)",
         }}
       >
-        <p className="font-semibold text-sm mb-1">{label}</p>
+        <p className="font-semibold text-sm mb-1">
+          {new Date(label).toLocaleDateString()}
+        </p>
         <p className="text-lg font-bold" style={{ color: payload[0].color }}>
           {payload[0].value.toLocaleString()} visits
         </p>
@@ -51,49 +52,103 @@ const CustomDot = ({ cx, cy, payload, darkMode }) => {
   );
 };
 
-const VisitorChart = ({ data = [], darkMode = false }) => {
+/**
+ * VisitorChart Component - Updated for Analytics Integration
+ * 
+ * @param {Object} props
+ * @param {Array} props.data - Visit trends data from API: [{date: "2025-01-15", count: 25}, ...]
+ * @param {boolean} props.isLoading - Loading state
+ * @param {string} props.error - Error message
+ * @param {boolean} props.darkMode - Dark mode toggle
+ */
+const VisitorChart = ({ 
+  data = [], 
+  isLoading = false, 
+  error = null, 
+  darkMode = false 
+}) => {
   // Format data for the chart
   const chartData = data.map((item) => ({
     name: item.date,
-    visits: item.count,
+    date: item.date,
+    visits: item.count || 0,
   }));
 
   // Calculate stats
   const totalVisitors = chartData.reduce((sum, day) => sum + day.visits, 0);
-  const avgVisitors = Math.round(totalVisitors / chartData.length) || 0;
-  const maxDay =
-    chartData.length > 0
-      ? chartData.reduce(
-          (max, day) => (day.visits > max.visits ? day : max),
-          chartData[0]
-        )
-      : { name: "N/A", visits: 0 };
+  const avgVisitors = chartData.length > 0 ? Math.round(totalVisitors / chartData.length) : 0;
+  const maxDay = chartData.length > 0
+    ? chartData.reduce((max, day) => (day.visits > max.visits ? day : max), chartData[0])
+    : { name: "N/A", visits: 0 };
 
-  // If no data, show a placeholder
+  // Error state
+  if (error) {
+    return (
+      <div className={`relative p-6 sm:p-8 lg:p-11 rounded-2xl transition-all duration-300 border ${
+        darkMode
+          ? "bg-red-900/10 border-red-800"
+          : "bg-red-50 border-red-200"
+      }`}>
+        <div className="flex flex-col items-center justify-center h-80 text-center">
+          <svg className={`w-12 h-12 mb-4 ${darkMode ? "text-red-400" : "text-red-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-red-400" : "text-red-600"}`}>
+            Failed to Load Chart Data
+          </h3>
+          <p className={`text-sm ${darkMode ? "text-red-300" : "text-red-500"}`}>
+            {error || "Unable to fetch visitor trends"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className={`relative p-6 sm:p-8 lg:p-11 rounded-2xl transition-all duration-300 border ${
+        darkMode
+          ? "bg-gray-800 border-gray-700"
+          : "bg-white border-gray-200"
+      }`}>
+        <div className="animate-pulse">
+          {/* Header skeleton */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+            <div>
+              <div className={`h-6 w-32 mb-2 rounded ${darkMode ? "bg-gray-600" : "bg-gray-200"}`} />
+              <div className={`h-4 w-48 rounded ${darkMode ? "bg-gray-600" : "bg-gray-200"}`} />
+            </div>
+            <div className="flex gap-4 mt-4 sm:mt-0">
+              <div className={`h-12 w-20 rounded-lg ${darkMode ? "bg-gray-600" : "bg-gray-200"}`} />
+              <div className={`h-12 w-20 rounded-lg ${darkMode ? "bg-gray-600" : "bg-gray-200"}`} />
+              <div className={`h-12 w-20 rounded-lg ${darkMode ? "bg-gray-600" : "bg-gray-200"}`} />
+            </div>
+          </div>
+          {/* Chart skeleton */}
+          <div className={`h-80 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-100"}`} />
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state
   if (chartData.length === 0) {
     return (
-      <div
-        className={`
-        relative p-6 rounded-2xl transition-all duration-300 border
-        ${
-          darkMode
-            ? "bg-gradient-to-br from-gray-900 to-gray-900 border-gray-700"
-            : "bg-gradient-to-br from-white to-gray-50 border-gray-200"
-        }
-      `}
-        style={{
-          boxShadow: darkMode
-            ? "0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-            : "0 10px 30px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-        }}
-      >
-        <div className="flex flex-col items-center justify-center h-80">
-          <p
-            className={`text-lg ${
-              darkMode ? "text-gray-400" : "text-gray-500"
-            }`}
-          >
-            No visitor data available
+      <div className={`relative p-6 sm:p-8 lg:p-11 rounded-2xl transition-all duration-300 border ${
+        darkMode
+          ? "bg-gray-800 border-gray-700"
+          : "bg-white border-gray-200"
+      }`}>
+        <div className="flex flex-col items-center justify-center h-80 text-center">
+          <svg className={`w-16 h-16 mb-4 ${darkMode ? "text-gray-500" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <h3 className={`text-lg font-semibold mb-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+            No Visitor Data Available
+          </h3>
+          <p className={`text-sm ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+            Visit data will appear here once your site starts receiving traffic
           </p>
         </div>
       </div>
@@ -102,78 +157,61 @@ const VisitorChart = ({ data = [], darkMode = false }) => {
 
   return (
     <div
-      className={`
-    relative p-11 rounded-2xl transition-all duration-300 border
-    ${
-      darkMode
-        ? "bg-gradient-to-br from-gray-900 to-gray-900 border-gray-700"
-        : "bg-gradient-to-br from-white to-gray-50 border-gray-200"
-    }
-  `}
+      className={`relative p-6 sm:p-8 lg:p-11 rounded-2xl transition-all duration-300 border hover:shadow-lg ${
+        darkMode
+          ? "bg-gray-800 border-gray-700"
+          : "bg-white border-gray-200"
+      }`}
       style={{
         boxShadow: darkMode
-          ? "0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-          : "0 10px 30px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-        ...(window.innerWidth >= 1480 &&
-          window.innerWidth < 1520 && {
-            height: "640px",
-          }),
+          ? "0 10px 30px rgba(0, 0, 0, 0.3)"
+          : "0 10px 30px rgba(0, 0, 0, 0.08)",
       }}
     >
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
         <div>
-          <h2
-            className={`text-xl sm:text-2xl font-bold mb-2 ${
-              darkMode ? "text-white" : "text-gray-900"
-            }`}
-          >
-            Visit Trends
+          <h2 className={`text-xl sm:text-2xl font-bold mb-2 ${
+            darkMode ? "text-white" : "text-gray-900"
+          }`}>
+            Visitor Trends
           </h2>
-          <p
-            className={`text-sm ${
-              darkMode ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
-            Tracking your site's visit patterns
+          <p className={`text-sm ${
+            darkMode ? "text-gray-400" : "text-gray-600"
+          }`}>
+            Daily visitor patterns over time
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="flex flex-wrap gap-3 sm:gap-4">
-          <div
-            className={`px-3 py-2 rounded-lg backdrop-blur-sm border ${
-              darkMode
-                ? "bg-blue-900/30 border-blue-700/50 text-blue-300"
-                : "bg-blue-50 border-blue-200 text-blue-700"
-            }`}
-          >
+          <div className={`px-3 py-2 rounded-lg border ${
+            darkMode
+              ? "bg-blue-900/30 border-blue-700/50 text-blue-300"
+              : "bg-blue-50 border-blue-200 text-blue-700"
+          }`}>
             <p className="text-xs font-medium opacity-80">Total</p>
             <p className="text-sm font-bold">
               {totalVisitors.toLocaleString()}
             </p>
           </div>
 
-          <div
-            className={`px-3 py-2 rounded-lg backdrop-blur-sm border ${
-              darkMode
-                ? "bg-green-900/30 border-green-700/50 text-green-300"
-                : "bg-green-50 border-green-200 text-green-700"
-            }`}
-          >
-            <p className="text-xs font-medium opacity-80">Average</p>
+          <div className={`px-3 py-2 rounded-lg border ${
+            darkMode
+              ? "bg-emerald-900/30 border-emerald-700/50 text-emerald-300"
+              : "bg-emerald-50 border-emerald-200 text-emerald-700"
+          }`}>
+            <p className="text-xs font-medium opacity-80">Daily Avg</p>
             <p className="text-sm font-bold">{avgVisitors.toLocaleString()}</p>
           </div>
 
-          <div
-            className={`px-3 py-2 rounded-lg backdrop-blur-sm border ${
-              darkMode
-                ? "bg-purple-900/30 border-purple-700/50 text-purple-300"
-                : "bg-purple-50 border-purple-200 text-purple-700"
-            }`}
-          >
-            <p className="text-xs font-medium opacity-80">Peak</p>
-            <p className="text-sm font-bold">{maxDay.name}</p>
+          <div className={`px-3 py-2 rounded-lg border ${
+            darkMode
+              ? "bg-purple-900/30 border-purple-700/50 text-purple-300"
+              : "bg-purple-50 border-purple-200 text-purple-700"
+          }`}>
+            <p className="text-xs font-medium opacity-80">Peak Day</p>
+            <p className="text-sm font-bold">{maxDay.visits}</p>
           </div>
         </div>
       </div>
@@ -209,6 +247,17 @@ const VisitorChart = ({ data = [], darkMode = false }) => {
               tickLine={false}
               axisLine={false}
               className="text-xs sm:text-sm"
+              tickFormatter={(value) => {
+                try {
+                  const date = new Date(value);
+                  return date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                  });
+                } catch {
+                  return value;
+                }
+              }}
             />
             <YAxis
               stroke={darkMode ? "#9ca3af" : "#6b7280"}
@@ -255,36 +304,15 @@ const VisitorChart = ({ data = [], darkMode = false }) => {
             />
           </AreaChart>
         </ResponsiveContainer>
-
-        {/* Grid overlay for better visual separation */}
-        <div
-          className={`absolute inset-0 pointer-events-none ${
-            darkMode ? "opacity-5" : "opacity-10"
-          }`}
-          style={{
-            backgroundImage: `linear-gradient(${
-              darkMode ? "#fff" : "#000"
-            } 1px, transparent 1px),
-                           linear-gradient(90deg, ${
-                             darkMode ? "#fff" : "#000"
-                           } 1px, transparent 1px)`,
-            backgroundSize: "50px 30px",
-          }}
-        />
       </div>
 
       {/* Bottom info */}
-      <div
-        className={`mt-4 pt-4 border-t text-center ${
-          darkMode
-            ? "border-gray-700 text-gray-400"
-            : "border-gray-200 text-gray-500"
-        }`}
-      >
-        <p className="text-xs sm:text-sm">
-          Data refreshed every hour • Last update:{" "}
-          {new Date().toLocaleTimeString()}
-        </p>
+      <div className={`mt-4 pt-4 border-t text-center text-xs ${
+        darkMode
+          ? "border-gray-700 text-gray-400"
+          : "border-gray-200 text-gray-500"
+      }`}>
+        Data updated in real-time • Last refresh: {new Date().toLocaleTimeString()}
       </div>
     </div>
   );

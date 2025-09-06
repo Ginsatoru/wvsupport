@@ -11,12 +11,12 @@ import {
   FiFileText,
   FiChevronDown,
   FiChevronRight,
-  FiStar,
   FiTrendingUp,
   FiArchive,
   FiUserPlus,
 } from "react-icons/fi";
 import MessagesContainer from "../Inbox/MessagesContainer";
+import VisitorRecord from "./VisitorRecord";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Sidebar = ({
@@ -36,42 +36,6 @@ const Sidebar = ({
     management: false,
     content: false,
   });
-
-  // State for today's stats
-  const [todayStats, setTodayStats] = useState({
-    viewers: 0,
-    visitors: 0,
-    loading: true,
-  });
-
-  // Fetch today's stats
-  useEffect(() => {
-    const fetchTodayStats = async () => {
-      try {
-        const response = await fetch("/api/analytics/today");
-        if (!response.ok) throw new Error("Failed to fetch stats");
-
-        const data = await response.json();
-        setTodayStats({
-          viewers: data.totalViews || 0,
-          visitors: data.uniqueVisitors || 0,
-          loading: false,
-        });
-      } catch (error) {
-        console.error("Error fetching today stats:", error);
-        setTodayStats((prev) => ({
-          ...prev,
-          loading: false,
-        }));
-      }
-    };
-
-    fetchTodayStats();
-
-    // Optional: Refresh data every 5 minutes (matches cache duration)
-    const interval = setInterval(fetchTodayStats, 300000);
-    return () => clearInterval(interval);
-  }, []);
 
   const toggleSection = (section) => {
     setExpandedSections((prev) => ({
@@ -434,74 +398,7 @@ const Sidebar = ({
     >
       <div>
         {/* Quick Stats */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              className={`p-4 -mt-4 ${
-                darkMode ? "border-gray-700" : "border-gray-100"
-              }`}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div
-                className={`rounded-xl p-4 ${
-                  darkMode ? "bg-gray-700" : "bg-sky-100"
-                }`}
-              >
-                <div className="flex items-center justify-around mb-5">
-                  <span
-                    className={`text-sm font-medium ${
-                      darkMode ? "text-gray-300" : "text-gray-600"
-                    }`}
-                  >
-                    Today's Overview
-                  </span>
-                  <FiStar
-                    className={`h-5 w-5 ${
-                      darkMode ? "text-sky-400" : "text-sky-400"
-                    }`}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center">
-                    {todayStats.loading ? (
-                      <div className="h-8 w-12 mx-auto bg-gray-300 dark:bg-gray-600 rounded-md animate-pulse"></div>
-                    ) : (
-                      <p className="text-2xl font-bold text-sky-400">
-                        {todayStats.viewers}
-                      </p>
-                    )}
-                    <p
-                      className={`text-sm ${
-                        darkMode ? "text-gray-300" : "text-gray-500"
-                      }`}
-                    >
-                      Viewers
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    {todayStats.loading ? (
-                      <div className="h-8 w-12 mx-auto bg-gray-300 dark:bg-gray-600 rounded-md animate-pulse"></div>
-                    ) : (
-                      <p className="text-2xl font-bold text-sky-400">
-                        {todayStats.visitors}
-                      </p>
-                    )}
-                    <p
-                      className={`text-sm ${
-                        darkMode ? "text-gray-300" : "text-gray-500"
-                      }`}
-                    >
-                      Visitors
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <VisitorRecord darkMode={darkMode} isOpen={isOpen} />
 
         {/* Navigation */}
         <nav className="flex-1 p-4 overflow-y-auto">
@@ -522,7 +419,7 @@ const Sidebar = ({
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        V1.2
+        V1.3
       </motion.div>
     </motion.div>
   );

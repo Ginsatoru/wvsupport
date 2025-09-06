@@ -4,37 +4,41 @@ const mongoose = require('mongoose');
 const VisitSchema = new mongoose.Schema({
   path: {
     type: String,
-    required: true
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
+    required: true,
+    index: true
   },
   ip: {
+    type: String,
+    required: true,
+    index: true
+  },
+  visitorId: {
+    type: String,
+    required: true,
+    index: true  // This is the persistent visitor ID from localStorage
+  },
+  userAgent: {
     type: String,
     required: true
   },
   country: {
     type: String,
-    required: true
+    default: 'Unknown'
   },
   browser: {
     type: String,
-    required: true
+    default: 'unknown'
   },
   deviceType: {
     type: String,
-    enum: ['desktop', 'tablet', 'mobile', 'bot', 'other'],
-    required: true
+    enum: ['desktop', 'tablet', 'mobile', 'bot', 'unknown'],
+    default: 'unknown'
   },
   os: {
     type: String,
-    required: true
+    default: 'unknown'
   },
-  sessionId: {
-    type: String,
-    required: true
-  },
+  // Optional engagement tracking
   engagement: {
     clicks: {
       type: Number,
@@ -42,7 +46,9 @@ const VisitSchema = new mongoose.Schema({
     },
     scrollDepth: {
       type: Number,
-      default: 0
+      default: 0,
+      min: 0,
+      max: 1
     },
     timeSpent: {
       type: Number, // in seconds
@@ -50,7 +56,12 @@ const VisitSchema = new mongoose.Schema({
     }
   }
 }, {
-  timestamps: true
+  timestamps: true // This creates createdAt and updatedAt fields
 });
+
+// Indexes for better query performance
+VisitSchema.index({ createdAt: 1 });
+VisitSchema.index({ visitorId: 1, createdAt: 1 });
+VisitSchema.index({ createdAt: 1, visitorId: 1 });
 
 module.exports = mongoose.model('Visit', VisitSchema);
