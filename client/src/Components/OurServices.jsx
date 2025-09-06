@@ -3,12 +3,12 @@ import { useTranslation } from "react-i18next";
 import { useInView } from "react-intersection-observer";
 
 // Import images
-import posImage from "./Images/pos1.png";
-import webstoreImage from "./Images/webstore1.png";
-import multistoreImage from "./Images/ms.png";
-import emailImage from "./Images/email.png";
-import supportImage from "./Images/tech.png";
-import integrationImage from "./Images/integration1.png";
+import posImage from "./Images/pos1.webp";
+import webstoreImage from "./Images/webstore1.webp";
+import multistoreImage from "./Images/ms.webp";
+import emailImage from "./Images/email.webp";
+import supportImage from "./Images/tech.webp";
+import integrationImage from "./Images/integration1.webp";
 
 // Image object
 const mockImages = {

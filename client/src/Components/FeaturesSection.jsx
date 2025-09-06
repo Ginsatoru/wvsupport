@@ -5,7 +5,7 @@ import "./FeaturesSection.css";
 import Organization from "./Images/Organization.png";
 import Marketing from "./Images/Marketing.png";
 import Risk from "./Images/Risk.png";
-import Success from "./Images/Success.png";
+import Success from "./Images/Success.webp";
 import Market from "./Images/Market.png";
 
 export default function FeaturesSection() {

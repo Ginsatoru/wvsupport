@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { motion } from "framer-motion";
-import working from "./Images/working.png";
+import working from "./Images/working.webp";
 
 const CustomerSupportExperience = () => {
   const { t } = useTranslation();

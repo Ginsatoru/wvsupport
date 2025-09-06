@@ -2,16 +2,16 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { FiMapPin } from "react-icons/fi";
 import { FaIndustry } from "react-icons/fa";
-import Image1 from "./Images/image1.png";
-import Image2 from "./Images/image2.png";
-import Image3 from "./Images/image3.png";
-import Image4 from "./Images/image4.png";
-import Image5 from "./Images/image5.png";
-import Image6 from "./Images/image6.png";
-import Image7 from "./Images/image7.png";
-import Image8 from "./Images/image8.png";
-import Image9 from "./Images/image9.png";
-import Image10 from "./Images/image10.png";
+import Image1 from "./Images/image1.webp";
+import Image2 from "./Images/image2.webp";
+import Image3 from "./Images/image3.webp";
+import Image4 from "./Images/image4.webp";
+import Image5 from "./Images/image5.webp";
+import Image6 from "./Images/image6.webp";
+import Image7 from "./Images/image7.webp";
+import Image8 from "./Images/image8.webp";
+import Image9 from "./Images/image9.webp";
+import Image10 from "./Images/image10.webp";
 
 const Gallery = () => {
   const { t } = useTranslation();

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
-import IT from "./Images/IT.png";
+import IT from "./Images/IT.webp";
 
 const Container = styled.section`
   display: flex;

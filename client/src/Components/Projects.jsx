@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MapPin, Building2 } from "lucide-react";
-import headerImage from './Images/header.png';
+import headerImage from './Images/header.webp';
 
 const Projects = () => {
   const { t } = useTranslation();

@@ -8,7 +8,7 @@ import {
 import initTracker from "../utils/tracker";
 import { SettingsProvider } from "./context/SettingsContext";
 import { useEffect, useState } from "react";
-import Nav from "./Nav";
+import Nav from "./Components/Navbar";
 import Footer from "./Components/Footer";
 import Home from "./Components/Home";
 import Aboutus from "./Components/Aboutus";

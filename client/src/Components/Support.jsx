@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styled, { keyframes } from 'styled-components';
-import headerImage from './Images/header.png';
+import headerImage from './Images/header.webp';
 
 // ================ ANIMATIONS ================
 const fadeIn = keyframes`

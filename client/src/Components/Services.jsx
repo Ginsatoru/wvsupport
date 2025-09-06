@@ -18,21 +18,21 @@ import {
 } from "react-icons/fa";
 import { IoMdTrendingUp } from "react-icons/io";
 import { GiProgression } from "react-icons/gi";
-import headerImage from "./Images/header.png";
+import headerImage from "./Images/header.webp";
 
 // Technology icons
-import windowsIcon from "./Images/windows.png";
-import sqlIcon from "./Images/sql.png";
-import retailManagerIcon from "./Images/retailmanager.png";
-import webstoreIcon from "./Images/webstore.png";
-import multiStoreIcon from "./Images/multistore.png";
-import posIcon from "./Images/pos.png";
-import inventoryIcon from "./Images/inventory.png";
-import reportingIcon from "./Images/reporting.png";
-import teamviewerIcon from "./Images/teamviewer.png";
-import onedriveIcon from "./Images/onedrive.png";
-import accessIcon from "./Images/access.png";
-import outlookIcon from "./Images/outlook.png";
+import windowsIcon from "./Images/windows.webp";
+import sqlIcon from "./Images/sql.webp";
+import retailManagerIcon from "./Images/retailmanager.webp";
+import webstoreIcon from "./Images/webstore.webp";
+import multiStoreIcon from "./Images/multistore.webp";
+import posIcon from "./Images/pos.webp";
+import inventoryIcon from "./Images/inventory.webp";
+import reportingIcon from "./Images/reporting.webp";
+import teamviewerIcon from "./Images/teamviewer.webp";
+import onedriveIcon from "./Images/onedrive.webp";
+import accessIcon from "./Images/access.webp";
+import outlookIcon from "./Images/outlook.webp";
 
 const Services = () => {
   const { t } = useTranslation();

@@ -8,12 +8,12 @@ import {
   FaAward,
   FaLightbulb,
 } from "react-icons/fa";
-import headerImage from "./Images/header.png";
-import missionImage from "./Images/mission.png";
+import headerImage from "./Images/header.webp";
+import missionImage from "./Images/mission.webp";
 // Import your timeline images
-import timelineImage1 from "./Images/visual1.png";
-import timelineImage2 from "./Images/visual2.png";
-import timelineImage3 from "./Images/visual3.png";
+import timelineImage1 from "./Images/visual1.webp";
+import timelineImage2 from "./Images/visual2.webp";
+import timelineImage3 from "./Images/visual3.webp";
 
 const AboutUs = () => {
   const { t } = useTranslation();

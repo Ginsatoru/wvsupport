@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, ArrowRight } from 'lucide-react';
-import welcomeImage from "./Images/welcome.png"
+import welcomeImage from "./Images/welcome.webp";
 
 const WelcomeMessage = () => {
   const [isVisible, setIsVisible] = useState(false);
