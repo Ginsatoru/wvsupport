@@ -4,41 +4,51 @@ import { initReactI18next } from "react-i18next";
 // Enhanced font switching function that works with our CSS system
 const updateFontFamily = (lng) => {
   if (typeof document === "undefined") return; // SSR safety check
-  
+
   const body = document.body;
   const html = document.documentElement;
-  
+
   // Remove existing language classes
-  body.classList.remove('lang-en', 'lang-km');
-  html.classList.remove('lang-en', 'lang-km');
-  
+  body.classList.remove("lang-en", "lang-km");
+  html.classList.remove("lang-en", "lang-km");
+
   // Add new language class based on current language
   const langClass = `lang-${lng}`;
   body.classList.add(langClass);
   html.classList.add(langClass);
-  
+
   // Update CSS custom properties for dynamic access
   if (lng === "km") {
-    document.documentElement.style.setProperty('--current-lang-font', 'var(--font-khmer)');
+    document.documentElement.style.setProperty(
+      "--current-lang-font",
+      "var(--font-khmer)"
+    );
     // Update the primary font variable to use Battambang for Khmer
     document.documentElement.style.setProperty(
-      '--font-primary', 
+      "--font-primary",
       "'Battambang', serif"
     );
   } else {
-    document.documentElement.style.setProperty('--current-lang-font', 'var(--font-primary)');
+    document.documentElement.style.setProperty(
+      "--current-lang-font",
+      "var(--font-primary)"
+    );
     // Update the primary font variable to use Montserrat for English
     document.documentElement.style.setProperty(
-      '--font-primary', 
+      "--font-primary",
       "'Montserrat', sans-serif"
     );
   }
-  
+
   // Also set the lang attribute for accessibility
   setHtmlLang(lng);
-  
+
   // Debug log to verify font switching
-  console.log(`Font switched to: ${lng === 'km' ? 'Battambang (Khmer)' : 'Montserrat (English)'}`);
+  console.log(
+    `Font switched to: ${
+      lng === "km" ? "Battambang (Khmer)" : "Montserrat (English)"
+    }`
+  );
 };
 
 // Set HTML lang attribute function
@@ -2161,42 +2171,93 @@ const resources = {
   },
 };
 
-i18n.use(initReactI18next).init({
-  resources,
-  lng: "en",
-  fallbackLng: "en",
-  interpolation: {
-    escapeValue: false,
-  },
-  
-  // React specific options
-  react: {
-    useSuspense: false, // Disable suspense for better compatibility
-  },
-  
-  // Debug mode (disable in production)
-  debug: process.env.NODE_ENV === 'development',
-});
+const safeTranslate = (t, key, options = {}) => {
+  try {
+    const result = t(key, options);
 
-// Set initial font and language
-updateFontFamily(i18n.language);
+    // If result is an object, try to extract current language value
+    if (typeof result === "object" && result !== null) {
+      const currentLang = i18n.language || "en";
+      return result[currentLang] || result.en || result.km || key;
+    }
+
+    // If result is undefined, null, or empty, return the key as fallback
+    if (!result || result === key) {
+      return key;
+    }
+
+    // Ensure we always return a string
+    return String(result);
+  } catch (error) {
+    console.warn(`Translation error for key "${key}":`, error);
+    return key; // Return key as fallback
+  }
+};
+
+// FIXED: Initialize i18n with proper error handling
+i18n
+  .use(initReactI18next)
+  .init({
+    resources,
+    lng: "en", // FIXED: Default to 'en' to prevent undefined language
+    fallbackLng: "en", // FIXED: Always fall back to English
+    interpolation: {
+      escapeValue: false,
+    },
+
+    // React specific options
+    react: {
+      useSuspense: false, // Disable suspense for better compatibility
+    },
+
+    // FIXED: Add returnEmptyString and returnNull options
+    returnEmptyString: false, // Always return key if translation is empty
+    returnNull: false, // Never return null
+    returnObjects: false, // CRITICAL: Never return objects from t() function
+
+    // Debug mode (disable in production)
+    debug: process.env.NODE_ENV === "development",
+  })
+  .catch((error) => {
+    console.error("i18n initialization failed:", error);
+  });
+
+// FIXED: Set initial font and language with error handling
+try {
+  updateFontFamily(i18n.language || "en");
+} catch (error) {
+  console.error("Font update failed:", error);
+  updateFontFamily("en"); // Fallback to English
+}
 
 // Listen to language changes and update fonts
 i18n.on("languageChanged", (lng) => {
-  updateFontFamily(lng);
-  
-  // Optional: Save language preference to localStorage
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('language', lng);
+  try {
+    updateFontFamily(lng || "en");
+
+    // Optional: Save language preference to localStorage
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("language", lng);
+    }
+  } catch (error) {
+    console.error("Language change handler failed:", error);
   }
 });
 
-// Initialize from saved language preference
-if (typeof localStorage !== 'undefined') {
-  const savedLang = localStorage.getItem('language');
-  if (savedLang && (savedLang === 'en' || savedLang === 'km')) {
-    i18n.changeLanguage(savedLang);
+// Initialize from saved language preference with validation
+if (typeof localStorage !== "undefined") {
+  try {
+    const savedLang = localStorage.getItem("language");
+    if (savedLang && (savedLang === "en" || savedLang === "km")) {
+      i18n.changeLanguage(savedLang);
+    }
+  } catch (error) {
+    console.error("Failed to load saved language:", error);
   }
 }
+
+// FIXED: Export enhanced translation function that guarantees strings
+export const t = (key, options) =>
+  safeTranslate(i18n.t.bind(i18n), key, options);
 
 export default i18n;
