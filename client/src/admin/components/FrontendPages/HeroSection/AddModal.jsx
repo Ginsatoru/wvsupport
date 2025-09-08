@@ -32,7 +32,7 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState('en'); // Language tab switcher
+  const [activeTab, setActiveTab] = useState('en');
 
   const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
@@ -49,13 +49,11 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         toast.error('Please select a valid image file');
         return;
       }
 
-      // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
         toast.error('File size must be less than 10MB');
         return;
@@ -63,7 +61,6 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
 
       setImageFile(file);
       
-      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreview(e.target.result);
@@ -97,7 +94,6 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation
     if (!formData.title_en.trim()) {
       toast.error('English title is required');
       return;
@@ -117,12 +113,10 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
       const token = localStorage.getItem('adminToken');
       const formDataToSend = new FormData();
       
-      // Append form fields
       Object.keys(formData).forEach(key => {
         formDataToSend.append(key, formData[key]);
       });
 
-      // Append image file
       formDataToSend.append('backgroundImage', imageFile);
 
       const response = await fetch(`${API_BASE_URL}/api/content/hero/admin`, {
@@ -157,61 +151,61 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fadeIn">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn">
+        <div className="p-5">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Add New Hero Content
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+              Add New Hero
             </h2>
             <button
               onClick={resetForm}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
             >
-              <X size={20} className="text-gray-500 dark:text-gray-400" />
+              <X size={18} className="text-gray-500 dark:text-gray-400" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Language Tabs */}
             <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-xl w-fit">
               <button
                 type="button"
                 onClick={() => setActiveTab('en')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                   activeTab === 'en'
                     ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
                     : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                <Globe size={16} />
+                <Globe size={14} />
                 English
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('km')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                   activeTab === 'km'
                     ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
                     : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                <Languages size={16} />
-                ខ្មែរ (Khmer)
+                <Languages size={14} />
+                ខ្មែរ
               </button>
             </div>
 
             {/* English Fields */}
             {activeTab === 'en' && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Globe size={18} className="text-sky-500" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">English Content</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Globe size={16} className="text-sky-500" />
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-white">English Content</h3>
                 </div>
 
                 {/* Title */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Title (English) *
                   </label>
                   <input
@@ -220,14 +214,14 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
                     value={formData.title_en}
                     onChange={handleInputChange}
                     required
-                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                     placeholder="Enter hero title in English"
                   />
                 </div>
 
                 {/* Subtitle */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Subtitle (English) *
                   </label>
                   <textarea
@@ -235,38 +229,38 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
                     value={formData.subtitle_en}
                     onChange={handleInputChange}
                     required
-                    rows="3"
-                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    rows="2"
+                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                     placeholder="Enter hero subtitle in English"
                   />
                 </div>
 
                 {/* CTA Buttons */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                      Primary CTA Text (English)
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">
+                      Primary CTA Text
                     </label>
                     <input
                       type="text"
                       name="primaryCtaText_en"
                       value={formData.primaryCtaText_en}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       placeholder="Learn More"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                      Secondary CTA Text (English)
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">
+                      Secondary CTA Text
                     </label>
                     <input
                       type="text"
                       name="secondaryCtaText_en"
                       value={formData.secondaryCtaText_en}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       placeholder="Get Started"
                     />
                   </div>
@@ -276,23 +270,23 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
 
             {/* Khmer Fields */}
             {activeTab === 'km' && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Languages size={18} className="text-sky-500" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">ខ្លឹមសារភាសាខ្មែរ (Khmer Content)</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Languages size={16} className="text-sky-500" />
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-white">ខ្លឹមសារភាសាខ្មែរ</h3>
                 </div>
 
                 {/* Title Khmer */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    ចំណងជើង (Title in Khmer)
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    ចំណងជើង (Title)
                   </label>
                   <input
                     type="text"
                     name="title_km"
                     value={formData.title_km}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                     placeholder="បញ្ចូលចំណងជើងជាភាសាខ្មែរ"
                     style={{ fontFamily: '"Noto Sans Khmer", "Khmer OS", serif' }}
                   />
@@ -300,96 +294,90 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
 
                 {/* Subtitle Khmer */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    ចំណងជើងរង (Subtitle in Khmer)
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    ចំណងជើងរង (Subtitle)
                   </label>
                   <textarea
                     name="subtitle_km"
                     value={formData.subtitle_km}
                     onChange={handleInputChange}
-                    rows="3"
-                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    rows="2"
+                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                     placeholder="បញ្ចូលចំណងជើងរងជាភាសាខ្មែរ"
                     style={{ fontFamily: '"Noto Sans Khmer", "Khmer OS", serif' }}
                   />
                 </div>
 
                 {/* CTA Buttons Khmer */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                      ប៊ូតុងចម្បង (Primary Button Text)
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">
+                      ប៊ូតុងចម្បង (Primary)
                     </label>
                     <input
                       type="text"
                       name="primaryCtaText_km"
                       value={formData.primaryCtaText_km}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       placeholder="ស្វែងយល់បន្ថែម"
                       style={{ fontFamily: '"Noto Sans Khmer", "Khmer OS", serif' }}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                      ប៊ូតុងបន្ទាប់បន្សំ (Secondary Button Text)
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">
+                      ប៊ូតុងបន្ទាប់ (Secondary)
                     </label>
                     <input
                       type="text"
                       name="secondaryCtaText_km"
                       value={formData.secondaryCtaText_km}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       placeholder="ចាប់ផ្តើម"
                       style={{ fontFamily: '"Noto Sans Khmer", "Khmer OS", serif' }}
                     />
                   </div>
                 </div>
-
-                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    <strong>Note:</strong> Khmer translations are optional. If not provided, English content will be used as fallback.
-                  </p>
-                </div>
               </div>
             )}
 
-            {/* Common Fields (always visible) */}
-            <div className="border-t border-gray-200 dark:border-gray-600 pt-6 space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Common Settings</h3>
+            {/* Common Fields */}
+            <div className="border-t border-gray-200 dark:border-gray-600 pt-4 space-y-3">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">Common Settings</h3>
               
               {/* CTA Links */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Primary CTA Link
                   </label>
                   <div className="relative">
-                    <Link size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Link size={14} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
                       type="text"
                       name="primaryCtaLink"
                       value={formData.primaryCtaLink}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       placeholder="/services or https://..."
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">
                     Secondary CTA Link
                   </label>
                   <div className="relative">
-                    <Link size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Link size={14} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
                       type="text"
                       name="secondaryCtaLink"
                       value={formData.secondaryCtaLink}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       placeholder="/contact or https://..."
                     />
                   </div>
@@ -398,10 +386,10 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
 
               {/* Background Image */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Background Image *
                 </label>
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-3 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
                   <input
                     type="file"
                     onChange={handleImageChange}
@@ -411,19 +399,19 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
                   />
                   <label htmlFor="imageUpload" className="cursor-pointer">
                     {imagePreview ? (
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         <img
                           src={imagePreview}
                           alt="Preview"
-                          className="mx-auto max-h-48 rounded-xl"
+                          className="mx-auto max-h-40 rounded-xl"
                         />
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Click to change image</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">Click to change image</p>
                       </div>
                     ) : (
-                      <div className="space-y-2">
-                        <Upload size={32} className="mx-auto text-gray-400" />
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Click to upload background image (Max 10MB)
+                      <div className="space-y-1">
+                        <Upload size={24} className="mx-auto text-gray-400" />
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Click to upload (Max 10MB)
                         </p>
                       </div>
                     )}
@@ -441,34 +429,34 @@ const HeroAddModal = ({ isOpen, onClose, onSuccess }) => {
                   onChange={handleInputChange}
                   className="h-4 w-4 text-sky-600 focus:ring-sky-500 border-gray-300 rounded"
                 />
-                <label htmlFor="isActive" className="ml-2 text-sm text-gray-700 dark:text-gray-200">
+                <label htmlFor="isActive" className="ml-2 text-xs text-gray-700 dark:text-gray-200">
                   Set as active hero (will deactivate others)
                 </label>
               </div>
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-2 pt-3">
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-xl text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded-xl flex items-center gap-2 transition-colors disabled:opacity-50"
+                className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-1.5 rounded-xl flex items-center gap-1 text-xs transition-colors disabled:opacity-50"
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3 h-3 animate-spin" />
                     Creating...
                   </>
                 ) : (
                   <>
-                    <Save size={16} />
+                    <Save size={14} />
                     Create
                   </>
                 )}
