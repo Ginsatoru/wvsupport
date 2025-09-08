@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 const HeroSection = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [heroData, setHeroData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,12 +14,18 @@ const HeroSection = () => {
   const API_BASE_URL =
     import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
-  // Fetch active hero content
+  // Fetch active hero content with language support
   useEffect(() => {
     const fetchHeroContent = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/content/hero/active`);
+        
+        // Get current language from i18n
+        const currentLanguage = i18n.language || 'en';
+        
+        const response = await fetch(
+          `${API_BASE_URL}/api/content/hero/active?lang=${currentLanguage}`
+        );
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -36,15 +42,31 @@ const HeroSection = () => {
         console.error("Error fetching hero content:", err);
         setError(err.message);
 
-        // Fallback to default hero content
+        // Fallback to default hero content based on language
+        const defaultContent = {
+          en: {
+            title: "WV Support\nServices Cambodia",
+            subtitle:
+              "Cutting-edge IT solutions in Cambodia. We deliver premium support, network infrastructure, and software expertise to keep your business at the digital forefront from our Siem Reap headquarters.",
+            primaryCtaText: "Learn More",
+            primaryCtaLink: "/services",
+            secondaryCtaText: "Get Started",
+            secondaryCtaLink: "/contact",
+          },
+          km: {
+            title: "សេវាកម្មគាំទ្រ WV\nកម្ពុជា",
+            subtitle:
+              "ដំណោះស្រាយព័ត៌មានវិទ្យាទំនើបនៅកម្ពុជា។ យើងផ្តល់សេវាគាំទ្រពិសេស រចនាសម្ព័ន្ធបណ្តាញ និងជំនាញកម្មវិធីដើម្បីរក្សាអាជីវកម្មរបស់អ្នកនៅចំណុចខាងមុខនៃបច្ចេកវិទ្យាឌីជីថលពីទីស្នាក់ការកណ្តាលរបស់យើងនៅសៀមរាប។",
+            primaryCtaText: "ស្វែងយល់បន្ថែម",
+            primaryCtaLink: "/services",
+            secondaryCtaText: "ចាប់ផ្តើម",
+            secondaryCtaLink: "/contact",
+          }
+        };
+
+        const currentLang = i18n.language === 'km' ? 'km' : 'en';
         setHeroData({
-          title: "WV Support\nServices Cambodia",
-          subtitle:
-            "Cutting-edge IT solutions in Cambodia. We deliver premium support, network infrastructure, and software expertise to keep your business at the digital forefront from our Siem Reap headquarters.",
-          primaryCtaText: "Learn More",
-          primaryCtaLink: "/services",
-          secondaryCtaText: "Get Started",
-          secondaryCtaLink: "/contact",
+          ...defaultContent[currentLang],
           backgroundImage: "/src/Components/Images/hero.webp", // Fallback image
         });
       } finally {
@@ -53,7 +75,7 @@ const HeroSection = () => {
     };
 
     fetchHeroContent();
-  }, [API_BASE_URL]);
+  }, [API_BASE_URL, i18n.language]); // Re-fetch when language changes
 
   // Handle navigation
   const handleNavigation = (link) => {
@@ -74,7 +96,9 @@ const HeroSection = () => {
         <div className="relative z-10 h-full flex items-center justify-center">
           <div className="text-white text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0f8abe] mx-auto mb-4"></div>
-            <p className="text-lg">Loading...</p>
+            <p className="text-lg">
+              {i18n.language === 'km' ? 'កំពុងដំណើរការ...' : 'Loading...'}
+            </p>
           </div>
         </div>
       </section>
@@ -90,7 +114,12 @@ const HeroSection = () => {
         </div>
         <div className="relative z-10 h-full flex items-center justify-center">
           <div className="text-white text-center max-w-md">
-            <p className="text-lg mb-4">Unable to load hero content</p>
+            <p className="text-lg mb-4">
+              {i18n.language === 'km' 
+                ? 'មិនអាចផ្ទុកមាតិកាភាគផ្តើមបាន' 
+                : 'Unable to load hero content'
+              }
+            </p>
             <p className="text-sm text-gray-300">{error}</p>
           </div>
         </div>
@@ -126,7 +155,7 @@ const HeroSection = () => {
             {heroData.title.includes("\n") ? (
               heroData.title.split("\n").map((line, index) => (
                 <React.Fragment key={index}>
-                  {index === 0 && line.includes("WV Support") ? (
+                  {index === 0 && (line.includes("WV Support") || line.includes("សេវាកម្មគាំទ្រ WV")) ? (
                     <span className="text-[#0f8abe]">{line}</span>
                   ) : (
                     line
@@ -139,6 +168,12 @@ const HeroSection = () => {
                 <span className="text-[#0f8abe]">WV Support</span>
                 <br />
                 {heroData.title.replace("WV Support", "").trim()}
+              </>
+            ) : heroData.title.includes("សេវាកម្មគាំទ្រ WV") ? (
+              <>
+                <span className="text-[#0f8abe]">សេវាកម្មគាំទ្រ WV</span>
+                <br />
+                {heroData.title.replace("សេវាកម្មគាំទ្រ WV", "").trim()}
               </>
             ) : (
               heroData.title

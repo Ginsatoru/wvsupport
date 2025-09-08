@@ -14,13 +14,16 @@ const deleteOldImage = (imagePath) => {
   }
 };
 
-// @desc    Get active hero content for frontend
-// @route   GET /api/content/hero/active
+// @desc    Get active hero content for frontend with language support
+// @route   GET /api/content/hero/active?lang=en|km
 // @access  Public
 const getActiveHeroContent = async (req, res) => {
   try {
-    const heroContent = await HeroContent.findOne({ isActive: true })
-      .sort({ updatedAt: -1 });
+    const { lang = 'en' } = req.query;
+    const supportedLangs = ['en', 'km'];
+    const language = supportedLangs.includes(lang) ? lang : 'en';
+
+    const heroContent = await HeroContent.findActiveWithLang(language);
 
     if (!heroContent) {
       return res.status(404).json({
@@ -35,13 +38,14 @@ const getActiveHeroContent = async (req, res) => {
       : `${req.protocol}://${req.get('host')}/${heroContent.backgroundImage}`;
 
     const responseData = {
-      ...heroContent.toObject(),
+      ...heroContent,
       backgroundImage: fullImageUrl
     };
 
     res.json({
       success: true,
-      data: responseData
+      data: responseData,
+      language: language
     });
   } catch (error) {
     console.error('Error fetching active hero content:', error);
@@ -53,7 +57,7 @@ const getActiveHeroContent = async (req, res) => {
   }
 };
 
-// @desc    Get all hero content for admin
+// @desc    Get all hero content for admin (includes all languages)
 // @route   GET /api/content/hero/admin/all
 // @access  Private (Admin)
 const getAllHeroContent = async (req, res) => {
@@ -61,7 +65,7 @@ const getAllHeroContent = async (req, res) => {
     const heroContents = await HeroContent.find()
       .sort({ updatedAt: -1 });
 
-    // Construct full image URLs
+    // Return full bilingual data for admin
     const responseData = heroContents.map(content => {
       const fullImageUrl = content.backgroundImage.startsWith('http') 
         ? content.backgroundImage 
@@ -88,26 +92,35 @@ const getAllHeroContent = async (req, res) => {
   }
 };
 
-// @desc    Create new hero content
+// @desc    Create new hero content with bilingual support
 // @route   POST /api/content/hero/admin
 // @access  Private (Admin)
 const createHeroContent = async (req, res) => {
   try {
     const {
-      title,
-      subtitle,
-      primaryCtaText,
+      // English fields
+      title_en,
+      subtitle_en,
+      primaryCtaText_en,
+      secondaryCtaText_en,
+      
+      // Khmer fields
+      title_km,
+      subtitle_km,
+      primaryCtaText_km,
+      secondaryCtaText_km,
+      
+      // Common fields
       primaryCtaLink,
-      secondaryCtaText,
       secondaryCtaLink,
       isActive
     } = req.body;
 
-    // Validate required fields
-    if (!title || !subtitle) {
+    // Validate required English fields
+    if (!title_en || !subtitle_en) {
       return res.status(400).json({
         success: false,
-        message: 'Title and subtitle are required'
+        message: 'English title and subtitle are required'
       });
     }
 
@@ -125,11 +138,23 @@ const createHeroContent = async (req, res) => {
     }
 
     const heroData = {
-      title: title.trim(),
-      subtitle: subtitle.trim(),
-      primaryCtaText: primaryCtaText?.trim() || 'Learn More',
+      title: {
+        en: title_en.trim(),
+        km: title_km?.trim() || ''
+      },
+      subtitle: {
+        en: subtitle_en.trim(),
+        km: subtitle_km?.trim() || ''
+      },
+      primaryCtaText: {
+        en: primaryCtaText_en?.trim() || 'Learn More',
+        km: primaryCtaText_km?.trim() || ''
+      },
+      secondaryCtaText: {
+        en: secondaryCtaText_en?.trim() || 'Get Started',
+        km: secondaryCtaText_km?.trim() || ''
+      },
       primaryCtaLink: primaryCtaLink?.trim() || '/services',
-      secondaryCtaText: secondaryCtaText?.trim() || 'Get Started',
       secondaryCtaLink: secondaryCtaLink?.trim() || '/contact',
       backgroundImage: `uploads/${req.file.filename}`,
       isActive: isActive === 'true' || isActive === true
@@ -165,18 +190,27 @@ const createHeroContent = async (req, res) => {
   }
 };
 
-// @desc    Update hero content
+// @desc    Update hero content with bilingual support
 // @route   PUT /api/content/hero/admin/:id
 // @access  Private (Admin)
 const updateHeroContent = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      title,
-      subtitle,
-      primaryCtaText,
+      // English fields
+      title_en,
+      subtitle_en,
+      primaryCtaText_en,
+      secondaryCtaText_en,
+      
+      // Khmer fields
+      title_km,
+      subtitle_km,
+      primaryCtaText_km,
+      secondaryCtaText_km,
+      
+      // Common fields
       primaryCtaLink,
-      secondaryCtaText,
       secondaryCtaLink,
       isActive
     } = req.body;
@@ -194,14 +228,14 @@ const updateHeroContent = async (req, res) => {
       });
     }
 
-    // Validate required fields
-    if (!title || !subtitle) {
+    // Validate required English fields
+    if (!title_en || !subtitle_en) {
       if (req.file) {
         deleteOldImage(req.file.path);
       }
       return res.status(400).json({
         success: false,
-        message: 'Title and subtitle are required'
+        message: 'English title and subtitle are required'
       });
     }
 
@@ -212,11 +246,23 @@ const updateHeroContent = async (req, res) => {
 
     // Prepare update data
     const updateData = {
-      title: title.trim(),
-      subtitle: subtitle.trim(),
-      primaryCtaText: primaryCtaText?.trim() || 'Learn More',
+      title: {
+        en: title_en.trim(),
+        km: title_km?.trim() || ''
+      },
+      subtitle: {
+        en: subtitle_en.trim(),
+        km: subtitle_km?.trim() || ''
+      },
+      primaryCtaText: {
+        en: primaryCtaText_en?.trim() || 'Learn More',
+        km: primaryCtaText_km?.trim() || ''
+      },
+      secondaryCtaText: {
+        en: secondaryCtaText_en?.trim() || 'Get Started',
+        km: secondaryCtaText_km?.trim() || ''
+      },
       primaryCtaLink: primaryCtaLink?.trim() || '/services',
-      secondaryCtaText: secondaryCtaText?.trim() || 'Get Started',
       secondaryCtaLink: secondaryCtaLink?.trim() || '/contact',
       isActive: isActive === 'true' || isActive === true,
       updatedAt: Date.now()

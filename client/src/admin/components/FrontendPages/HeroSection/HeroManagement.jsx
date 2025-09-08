@@ -11,6 +11,7 @@ import HeroItemList from './ItemList';
 import HeroAddModal from './AddModal';
 import HeroEditModal from './EditModal';
 import { ModernAlert } from '../../Modals/Alert';
+import ConfirmationModal from '../../Modals/ConfirmationModal';
 
 const HeroManagement = () => {
   const [heroContents, setHeroContents] = useState([]);
@@ -28,6 +29,17 @@ const HeroManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedHeros, setSelectedHeros] = useState(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Confirmation modal states
+  const [confirmationModal, setConfirmationModal] = useState({
+    show: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    danger: false,
+    confirmText: 'Confirm',
+    heroToDelete: null
+  });
 
   const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
@@ -94,12 +106,26 @@ const HeroManagement = () => {
     setIsEditModalOpen(true);
   };
 
-  // Handle delete
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this hero content?')) {
-      return;
-    }
+  // Show delete confirmation modal
+  const showDeleteConfirmation = (heroId, heroTitle) => {
+    setConfirmationModal({
+      show: true,
+      title: 'Delete Hero Section?',
+      message: `Are you sure you want to delete "${heroTitle || 'this hero section'}"? This action cannot be undone.`,
+      onConfirm: () => confirmDelete(heroId),
+      danger: true,
+      confirmText: 'Delete',
+      heroToDelete: heroId
+    });
+  };
 
+  // Handle delete
+  const handleDelete = (hero) => {
+    showDeleteConfirmation(hero._id, hero.title);
+  };
+
+  // Confirm delete action
+  const confirmDelete = async (id) => {
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${API_BASE_URL}/api/content/hero/admin/${id}`, {
@@ -119,12 +145,14 @@ const HeroManagement = () => {
       if (result.success) {
         showSuccessAlert(result.message);
         fetchHeroContent(); // Refresh the list
+        closeConfirmationModal();
       } else {
         throw new Error(result.message);
       }
     } catch (error) {
       console.error('Error deleting hero content:', error);
       toast.error(error.message || 'Failed to delete hero content');
+      closeConfirmationModal();
     }
   };
 
@@ -169,13 +197,28 @@ const HeroManagement = () => {
     setSelectedHeros(newSelected);
   };
 
-  const handleDeleteSelected = async () => {
+  // Show bulk delete confirmation
+  const showBulkDeleteConfirmation = () => {
     if (selectedHeros.size === 0) return;
     
-    if (!window.confirm(`Are you sure you want to delete ${selectedHeros.size} hero section${selectedHeros.size > 1 ? 's' : ''}?`)) {
-      return;
-    }
-    
+    setConfirmationModal({
+      show: true,
+      title: 'Delete Multiple Hero Sections?',
+      message: `Are you sure you want to delete ${selectedHeros.size} hero section${selectedHeros.size > 1 ? 's' : ''}? This action cannot be undone.`,
+      onConfirm: confirmBulkDelete,
+      danger: true,
+      confirmText: `Delete ${selectedHeros.size} Section${selectedHeros.size > 1 ? 's' : ''}`,
+      heroToDelete: null
+    });
+  };
+
+  // Handle bulk delete
+  const handleDeleteSelected = () => {
+    showBulkDeleteConfirmation();
+  };
+
+  // Confirm bulk delete action
+  const confirmBulkDelete = async () => {
     try {
       setIsDeleting(true);
       
@@ -195,12 +238,27 @@ const HeroManagement = () => {
       setSelectedHeros(new Set());
       fetchHeroContent();
       showSuccessAlert(`${selectedHeros.size} hero section${selectedHeros.size > 1 ? 's' : ''} deleted successfully!`);
+      closeConfirmationModal();
     } catch (error) {
       console.error("Error deleting selected hero sections:", error);
       toast.error('Failed to delete selected hero sections');
+      closeConfirmationModal();
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  // Close confirmation modal
+  const closeConfirmationModal = () => {
+    setConfirmationModal({
+      show: false,
+      title: '',
+      message: '',
+      onConfirm: null,
+      danger: false,
+      confirmText: 'Confirm',
+      heroToDelete: null
+    });
   };
 
   const handleAddSuccess = (message) => {
@@ -323,6 +381,19 @@ const HeroManagement = () => {
             </div>
           )}
         </div>
+
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={confirmationModal.show}
+          title={confirmationModal.title}
+          message={confirmationModal.message}
+          confirmText={confirmationModal.confirmText}
+          cancelText="Cancel"
+          danger={confirmationModal.danger}
+          onConfirm={confirmationModal.onConfirm}
+          onCancel={closeConfirmationModal}
+          darkMode={false} // You can make this dynamic based on your theme
+        />
 
         {/* Modals */}
         <HeroAddModal

@@ -5,39 +5,78 @@ import {
   Save,
   X,
   Link,
-  Loader2
+  Loader2,
+  Globe,
+  Languages
 } from 'lucide-react';
 
 const HeroEditModal = ({ isOpen, onClose, hero, onSuccess }) => {
   const [formData, setFormData] = useState({
-    title: '',
-    subtitle: '',
-    primaryCtaText: 'Learn More',
+    // English fields
+    title_en: '',
+    subtitle_en: '',
+    primaryCtaText_en: 'Learn More',
+    secondaryCtaText_en: 'Get Started',
+    
+    // Khmer fields
+    title_km: '',
+    subtitle_km: '',
+    primaryCtaText_km: '',
+    secondaryCtaText_km: '',
+    
+    // Common fields
     primaryCtaLink: '/services',
-    secondaryCtaText: 'Get Started',
     secondaryCtaLink: '/contact',
     isActive: false
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState('en'); // Language tab switcher
 
   const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
   // Update form data when hero prop changes
   useEffect(() => {
     if (hero) {
-      setFormData({
-        title: hero.title || '',
-        subtitle: hero.subtitle || '',
-        primaryCtaText: hero.primaryCtaText || 'Learn More',
-        primaryCtaLink: hero.primaryCtaLink || '/services',
-        secondaryCtaText: hero.secondaryCtaText || 'Get Started',
-        secondaryCtaLink: hero.secondaryCtaLink || '/contact',
-        isActive: hero.isActive || false
-      });
+      // Check if hero has bilingual structure or old structure
+      const isBilingual = hero.title && typeof hero.title === 'object' && hero.title.en;
+      
+      if (isBilingual) {
+        // New bilingual structure
+        setFormData({
+          title_en: hero.title?.en || '',
+          subtitle_en: hero.subtitle?.en || '',
+          primaryCtaText_en: hero.primaryCtaText?.en || 'Learn More',
+          secondaryCtaText_en: hero.secondaryCtaText?.en || 'Get Started',
+          title_km: hero.title?.km || '',
+          subtitle_km: hero.subtitle?.km || '',
+          primaryCtaText_km: hero.primaryCtaText?.km || '',
+          secondaryCtaText_km: hero.secondaryCtaText?.km || '',
+          primaryCtaLink: hero.primaryCtaLink || '/services',
+          secondaryCtaLink: hero.secondaryCtaLink || '/contact',
+          isActive: hero.isActive || false
+        });
+      } else {
+        // Old structure - migrate to bilingual
+        setFormData({
+          title_en: hero.title || '',
+          subtitle_en: hero.subtitle || '',
+          primaryCtaText_en: hero.primaryCtaText || 'Learn More',
+          secondaryCtaText_en: hero.secondaryCtaText || 'Get Started',
+          title_km: '',
+          subtitle_km: '',
+          primaryCtaText_km: '',
+          secondaryCtaText_km: '',
+          primaryCtaLink: hero.primaryCtaLink || '/services',
+          secondaryCtaLink: hero.secondaryCtaLink || '/contact',
+          isActive: hero.isActive || false
+        });
+      }
+      
       setImagePreview(hero.backgroundImage || null);
       setImageFile(null);
+      setActiveTab('en');
     }
   }, [hero]);
 
@@ -80,16 +119,21 @@ const HeroEditModal = ({ isOpen, onClose, hero, onSuccess }) => {
   // Reset form
   const resetForm = () => {
     setFormData({
-      title: '',
-      subtitle: '',
-      primaryCtaText: 'Learn More',
+      title_en: '',
+      subtitle_en: '',
+      primaryCtaText_en: 'Learn More',
+      secondaryCtaText_en: 'Get Started',
+      title_km: '',
+      subtitle_km: '',
+      primaryCtaText_km: '',
+      secondaryCtaText_km: '',
       primaryCtaLink: '/services',
-      secondaryCtaText: 'Get Started',
       secondaryCtaLink: '/contact',
       isActive: false
     });
     setImageFile(null);
     setImagePreview(null);
+    setActiveTab('en');
     onClose();
   };
 
@@ -98,12 +142,12 @@ const HeroEditModal = ({ isOpen, onClose, hero, onSuccess }) => {
     e.preventDefault();
     
     // Validation
-    if (!formData.title.trim()) {
-      toast.error('Title is required');
+    if (!formData.title_en.trim()) {
+      toast.error('English title is required');
       return;
     }
-    if (!formData.subtitle.trim()) {
-      toast.error('Subtitle is required');
+    if (!formData.subtitle_en.trim()) {
+      toast.error('English subtitle is required');
       return;
     }
 
@@ -156,7 +200,7 @@ const HeroEditModal = ({ isOpen, onClose, hero, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -170,150 +214,279 @@ const HeroEditModal = ({ isOpen, onClose, hero, onSuccess }) => {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                Title *
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-                className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                placeholder="Enter hero title"
-              />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Language Tabs */}
+            <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-xl w-fit">
+              <button
+                type="button"
+                onClick={() => setActiveTab('en')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === 'en'
+                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <Globe size={16} />
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('km')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === 'km'
+                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <Languages size={16} />
+                ខ្មែរ (Khmer)
+              </button>
             </div>
 
-            {/* Subtitle */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                Subtitle *
-              </label>
-              <textarea
-                name="subtitle"
-                value={formData.subtitle}
-                onChange={handleInputChange}
-                required
-                rows="2"
-                className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                placeholder="Enter hero subtitle"
-              />
-            </div>
+            {/* English Fields */}
+            {activeTab === 'en' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Globe size={18} className="text-sky-500" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">English Content</h3>
+                </div>
 
-            {/* CTA Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                  Primary CTA Text
-                </label>
-                <input
-                  type="text"
-                  name="primaryCtaText"
-                  value={formData.primaryCtaText}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                  Primary CTA Link
-                </label>
-                <div className="relative">
-                  <Link size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Title (English) *
+                  </label>
                   <input
                     type="text"
-                    name="primaryCtaLink"
-                    value={formData.primaryCtaLink}
+                    name="title_en"
+                    value={formData.title_en}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                    placeholder="/services or https://..."
+                    required
+                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    placeholder="Enter hero title in English"
                   />
+                </div>
+
+                {/* Subtitle */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Subtitle (English) *
+                  </label>
+                  <textarea
+                    name="subtitle_en"
+                    value={formData.subtitle_en}
+                    onChange={handleInputChange}
+                    required
+                    rows="3"
+                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    placeholder="Enter hero subtitle in English"
+                  />
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                      Primary CTA Text (English)
+                    </label>
+                    <input
+                      type="text"
+                      name="primaryCtaText_en"
+                      value={formData.primaryCtaText_en}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Learn More"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                      Secondary CTA Text (English)
+                    </label>
+                    <input
+                      type="text"
+                      name="secondaryCtaText_en"
+                      value={formData.secondaryCtaText_en}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Get Started"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Khmer Fields */}
+            {activeTab === 'km' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Languages size={18} className="text-sky-500" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">ខ្លឹមសារភាសាខ្មែរ (Khmer Content)</h3>
+                </div>
+
+                {/* Title Khmer */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    ចំណងជើង (Title in Khmer)
+                  </label>
+                  <input
+                    type="text"
+                    name="title_km"
+                    value={formData.title_km}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    placeholder="បញ្ចូលចំណងជើងជាភាសាខ្មែរ"
+                    style={{ fontFamily: '"Noto Sans Khmer", "Khmer OS", serif' }}
+                  />
+                </div>
+
+                {/* Subtitle Khmer */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    ចំណងជើងរង (Subtitle in Khmer)
+                  </label>
+                  <textarea
+                    name="subtitle_km"
+                    value={formData.subtitle_km}
+                    onChange={handleInputChange}
+                    rows="3"
+                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    placeholder="បញ្ចូលចំណងជើងរងជាភាសាខ្មែរ"
+                    style={{ fontFamily: '"Noto Sans Khmer", "Khmer OS", serif' }}
+                  />
+                </div>
+
+                {/* CTA Buttons Khmer */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                      ប៊ូតុងចម្បង (Primary Button Text)
+                    </label>
+                    <input
+                      type="text"
+                      name="primaryCtaText_km"
+                      value={formData.primaryCtaText_km}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="ស្វែងយល់បន្ថែម"
+                      style={{ fontFamily: '"Noto Sans Khmer", "Khmer OS", serif' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                      ប៊ូតុងបន្ទាប់បន្សំ (Secondary Button Text)
+                    </label>
+                    <input
+                      type="text"
+                      name="secondaryCtaText_km"
+                      value={formData.secondaryCtaText_km}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="ចាប់ផ្តើម"
+                      style={{ fontFamily: '"Noto Sans Khmer", "Khmer OS", serif' }}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <strong>Note:</strong> Khmer translations are optional. If not provided, English content will be used as fallback.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Common Fields (always visible) */}
+            <div className="border-t border-gray-200 dark:border-gray-600 pt-6 space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Common Settings</h3>
+              
+              {/* CTA Links */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Primary CTA Link
+                  </label>
+                  <div className="relative">
+                    <Link size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      name="primaryCtaLink"
+                      value={formData.primaryCtaLink}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="/services or https://..."
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    Secondary CTA Link
+                  </label>
+                  <div className="relative">
+                    <Link size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      name="secondaryCtaLink"
+                      value={formData.secondaryCtaLink}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="/contact or https://..."
+                    />
+                  </div>
                 </div>
               </div>
 
+              {/* Background Image */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                  Secondary CTA Text
+                  Background Image
                 </label>
-                <input
-                  type="text"
-                  name="secondaryCtaText"
-                  value={formData.secondaryCtaText}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                  Secondary CTA Link
-                </label>
-                <div className="relative">
-                  <Link size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
                   <input
-                    type="text"
-                    name="secondaryCtaLink"
-                    value={formData.secondaryCtaLink}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                    placeholder="/contact or https://..."
+                    type="file"
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    className="hidden"
+                    id="imageUploadEdit"
                   />
+                  <label htmlFor="imageUploadEdit" className="cursor-pointer">
+                    {imagePreview ? (
+                      <div className="space-y-2">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="mx-auto max-h-48 rounded-xl"
+                        />
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Click to change image</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Upload size={32} className="mx-auto text-gray-400" />
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Click to upload background image (Max 10MB)
+                        </p>
+                      </div>
+                    )}
+                  </label>
                 </div>
               </div>
-            </div>
 
-            {/* Background Image */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                Background Image
-              </label>
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+              {/* Active Status */}
+              <div className="flex items-center">
                 <input
-                  type="file"
-                  onChange={handleImageChange}
-                  accept="image/*"
-                  className="hidden"
-                  id="imageUploadEdit"
+                  type="checkbox"
+                  name="isActive"
+                  id="isActiveEdit"
+                  checked={formData.isActive}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-sky-600 focus:ring-sky-500 border-gray-300 rounded"
                 />
-                <label htmlFor="imageUploadEdit" className="cursor-pointer">
-                  {imagePreview ? (
-                    <div className="space-y-2">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="mx-auto max-h-48 rounded-xl"
-                      />
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Click to change image</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Upload size={32} className="mx-auto text-gray-400" />
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Click to upload background image (Max 10MB)
-                      </p>
-                    </div>
-                  )}
+                <label htmlFor="isActiveEdit" className="ml-2 text-sm text-gray-700 dark:text-gray-200">
+                  Set as active hero (will deactivate others)
                 </label>
               </div>
-            </div>
-
-            {/* Active Status */}
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="isActive"
-                id="isActiveEdit"
-                checked={formData.isActive}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-sky-600 focus:ring-sky-500 border-gray-300 rounded"
-              />
-              <label htmlFor="isActiveEdit" className="ml-2 text-sm text-gray-700 dark:text-gray-200">
-                Set as active hero (will deactivate others)
-              </label>
             </div>
 
             {/* Submit Button */}
