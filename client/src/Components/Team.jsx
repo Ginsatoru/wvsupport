@@ -224,6 +224,7 @@ const Team = () => {
                       e.target.src = placeholderSVG;
                     }}
                   />
+                  {/* CONTACT INFO SECTION - COMMENTED OUT
                   <div className="absolute bottom-0 left-0 right-0 bg-[#0f8abe]/90 flex justify-center gap-2 sm:gap-3 p-2 sm:p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                     {member.contacts?.telegram && (
                       <a
@@ -258,6 +259,7 @@ const Team = () => {
                       </a>
                     )}
                   </div>
+                  */}
                 </div>
                 <div className="p-3 sm:p-4 text-center">
                   <h3 className="font-semibold text-gray-800 text-sm sm:text-base md:text-lg mb-1">
