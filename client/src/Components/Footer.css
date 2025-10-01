@@ -1,7 +1,7 @@
 .footer {
   background-color: #0f8abe;
   padding: 40px 0 0;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
 }
 
 .footer-container {
@@ -24,8 +24,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes fadeIn {
@@ -131,7 +135,6 @@
   }
 }
 
-
 /* Create a row container for About and Useful Links */
 .footer-row-sections {
   display: flex;
@@ -169,7 +172,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 110% !important;
+  width: 100%
 }
 
 .contact-item {
@@ -177,7 +180,7 @@
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  color: #52514a;;
+  color: #52514a;
 }
 
 .contact-icon {
@@ -212,7 +215,7 @@
 }
 
 .footer-links a::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 0;
   height: 1px;
@@ -238,7 +241,7 @@
   font-size: 14px;
 }
 
-.email-input:focus{
+.email-input:focus {
   outline: 0px solid rgb(0, 0, 0);
 }
 
@@ -298,7 +301,7 @@
 }
 
 .social-links a::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 0;
   height: 1px;
@@ -328,17 +331,17 @@
   .footer-container {
     flex-direction: column;
   }
-  
+
   .footer-row-sections {
     flex-direction: row;
     flex-wrap: wrap;
   }
-  
+
   .footer-row-sections .footer-section {
     flex: 1 0 50%;
     min-width: 50%;
   }
-  
+
   .footer-bottom {
     flex-direction: column;
     gap: 15px;
@@ -350,10 +353,9 @@
   .footer-row-sections {
     flex-direction: row;
   }
-  
+
   .footer-row-sections .footer-section {
     flex: 1 0 100%;
     min-width: 100%;
   }
 }
-
