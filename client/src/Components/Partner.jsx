@@ -17,7 +17,7 @@ const Partner = () => {
   return (
     <div className="partner-page">
       <div className="partner-hero">
-        <h2>{t('partnerPage.hero.title')}</h2>
+        <h1>{t('partnerPage.hero.title')}</h1>
         <p>{t('partnerPage.hero.subtitle')}</p>
       </div>
 

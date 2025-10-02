@@ -28,12 +28,12 @@ const TroubleshootingExperience = () => {
             <div className="inline-block mb-2 sm:mb-3 px-3 py-1 sm:px-4 sm:py-2 bg-[#0f8abe] rounded-full">
               <span className="text-white text-xs sm:text-sm font-semibold tracking-wide">25+ Years of Excellence</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4 md:mb-6">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4 md:mb-6">
               RetailManager
               <span className="block mt-1 sm:mt-2 text-[#0f8abe]">
                 Troubleshooting Experience
               </span>
-            </h2>
+            </h1>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-4 sm:mb-6 md:mb-8 leading-relaxed">
               Expert solutions for your retail software challenges with precision and care
             </p>

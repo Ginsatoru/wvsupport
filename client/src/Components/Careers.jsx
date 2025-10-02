@@ -143,7 +143,7 @@ const Careers = () => {
   return (
     <div className="max-w-[1100px] mx-auto my-8 px-4 sm:px-6 py-8 sm:py-10 bg-white rounded-xl shadow-md font-[var(--font-primary)]">
       <header className="text-center mb-8">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl text-[#0f8abe] font-bold mb-3">{t('careersPage.hero.title')}</h2>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl text-[#0f8abe] font-bold mb-3">{t('careersPage.hero.title')}</h1>
         <p className="text-base sm:text-lg text-[#555] max-w-2xl mx-auto">
           {t('careersPage.hero.subtitle')}
         </p>

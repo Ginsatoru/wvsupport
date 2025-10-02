@@ -368,7 +368,7 @@ const Support = () => {
   return (
     <>
       <SupportHeader>
-        <h2>{t('supportPage.hero.title')}</h2>
+        <h1>{t('supportPage.hero.title')}</h1>
         <p>{t('supportPage.hero.subtitle')}</p>
       </SupportHeader>
       

@@ -194,9 +194,9 @@ const Services = () => {
         }}
       >
         <div className="max-w-4xl mx-auto px-5">
-          <h2 className="text-4xl mb-4 font-bold animate-[slideIn_0.5s_ease-in-out]">
+          <h1 className="text-4xl mb-4 font-bold animate-[slideIn_0.5s_ease-in-out]">
             {t("servicesPage.hero.title")}
-          </h2>
+          </h1>
           <p className="text-xl opacity-90 text-white animate-[slideIn_0.5s_ease-in-out]">
             {t("servicesPage.hero.subtitle")}
           </p>

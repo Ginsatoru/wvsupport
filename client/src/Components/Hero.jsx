@@ -151,7 +151,7 @@ const HeroSection = () => {
       {/* Content */}
       <div className="relative z-10 h-full flex items-center max-w-full lg:max-w-[85%] xl:max-w-[84%] 2xl:max-w-7xl mx-auto px-4 sm:px-6 lg:px-2">
         <div className="max-w-2xl text-white px-4 sm:px-2">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 animate-slide-up">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 animate-slide-up">
             {heroData.title.includes("\n") ? (
               heroData.title.split("\n").map((line, index) => (
                 <React.Fragment key={index}>
@@ -178,7 +178,7 @@ const HeroSection = () => {
             ) : (
               heroData.title
             )}
-          </h1>
+          </h2>
 
           <p className="text-base sm:text-lg md:text-xl text-gray-200 mb-6 sm:mb-8 animate-slide-up delay-100">
             {heroData.subtitle}
