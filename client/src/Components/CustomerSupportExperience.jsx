@@ -165,7 +165,7 @@ const HoverText = styled.div`
   }
 `;
 
-const Title = styled.h1`
+const Title = styled.h2`
   margin-bottom: 1rem;
   color: #0f8abe;
   font-size: clamp(12px, 1vw, 14px);

@@ -116,9 +116,9 @@ const AboutUs = () => {
       <section className="contact-header">
         <div className="max-w-7xl mx-auto">
           <div className="animate-on-scroll transition-all duration-700 ease-out opacity-0 translate-y-8">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               {t("aboutPage.hero.title")} <span className="text-[#f8f9fa]">{t("aboutPage.hero.company")}</span>
-            </h2>
+            </h1>
             <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed">
               {t("aboutPage.hero.subtitle")}
             </p>
