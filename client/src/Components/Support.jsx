@@ -254,7 +254,7 @@ const StatCard = styled.div`
 
   h3 {
     color: #0f8abe;
-    font-size: 2.2rem;
+    font-size: 1.6rem;
     margin: 0;
     font-weight: 700;
     background: linear-gradient(135deg, #0f8abe, #4fc3f7);
