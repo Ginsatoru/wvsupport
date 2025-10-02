@@ -273,7 +273,7 @@ const Contact = () => {
   return (
     <div className="whole-page">
       <header className="contact-header">
-        <h2>{t('contactPage.header.title')}</h2>
+        <h1>{t('contactPage.header.title')}</h1>
         <p>{t('contactPage.header.subtitle')}</p>
       </header>
 
