@@ -42,7 +42,7 @@ const SupportHeader = styled.header`
   overflow: hidden;
   margin-bottom: 4rem;
 
-  h2 {
+  h1 {
     font-weight: 700;
     font-size: 2.5rem;
     margin-bottom: 1.5rem;
@@ -368,7 +368,7 @@ const Support = () => {
   return (
     <>
       <SupportHeader>
-        <h2>{t('supportPage.hero.title')}</h2>
+        <h1>{t('supportPage.hero.title')}</h1>
         <p>{t('supportPage.hero.subtitle')}</p>
       </SupportHeader>
       
