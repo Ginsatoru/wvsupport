@@ -8,7 +8,7 @@ const Legal = () => {
 
   return (
     <div className="legal-container">
-      <h1 className="legal-title">{t('legalPage.title')}</h1>
+      <h2 className="legal-title">{t('legalPage.title')}</h2>
 
       <section className="legal-section">
         <h2>{t('legalPage.welcome.title')}</h2>

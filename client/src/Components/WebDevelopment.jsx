@@ -8,7 +8,7 @@ const WebDevelopmentPage = () => {
       {/* Hero Section */}
       <section className="webdev-hero">
         <div className="hero-content">
-          <h1>Web Development Services</h1>
+          <h2>Web Development Services</h2>
           <p className="hero-subtitle">Custom-built websites that drive results and elevate your digital presence</p>
           <div className="tech-stack">
             <span>React</span>

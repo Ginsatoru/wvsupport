@@ -11,7 +11,7 @@ const WhoWeAre = () => {
     <section className="who-wrapper">
       <div className="hero-banner">
         <div className="hero-text">
-          <h1>{t('whoWeArePage.hero.title')}</h1>
+          <h2>{t('whoWeArePage.hero.title')}</h2>
           <p>{t('whoWeArePage.hero.subtitle')}</p>
         </div>
       </div>

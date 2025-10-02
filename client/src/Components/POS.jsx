@@ -36,9 +36,9 @@ const RetailManagerPOSSupport = () => {
           <div className="inline-flex items-center justify-center bg-white bg-opacity-20 p-5 rounded-xl mb-8 transition-all duration-500 hover:rotate-6 hover:scale-105">
             <Monitor className="h-16 w-16 text-white" />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
             RetailManager <span className="text-white">POS</span> Support
-          </h1>
+          </h2>
           <p className="text-xl text-gray-200">
             Premium 24/7 support with{" "}
             <span className="font-semibold text-white">

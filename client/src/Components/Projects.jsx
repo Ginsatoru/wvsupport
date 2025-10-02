@@ -117,9 +117,9 @@ const Projects = () => {
         }}
       >
         <div className="projects-content animate-[slideIn_0.5s_ease-out_forwards]">
-          <h1 className="font-bold text-2xl sm:text-3xl md:text-4xl lg:text-4xl mb-4 leading-tight">
+          <h2 className="font-bold text-2xl sm:text-3xl md:text-4xl lg:text-4xl mb-4 leading-tight">
             {t("projectsPage.hero.title")}
-          </h1>
+          </h2>
           <p className="text-base sm:text-lg md:text-lg max-w-2xl mx-auto leading-relaxed">
             {t("projectsPage.hero.subtitle")}
           </p>
