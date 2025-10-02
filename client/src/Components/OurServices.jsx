@@ -62,12 +62,12 @@ const OurServices = () => {
         <h2 className="text-slate-600 text-xs sm:text-sm md:text-sm font-medium tracking-wide uppercase mb-2 animate-fade-in">
           {t('services.header.subtitle')}
         </h2>
-        <h1
+        <h2
           className="text-2xl sm:text-3xl md:text-[1.9rem] xl:text-[2rem] font-bold mb-4 animate-fade-in-up"
           style={{ color: "#0f8abe" }}
         >
           {t('services.header.title')}
-        </h1>
+        </h2>
         <p className="text-slate-600 text-sm sm:text-base md:text-[1rem] xl:text-[1.05rem] max-w-3xl mx-auto leading-relaxed animate-fade-in-delay">
           {t('services.header.description')}
         </p>

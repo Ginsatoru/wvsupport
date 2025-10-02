@@ -169,9 +169,9 @@ const Team = () => {
       <div className="bg-white">
         <div className="w-full mx-auto py-12 md:py-16 max-w-full lg:max-w-[1250px] 2xl:max-w-[1350px] [@media(min-width:1700px)]:max-w-[1585px]">
           <div className="w-full text-center mb-8 md:mb-10">
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#0f8abe] mb-4 font-montserrat">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#0f8abe] mb-4 font-montserrat">
               {t("team.title")}
-            </h1>
+            </h2>
             <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto font-montserrat px-4">
               {t("team.emptyMessage")}
             </p>
@@ -193,9 +193,9 @@ const Team = () => {
         `}
       >
         <div className="w-full text-center mb-8 md:mb-10">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#0f8abe] mb-4 font-montserrat">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#0f8abe] mb-4 font-montserrat">
             {t("team.title")}
-          </h1>
+          </h2>
           <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto font-montserrat px-4">
             {t("team.subtitle")}
           </p>
