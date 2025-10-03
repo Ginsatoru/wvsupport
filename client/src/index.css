@@ -29,6 +29,8 @@
   --font-fallback: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
+
+
 @layer base {
   html {
     @apply text-gray-800 bg-gray-50 scroll-smooth;

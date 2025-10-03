@@ -4,9 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import enFlag from "../Components/Images/en.png";
 import khFlag from "../Components/Images/kh.png";
-import Support from "../Components/Images/supportm.webp";
-import Projects from "../Components/Images/projectsm.webp";
-import Who from "../Components/Images/whowearem.webp";
+import { FaCode, FaHeadset, FaUsers, FaChevronRight } from 'react-icons/fa';
 
 // Font loading optimization hook
 const useFontLoader = () => {
@@ -306,83 +304,68 @@ function Nav() {
                   </svg>
                 </button>
 
-                <div className="absolute right-0 mt-2 w-[64rem] origin-top-right rounded-2xl bg-white/95 backdrop-blur-xl shadow-2xl border border-white/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 group-hover:scale-100 scale-95">
-                  <div className="p-4">
-                    <div className="flex flex-row flex-wrap justify-between gap-1">
-                      {/* Project */}
-                      <Link
-                        to="/Project"
-                        className="flex flex-col items-center text-center p-3 rounded-xl hover:bg-gradient-to-b hover:from-[#0f8abe]/10 hover:to-[#0f8abe]/5 hover:shadow-md transition-all duration-300 group/item border border-transparent hover:border-[#0f8abe]/20 flex-1 min-w-[20rem] max-w-[22rem]"
-                      >
-                        <div className="space-y-1 mb-2">
-                          <h3 className="font-semibold text-base text-gray-900 group-hover/item:text-[#0f8abe] transition-colors duration-300">
-                            {safeTranslate("project")}
-                          </h3>
-                          <p className="text-xs text-gray-600 leading-snug group-hover/item:text-gray-700 transition-colors duration-300">
-                            Explore our innovative projects and cutting-edge
-                            solutions
-                          </p>
-                        </div>
+                <div className="absolute right-0 mt-3 w-80 origin-top-right rounded-xl bg-white/95 backdrop-blur-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform group-hover:translate-y-0 translate-y-1">
+  <div className="p-3">
+    <div className="flex flex-col gap-1">
+      {/* Project */}
+      <Link
+        to="/Project"
+        className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#0f8abe]/5 transition-all duration-200 group/item"
+      >
+        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center group-hover/item:bg-[#0f8abe]/10 transition-colors duration-200">
+          <FaCode className="w-5 h-5 text-gray-600 group-hover/item:text-[#0f8abe]" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-gray-900 text-sm mb-0.5 group-hover/item:text-[#0f8abe] transition-colors duration-200">
+            {safeTranslate("project")}
+          </h3>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            Innovative projects and cutting-edge solutions
+          </p>
+        </div>
+        <FaChevronRight className="flex-shrink-0 w-3 h-3 text-gray-400 group-hover/item:text-[#0f8abe] group-hover/item:translate-x-0.5 transition-all duration-200" />
+      </Link>
 
-                        <div className="w-full h-48 rounded-xl overflow-hidden transition-transform duration-300 group-hover/item:scale-102 group-hover/item:shadow-lg">
-                          <img
-                            src={Projects}
-                            alt="Project"
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover/item:scale-105"
-                          />
-                        </div>
-                      </Link>
+      {/* Support */}
+      <Link
+        to="/Support"
+        className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#0f8abe]/5 transition-all duration-200 group/item"
+      >
+        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center group-hover/item:bg-[#0f8abe]/10 transition-colors duration-200">
+          <FaHeadset className="w-5 h-5 text-gray-600 group-hover/item:text-[#0f8abe]" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-gray-900 text-sm mb-0.5 group-hover/item:text-[#0f8abe] transition-colors duration-200">
+            {safeTranslate("support")}
+          </h3>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            Help from our dedicated support team
+          </p>
+        </div>
+        <FaChevronRight className="flex-shrink-0 w-3 h-3 text-gray-400 group-hover/item:text-[#0f8abe] group-hover/item:translate-x-0.5 transition-all duration-200" />
+      </Link>
 
-                      {/* Support */}
-                      <Link
-                        to="/Support"
-                        className="flex flex-col items-center text-center p-3 rounded-xl hover:bg-gradient-to-b hover:from-[#0f8abe]/10 hover:to-[#0f8abe]/5 hover:shadow-md transition-all duration-300 group/item border border-transparent hover:border-[#0f8abe]/20 flex-1 min-w-[20rem] max-w-[22rem]"
-                      >
-                        <div className="space-y-1 mb-2">
-                          <h3 className="font-semibold text-base text-gray-900 group-hover/item:text-[#0f8abe] transition-colors duration-300">
-                            {safeTranslate("support")}
-                          </h3>
-                          <p className="text-xs text-gray-600 leading-snug group-hover/item:text-gray-700 transition-colors duration-300">
-                            Get help and assistance from our dedicated support
-                            team
-                          </p>
-                        </div>
-
-                        <div className="w-full h-48 rounded-xl overflow-hidden transition-transform duration-300 group-hover/item:scale-102 group-hover/item:shadow-lg">
-                          <img
-                            src={Support}
-                            alt="Support"
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover/item:scale-105"
-                          />
-                        </div>
-                      </Link>
-
-                      {/* Who We Are */}
-                      <Link
-                        to="/Whoweare"
-                        className="flex flex-col items-center text-center p-3 rounded-xl hover:bg-gradient-to-b hover:from-[#0f8abe]/10 hover:to-[#0f8abe]/5 hover:shadow-md transition-all duration-300 group/item border border-transparent hover:border-[#0f8abe]/20 flex-1 min-w-[20rem] max-w-[22rem]"
-                      >
-                        <div className="space-y-1 mb-2">
-                          <h3 className="font-semibold text-base text-gray-900 group-hover/item:text-[#0f8abe] transition-colors duration-300">
-                            {safeTranslate("whoWeAre")}
-                          </h3>
-                          <p className="text-xs text-gray-600 leading-snug group-hover/item:text-gray-700 transition-colors duration-300">
-                            Learn about our mission, values, and passionate team
-                            work
-                          </p>
-                        </div>
-
-                        <div className="w-full h-48 rounded-xl overflow-hidden transition-transform duration-300 group-hover/item:scale-102 group-hover/item:shadow-lg">
-                          <img
-                            src={Who}
-                            alt="Who We Are"
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover/item:scale-105"
-                          />
-                        </div>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+      {/* Who We Are */}
+      <Link
+        to="/Whoweare"
+        className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#0f8abe]/5 transition-all duration-200 group/item"
+      >
+        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center group-hover/item:bg-[#0f8abe]/10 transition-colors duration-200">
+          <FaUsers className="w-5 h-5 text-gray-600 group-hover/item:text-[#0f8abe]" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-gray-900 text-sm mb-0.5 group-hover/item:text-[#0f8abe] transition-colors duration-200">
+            {safeTranslate("whoWeAre")}
+          </h3>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            Our mission, values, and passionate team
+          </p>
+        </div>
+        <FaChevronRight className="flex-shrink-0 w-3 h-3 text-gray-400 group-hover/item:text-[#0f8abe] group-hover/item:translate-x-0.5 transition-all duration-200" />
+      </Link>
+    </div>
+  </div>
+</div>
               </div>
 
               {/* Language Dropdown - Modern Design */}
