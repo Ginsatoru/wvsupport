@@ -88,22 +88,70 @@ const HeroSection = () => {
 
   // Show loading state
   if (loading) {
-    return (
-      <section className="relative w-full h-screen min-h-[600px] overflow-hidden">
-        <div className="absolute inset-0 bg-gray-900 z-0">
-          <div className="absolute inset-0 bg-black/50" />
-        </div>
-        <div className="relative z-10 h-full flex items-center justify-center">
-          <div className="text-white text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0f8abe] mx-auto mb-4"></div>
-            <p className="text-lg">
-              {i18n.language === 'km' ? 'កំពុងដំណើរការ...' : 'Loading...'}
-            </p>
+  return (
+    <section className="relative w-full h-screen min-h-[600px] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="absolute inset-0 z-0">
+        {/* Background skeleton with shimmer effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-[shimmer_2s_infinite]" 
+             style={{
+               backgroundSize: '200% 100%'
+             }}
+        />
+      </div>
+      
+      <div className="relative z-10 h-full flex items-center justify-center px-4">
+        <div className="w-full max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            {/* Left content skeleton */}
+            <div className="space-y-6">
+              {/* Title skeleton */}
+              <div className="space-y-3">
+                <div className="h-12 bg-white/80 rounded-xl animate-pulse shadow-sm w-3/4"></div>
+                <div className="h-12 bg-white/80 rounded-xl animate-pulse shadow-sm w-full"></div>
+                <div className="h-12 bg-white/80 rounded-xl animate-pulse shadow-sm w-5/6"></div>
+              </div>
+              
+              {/* Description skeleton */}
+              <div className="space-y-2 pt-4">
+                <div className="h-4 bg-white/70 rounded-lg animate-pulse shadow-sm w-full"></div>
+                <div className="h-4 bg-white/70 rounded-lg animate-pulse shadow-sm w-11/12"></div>
+                <div className="h-4 bg-white/70 rounded-lg animate-pulse shadow-sm w-4/5"></div>
+              </div>
+              
+              {/* Button skeleton */}
+              <div className="flex gap-4 pt-6">
+                <div className="h-12 bg-gradient-to-r from-[#0f8abe]/30 to-[#0f8abe]/20 rounded-xl animate-pulse shadow-sm w-40"></div>
+                <div className="h-12 bg-white/70 rounded-xl animate-pulse shadow-sm w-40"></div>
+              </div>
+            </div>
+            
+            {/* Right image/visual skeleton */}
+            <div className="hidden lg:block">
+              <div className="relative">
+                {/* Main image skeleton */}
+                <div className="h-96 bg-white/80 rounded-2xl animate-pulse shadow-lg"></div>
+                
+                {/* Floating card skeletons */}
+                <div className="absolute -top-6 -left-6 w-32 h-32 bg-white/90 rounded-xl animate-pulse shadow-md"></div>
+                <div className="absolute -bottom-6 -right-6 w-40 h-24 bg-white/90 rounded-xl animate-pulse shadow-md"></div>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
-    );
-  }
+      </div>
+      
+      {/* Optional: Loading indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="flex items-center gap-3 bg-white/95 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg">
+          <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#0f8abe] border-t-transparent"></div>
+          <p className="text-sm text-gray-700 font-medium">
+            {i18n.language === 'km' ? 'កំពុងដំណើរការ...' : 'Loading...'}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
 
   // Show error state (with fallback content)
   if (error && !heroData) {
