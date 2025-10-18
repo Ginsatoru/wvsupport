@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "../context/SettingsContext";
 import enFlag from "../Components/Images/en.png";
 import khFlag from "../Components/Images/kh.png";
-import { FaCode, FaHeadset, FaUsers, FaChevronRight } from 'react-icons/fa';
+import { FaCode, FaHeadset, FaUsers, FaChevronRight } from "react-icons/fa";
 
 // Font loading optimization hook
 const useFontLoader = () => {
@@ -305,67 +305,67 @@ function Nav() {
                 </button>
 
                 <div className="absolute right-0 mt-3 w-80 origin-top-right rounded-xl bg-white/95 backdrop-blur-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform group-hover:translate-y-0 translate-y-1">
-  <div className="p-3">
-    <div className="flex flex-col gap-1">
-      {/* Project */}
-      <Link
-        to="/Project"
-        className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#0f8abe]/5 transition-all duration-200 group/item"
-      >
-        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center group-hover/item:bg-[#0f8abe]/10 transition-colors duration-200">
-          <FaCode className="w-5 h-5 text-gray-600 group-hover/item:text-[#0f8abe]" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 text-sm mb-0.5 group-hover/item:text-[#0f8abe] transition-colors duration-200">
-            {safeTranslate("project")}
-          </h3>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Innovative projects and cutting-edge solutions
-          </p>
-        </div>
-        <FaChevronRight className="flex-shrink-0 w-3 h-3 text-gray-400 group-hover/item:text-[#0f8abe] group-hover/item:translate-x-0.5 transition-all duration-200" />
-      </Link>
+                  <div className="p-3">
+                    <div className="flex flex-col gap-1">
+                      {/* Project */}
+                      <Link
+                        to="/Project"
+                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#0f8abe]/5 transition-all duration-200 group/item"
+                      >
+                        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center group-hover/item:bg-[#0f8abe]/10 transition-colors duration-200">
+                          <FaCode className="w-5 h-5 text-gray-600 group-hover/item:text-[#0f8abe]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 text-sm mb-0.5 group-hover/item:text-[#0f8abe] transition-colors duration-200">
+                            {safeTranslate("project")}
+                          </h3>
+                          <p className="text-xs text-gray-500 leading-relaxed">
+                            Innovative projects and cutting-edge solutions
+                          </p>
+                        </div>
+                        <FaChevronRight className="flex-shrink-0 w-3 h-3 text-gray-400 group-hover/item:text-[#0f8abe] group-hover/item:translate-x-0.5 transition-all duration-200" />
+                      </Link>
 
-      {/* Support */}
-      <Link
-        to="/Support"
-        className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#0f8abe]/5 transition-all duration-200 group/item"
-      >
-        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center group-hover/item:bg-[#0f8abe]/10 transition-colors duration-200">
-          <FaHeadset className="w-5 h-5 text-gray-600 group-hover/item:text-[#0f8abe]" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 text-sm mb-0.5 group-hover/item:text-[#0f8abe] transition-colors duration-200">
-            {safeTranslate("support")}
-          </h3>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Help from our dedicated support team
-          </p>
-        </div>
-        <FaChevronRight className="flex-shrink-0 w-3 h-3 text-gray-400 group-hover/item:text-[#0f8abe] group-hover/item:translate-x-0.5 transition-all duration-200" />
-      </Link>
+                      {/* Support */}
+                      <Link
+                        to="/Support"
+                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#0f8abe]/5 transition-all duration-200 group/item"
+                      >
+                        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center group-hover/item:bg-[#0f8abe]/10 transition-colors duration-200">
+                          <FaHeadset className="w-5 h-5 text-gray-600 group-hover/item:text-[#0f8abe]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 text-sm mb-0.5 group-hover/item:text-[#0f8abe] transition-colors duration-200">
+                            {safeTranslate("support")}
+                          </h3>
+                          <p className="text-xs text-gray-500 leading-relaxed">
+                            Help from our dedicated support team
+                          </p>
+                        </div>
+                        <FaChevronRight className="flex-shrink-0 w-3 h-3 text-gray-400 group-hover/item:text-[#0f8abe] group-hover/item:translate-x-0.5 transition-all duration-200" />
+                      </Link>
 
-      {/* Who We Are */}
-      <Link
-        to="/Whoweare"
-        className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#0f8abe]/5 transition-all duration-200 group/item"
-      >
-        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center group-hover/item:bg-[#0f8abe]/10 transition-colors duration-200">
-          <FaUsers className="w-5 h-5 text-gray-600 group-hover/item:text-[#0f8abe]" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 text-sm mb-0.5 group-hover/item:text-[#0f8abe] transition-colors duration-200">
-            {safeTranslate("whoWeAre")}
-          </h3>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Our mission, values, and passionate team
-          </p>
-        </div>
-        <FaChevronRight className="flex-shrink-0 w-3 h-3 text-gray-400 group-hover/item:text-[#0f8abe] group-hover/item:translate-x-0.5 transition-all duration-200" />
-      </Link>
-    </div>
-  </div>
-</div>
+                      {/* Who We Are */}
+                      <Link
+                        to="/Whoweare"
+                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#0f8abe]/5 transition-all duration-200 group/item"
+                      >
+                        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center group-hover/item:bg-[#0f8abe]/10 transition-colors duration-200">
+                          <FaUsers className="w-5 h-5 text-gray-600 group-hover/item:text-[#0f8abe]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 text-sm mb-0.5 group-hover/item:text-[#0f8abe] transition-colors duration-200">
+                            {safeTranslate("whoWeAre")}
+                          </h3>
+                          <p className="text-xs text-gray-500 leading-relaxed">
+                            Our mission, values, and passionate team
+                          </p>
+                        </div>
+                        <FaChevronRight className="flex-shrink-0 w-3 h-3 text-gray-400 group-hover/item:text-[#0f8abe] group-hover/item:translate-x-0.5 transition-all duration-200" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Language Dropdown - Modern Design */}

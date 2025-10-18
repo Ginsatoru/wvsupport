@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useInView } from "react-intersection-observer";
 
@@ -22,6 +22,27 @@ const mockImages = {
 
 const OurServices = () => {
   const { t } = useTranslation();
+  const [hasScrolled, setHasScrolled] = useState(false);
+  
+  // Track if user has scrolled at all
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setHasScrolled(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  // Header animations with scroll trigger - only start after user scrolls
+  const [headerRef, headerInView] = useInView({
+    triggerOnce: true,
+    threshold: 0.3,
+    skip: !hasScrolled, // Don't trigger until user has scrolled
+  });
+
   const services = [
     {
       title: t('services.pos.title'),
@@ -58,17 +79,27 @@ const OurServices = () => {
   return (
     <section className="w-full min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       {/* Header Section */}
-      <div className="max-w-[1480px] mx-auto text-center mb-12">
-        <h2 className="text-slate-600 text-xs sm:text-sm md:text-sm font-medium tracking-wide uppercase mb-2 animate-fade-in">
+      <div ref={headerRef} className="max-w-[1480px] mx-auto text-center mb-12">
+        <h2 
+          className={`text-slate-600 text-xs sm:text-sm md:text-sm font-medium tracking-wide uppercase mb-2 transition-all duration-700 ${
+            headerInView && hasScrolled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+        >
           {t('services.header.subtitle')}
         </h2>
         <h2
-          className="text-2xl sm:text-3xl md:text-[1.9rem] xl:text-[2rem] font-bold mb-4 animate-fade-in-up"
+          className={`text-2xl sm:text-3xl md:text-[1.9rem] xl:text-[2rem] font-bold mb-4 transition-all duration-700 delay-150 ${
+            headerInView && hasScrolled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
           style={{ color: "#0f8abe" }}
         >
           {t('services.header.title')}
         </h2>
-        <p className="text-slate-600 text-sm sm:text-base md:text-[1rem] xl:text-[1.05rem] max-w-3xl mx-auto leading-relaxed animate-fade-in-delay">
+        <p 
+          className={`text-slate-600 text-sm sm:text-base md:text-[1rem] xl:text-[1.05rem] max-w-3xl mx-auto leading-relaxed transition-all duration-700 delay-300 ${
+            headerInView && hasScrolled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+        >
           {t('services.header.description')}
         </p>
       </div>
@@ -76,14 +107,13 @@ const OurServices = () => {
       {/* Cards Grid */}
       <div className="max-w-7xl mx-auto">
         <div
-          className="grid
-         grid-cols-1 md:grid-cols-3 lg:gri
-        d-cols-3 gap-4 lg:gap-6 justify-items-center max-w-full lg:max-w-[85%] xl:max-w-[85%] 2xl:max-w-[1100px] [@media(min-width:1700px)]:max-w-[1500px] mx-auto"
+          className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 lg:gap-6 justify-items-center max-w-full lg:max-w-[85%] xl:max-w-[85%] 2xl:max-w-[1100px] [@media(min-width:1700px)]:max-w-[1500px] mx-auto"
         >
           {services.map((service, index) => {
             const [ref, inView] = useInView({
               triggerOnce: true,
               threshold: 0.2,
+              skip: !hasScrolled, // Don't trigger until user has scrolled
             });
 
             return (
@@ -91,13 +121,13 @@ const OurServices = () => {
                 key={index}
                 ref={ref}
                 className={`
-            group relative bg-white rounded-xl shadow-md border border-slate-200
-            transition-all duration-500 ease-out hover:shadow-lg
-            ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
-            w-full max-w-[420px]
-          `}
+                  group relative bg-white rounded-xl shadow-md border border-slate-200
+                  transition-all duration-700 ease-out hover:shadow-lg
+                  ${inView && hasScrolled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}
+                  w-full max-w-[420px]
+                `}
                 style={{
-                  transitionDelay: `${index * 150}ms`,
+                  transitionDelay: inView && hasScrolled ? `${index * 150}ms` : '0ms',
                 }}
               >
                 {/* Image */}
@@ -123,44 +153,6 @@ const OurServices = () => {
           })}
         </div>
       </div>
-
-      {/* Animations - Fixed by removing jsx attribute */}
-      <style>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 1s ease-out forwards;
-        }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 1s ease-out forwards;
-        }
-
-        .animate-fade-in-delay {
-          animation: fade-in 1s ease-out 0.3s forwards;
-          opacity: 0;
-        }
-      `}</style>
     </section>
   );
 };
