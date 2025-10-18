@@ -34,7 +34,7 @@ const HeroEditModal = ({ isOpen, onClose, hero, onSuccess }) => {
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('en');
 
-  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "https://localhost:5000";
 
   // Update form data when hero prop changes
   useEffect(() => {

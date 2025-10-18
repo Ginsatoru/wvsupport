@@ -1,7 +1,7 @@
 // Hero Content API Service Functions
 // Add these functions to your existing API service file
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "https://localhost:5000";
 
 // Hero Content API Functions
 

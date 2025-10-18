@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Use consistent environment variable
 const API_BASE_URL =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+  import.meta.env.VITE_BACKEND_URL || "https://localhost:5000";
 const API_URL = `${API_BASE_URL}/api/team`;
 
 // Create instance for regular requests
