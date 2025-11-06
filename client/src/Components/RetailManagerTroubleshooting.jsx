@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
-import { ArrowRight, Wrench, Settings } from "lucide-react";
+import { ArrowRight, Wrench, Settings, Play } from "lucide-react";
 import IT from "./Images/IT.webp";
 
 const RetailManagerTroubleshooting = () => {
@@ -14,8 +14,7 @@ const RetailManagerTroubleshooting = () => {
   return (
     <section className="flex justify-center min-h-[70vh] bg-[#fafafb] py-12 px-4">
       <div className="flex flex-col md:flex-row items-center w-full md:w-[85%] max-w-[1500px] mx-auto gap-8 md:gap-16">
-        
-        {/* Left - Image Section */}
+        {/* Left - Enhanced Image Section */}
         <div className="w-full md:w-1/2">
           <motion.div
             ref={ref}
@@ -23,26 +22,30 @@ const RetailManagerTroubleshooting = () => {
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <div className="relative h-[400px] w-full max-w-[800px] mx-auto rounded-2xl overflow-hidden shadow-xl group will-change-transform">
-              <img 
-                src={IT} 
-                alt={t('retailManager.imageAlt')} 
+            <div className="relative h-[400px] w-full max-w-[800px] mx-auto rounded-2xl overflow-hidden shadow-xl group cursor-pointer will-change-transform">
+              <img
+                src={IT}
+                alt={t("retailManager.imageAlt")}
                 className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 will-change-transform"
               />
-              
+
               {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-[#0f8abe]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0f8abe]/90 via-[#0f8abe]/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+
               {/* Hover Content */}
-              <div className="absolute inset-0 flex flex-col justify-center items-center p-8 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-                <h4 className="text-white text-2xl font-bold mb-2">{t('retailManager.hoverTitle')}</h4>
-                <h5 className="text-white/90 text-lg font-normal">{t('retailManager.hoverSubtitle')}</h5>
+              <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
+                <h4 className="text-white text-xl font-bold mb-2">
+                  {t("retailManager.hoverTitle")}
+                </h4>
+                <p className="text-white/90 text-base">
+                  {t("retailManager.hoverSubtitle")}
+                </p>
               </div>
             </div>
           </motion.div>
         </div>
 
-        {/* Right - Content Section */}
+        {/* Right - Clean Content Section */}
         <div className="w-full md:w-1/2 md:pl-8">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -51,38 +54,31 @@ const RetailManagerTroubleshooting = () => {
           >
             {/* Title with Icon */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-[#0f8abe]/10 rounded-xl flex items-center justify-center">
-                <Settings className="w-5 h-5 text-[#0f8abe]" />
-              </div>
               <h2 className="text-[#0f8abe] text-sm md:text-base font-semibold uppercase tracking-wider">
-                {t('retailManager.title')}
+                {t("retailManager.title")}
               </h2>
             </div>
-            
+
             {/* Subtitle with Icon */}
             <div className="flex items-start gap-4 mb-6">
-              <div className="mt-1 w-12 h-12 bg-[#0f8abe] rounded-xl flex items-center justify-center flex-shrink-0">
-                <Wrench className="w-7 h-7 text-white" />
-              </div>
               <h3 className="text-[#52514a] text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">
-                {t('retailManager.subtitle')}
+                {t("retailManager.subtitle")}
               </h3>
             </div>
-            
+
             <p className="text-[#52514a] text-base md:text-lg leading-relaxed mb-8">
-              {t('retailManager.description')}
+              {t("retailManager.description")}
             </p>
-            
+
             <button
               onClick={() => navigate("/retailmanager")}
-              className="group inline-flex items-center gap-2 px-6 py-3 bg-[#0f8abe] text-white rounded-xl font-semibold hover:bg-[#0d7aa4] transition-colors duration-300 will-change-transform"
+              className="group inline-flex items-center gap-2 px-6 py-3 bg-[#0f8abe] text-white rounded-xl font-semibold hover:bg-[#0d7aa4] transition-colors duration-300"
             >
-              <span>{t('retailManager.exploreMore')}</span>
+              <span>{t("retailManager.exploreMore")}</span>
               <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
             </button>
           </motion.div>
         </div>
-
       </div>
     </section>
   );

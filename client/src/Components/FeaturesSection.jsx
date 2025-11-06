@@ -85,9 +85,6 @@ export default function FeaturesSection() {
         }`}>
           {/* Header */}
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-[#0f8abe] rounded-xl flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-white" />
-            </div>
             <h2 className="text-[#0f8abe] text-3xl font-bold">
               {t('features.mainTitle')}
             </h2>
