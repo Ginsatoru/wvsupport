@@ -10,7 +10,7 @@ import { SettingsProvider } from "./context/SettingsContext";
 import { useEffect, useState } from "react";
 import Nav from "./Components/shared/Navbar";
 import Footer from "./Components/shared/Footer";
-import Home from "./pages/home";
+import Home from "./pages/Home";
 import Aboutus from "./Components/Aboutus";
 import Contact from "./pages/Contact";
 import Project from "./Components/Projects";
