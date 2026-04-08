@@ -1,17 +1,16 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import "./Home.css";
-import "./i18n";
-import Team from "./Team";
-import Gallery from "./Gallery";
-import FeaturesSection from "./FeaturesSection";
-import Achievements from "./Achievements";
-import OurServices from "./OurServices";
-import RetailManagerTroubleshooting from "./RetailManagerTroubleshooting";
-import CustomerSupportExperience from "./CustomerSupportExperience";
-import Partners from "./Partners";
-import Hero from "./Hero";
-import WelcomeMessage from "./WelcomePop";
+import "../Components/i18n";
+import Team from "../Components/home/Team";
+import Gallery from "../Components/home/Gallery";
+import FeaturesSection from "../Components/home/Work";
+import Newsletter from "../Components/home/Newsletter";
+import OurServices from "../Components/home/Services";
+import RetailManagerTroubleshooting from "../Components/home/About";
+import CustomerSupportExperience from "../Components/home/Tech";
+import Partners from "../Components/home/Partners";
+import Hero from "../Components/home/Hero";
 
 function Home() {
   const { t } = useTranslation();
@@ -23,7 +22,7 @@ function Home() {
       </section>
 
       <section className="team-section-wrapper">
-        <WelcomeMessage />
+        <Partners />
       </section>
 
       <section className="team-section-wrapper">
@@ -47,15 +46,11 @@ function Home() {
       </section>
 
       <section className="team-section-wrapper">
-        <Partners />
-      </section>
-
-      <section className="team-section-wrapper">
         <Gallery />
       </section>
 
       <section className="team-section-wrapper">
-        <Achievements />
+        <Newsletter />
       </section>
     </main>
   );

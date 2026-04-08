@@ -886,7 +886,7 @@ const resources = {
           "We'll keep you posted with the latest updates and news.",
         close: "Close",
         copyright:
-          "Copyright ©2025 All rights reserved | This website is developed by AAAPOS team",
+          "Copyright ©2026 All rights reserved | Developed by AAAPOS team",
         followUs: "Follow us",
       },
       // Achievements

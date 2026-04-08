@@ -8,11 +8,11 @@ import {
 import initTracker from "../utils/tracker";
 import { SettingsProvider } from "./context/SettingsContext";
 import { useEffect, useState } from "react";
-import Nav from "./Components/Navbar";
-import Footer from "./Components/Footer";
-import Home from "./Components/Home";
+import Nav from "./Components/shared/Navbar";
+import Footer from "./Components/shared/Footer";
+import Home from "./pages/home";
 import Aboutus from "./Components/Aboutus";
-import Contact from "./Components/Contact";
+import Contact from "./pages/Contact";
 import Project from "./Components/Projects";
 import Pages from "./Components/Pages";
 import Support from "./Components/Support";
@@ -21,7 +21,7 @@ import Whoweare from "./Components/Whoweare";
 import LoginForm from "./Components/LoginForm";
 import AdminPanel from "./admin/Main/AdminPanel";
 import ProtectedRoute from "./Components/ProtectedRoute";
-import ChatBox from "./Components/ChatBox";
+import ChatBox from "./Components/shared/ChatBox";
 import Legal from "./Components/Legal";
 import Careers from "./Components/Careers";
 import Partner from "./Components/Partner";
@@ -95,7 +95,7 @@ function App() {
 
             {/* Admin routes */}
             <Route
-              path="/admin/login"
+              path="/login"
               element={<LoginForm onLogin={() => setIsAuthenticated(true)} />}
             />
             {/* FIXED: Added /* to allow nested routing */}
