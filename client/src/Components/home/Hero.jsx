@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { getActiveHeroContent } from "../../services/heroApi";
+import fallbackHero from "../Images/hero.webp";
 
 /* ── Word-slice text ── */
 const SliceText = ({ text, inView, baseDelay = 0 }) => (
@@ -30,7 +31,7 @@ const DEFAULT_CONTENT = {
     primaryCtaLink: "/services",
     secondaryCtaText: "Get Started",
     secondaryCtaLink: "/contact",
-    backgroundImage: "/images/hero.webp",
+    backgroundImage: fallbackHero,
   },
   km: {
     title: "សេវាកម្មគាំទ្រ WV\nកម្ពុជា",
@@ -40,14 +41,14 @@ const DEFAULT_CONTENT = {
     primaryCtaLink: "/services",
     secondaryCtaText: "ចាប់ផ្តើម",
     secondaryCtaLink: "/contact",
-    backgroundImage: "/images/hero.webp",
+    backgroundImage: fallbackHero,
   },
 };
 
 const HeroSection = () => {
   const navigate = useNavigate();
   const { i18n } = useTranslation();
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(true);
   const [personImageLoaded, setPersonImageLoaded] = useState(false);
   const [heroData, setHeroData] = useState(DEFAULT_CONTENT.en);
   const [loading, setLoading] = useState(false);
@@ -221,7 +222,7 @@ const HeroSection = () => {
             style={{ willChange: "transform", backfaceVisibility: "hidden" }}
           >
             <img
-              src={heroData.backgroundImage}
+              src={heroData.backgroundImage || fallbackHero}
               alt=""
               aria-hidden="true"
               className={`w-full h-[120%] object-cover transition-opacity duration-1000 ${
@@ -229,7 +230,7 @@ const HeroSection = () => {
               }`}
               style={{ objectPosition: "center center" }}
               onLoad={() => setImageLoaded(true)}
-              onError={() => setImageLoaded(true)}
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackHero; setImageLoaded(true); }}
               loading="eager"
             />
           </div>
