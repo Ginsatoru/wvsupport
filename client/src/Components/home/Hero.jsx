@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
+import { getActiveHeroContent } from "../../services/heroApi";
 
-/* ── Word-slice text (same mechanic as Tech section) ── */
+/* ── Word-slice text ── */
 const SliceText = ({ text, inView, baseDelay = 0 }) => (
   <>
     {text.split(" ").map((word, i) => (
@@ -20,12 +21,8 @@ const SliceText = ({ text, inView, baseDelay = 0 }) => (
   </>
 );
 
-const HeroSection = () => {
-  const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [personImageLoaded, setPersonImageLoaded] = useState(false);
-  const [heroData, setHeroData] = useState({
+const DEFAULT_CONTENT = {
+  en: {
     title: "WV Support\nServices Cambodia",
     subtitle:
       "Cutting-edge IT solutions in Cambodia. We deliver premium support, network infrastructure, and software expertise to keep your business at the digital forefront from our Siem Reap headquarters.",
@@ -33,16 +30,30 @@ const HeroSection = () => {
     primaryCtaLink: "/services",
     secondaryCtaText: "Get Started",
     secondaryCtaLink: "/contact",
-    backgroundImage: "/src/Components/Images/hero.webp",
-  });
+    backgroundImage: "/images/hero.webp",
+  },
+  km: {
+    title: "សេវាកម្មគាំទ្រ WV\nកម្ពុជា",
+    subtitle:
+      "ដំណោះស្រាយព័ត៌មានវិទ្យាទំនើបនៅកម្ពុជា។ យើងផ្តល់សេវាគាំទ្រពិសេស រចនាសម្ព័ន្ធបណ្តាញ និងជំនាញកម្មវិធីដើម្បីរក្សាអាជីវកម្មរបស់អ្នកនៅចំណុចខាងមុខនៃបច្ចេកវិទ្យាឌីជីថលពីទីស្នាក់ការកណ្តាលរបស់យើងនៅសៀមរាប។",
+    primaryCtaText: "ស្វែងយល់បន្ថែម",
+    primaryCtaLink: "/services",
+    secondaryCtaText: "ចាប់ផ្តើម",
+    secondaryCtaLink: "/contact",
+    backgroundImage: "/images/hero.webp",
+  },
+};
+
+const HeroSection = () => {
+  const navigate = useNavigate();
+  const { i18n } = useTranslation();
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [personImageLoaded, setPersonImageLoaded] = useState(false);
+  const [heroData, setHeroData] = useState(DEFAULT_CONTENT.en);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [entered, setEntered] = useState(false);
   const mainLayerRef = useRef(null);
   const rafRef = useRef(null);
-
-  const API_BASE_URL =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
   /* ── Parallax scroll ── */
   useEffect(() => {
@@ -71,13 +82,7 @@ const HeroSection = () => {
     const fetchHeroContent = async () => {
       try {
         setLoading(true);
-        const currentLanguage = i18n.language || "en";
-        const response = await fetch(
-          `${API_BASE_URL}/api/content/hero/active?lang=${currentLanguage}`
-        );
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`);
-        const result = await response.json();
+        const result = await getActiveHeroContent();
         if (result.success && result.data) {
           setHeroData(result.data);
         } else {
@@ -85,38 +90,14 @@ const HeroSection = () => {
         }
       } catch (err) {
         console.error("Error fetching hero content:", err);
-        setError(err.message);
-        const defaultContent = {
-          en: {
-            title: "WV Support\nServices Cambodia",
-            subtitle:
-              "Cutting-edge IT solutions in Cambodia. We deliver premium support, network infrastructure, and software expertise to keep your business at the digital forefront from our Siem Reap headquarters.",
-            primaryCtaText: "Learn More",
-            primaryCtaLink: "/services",
-            secondaryCtaText: "Get Started",
-            secondaryCtaLink: "/contact",
-          },
-          km: {
-            title: "សេវាកម្មគាំទ្រ WV\nកម្ពុជា",
-            subtitle:
-              "ដំណោះស្រាយព័ត៌មានវិទ្យាទំនើបនៅកម្ពុជា។ យើងផ្តល់សេវាគាំទ្រពិសេស រចនាសម្ព័ន្ធបណ្តាញ និងជំនាញកម្មវិធីដើម្បីរក្សាអាជីវកម្មរបស់អ្នកនៅចំណុចខាងមុខនៃបច្ចេកវិទ្យាឌីជីថលពីទីស្នាក់ការកណ្តាលរបស់យើងនៅសៀមរាប។",
-            primaryCtaText: "ស្វែងយល់បន្ថែម",
-            primaryCtaLink: "/services",
-            secondaryCtaText: "ចាប់ផ្តើម",
-            secondaryCtaLink: "/contact",
-          },
-        };
         const currentLang = i18n.language === "km" ? "km" : "en";
-        setHeroData({
-          ...defaultContent[currentLang],
-          backgroundImage: "/src/Components/Images/hero.webp",
-        });
+        setHeroData(DEFAULT_CONTENT[currentLang]);
       } finally {
         setLoading(false);
       }
     };
     fetchHeroContent();
-  }, [API_BASE_URL, i18n.language]);
+  }, [i18n.language]);
 
   /* ── Trigger entrance after data loads ── */
   useEffect(() => {
@@ -127,15 +108,15 @@ const HeroSection = () => {
   }, [loading, heroData]);
 
   const handleNavigation = (link) => {
-    if (link.startsWith("http") || link.startsWith("https")) {
+    if (link?.startsWith("http") || link?.startsWith("https")) {
       window.open(link, "_blank");
     } else {
-      navigate(link);
+      navigate(link || "/");
     }
   };
 
   const isKm = i18n.language === "km";
-  const titleLines = heroData.title.split("\n");
+  const titleLines = (heroData.title || "").split("\n");
 
   const stats = [
     { value: "100K+", label: isKm ? "អ្នកប្រើប្រាស់ទូទាំងពិភពលោក" : "Worldwide Users" },
@@ -143,30 +124,11 @@ const HeroSection = () => {
     { value: "6.7K+", label: isKm ? "ក្រុមហ៊ុនចូលរួម" : "Joined Companies" },
   ];
 
-  if (error && !heroData) {
-    return (
-      <section className="relative w-full h-screen min-h-[600px] overflow-hidden bg-white">
-        <div className="relative z-10 h-full flex items-center justify-center">
-          <div className="text-gray-800 text-center max-w-md">
-            <p className="text-lg mb-4">
-              {isKm ? "មិនអាចផ្ទុកមាតិកាភាគផ្តើមបាន" : "Unable to load hero content"}
-            </p>
-            <p className="text-sm text-gray-500">{error}</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section
       className={`relative w-full overflow-hidden bg-white${entered ? " hero-entered" : ""}`}
     >
       {/* ── LEFT — content ── */}
-      {/*
-        Mobile:  auto height, compact padding (pt-16 pb-10) — shrinks to fit content
-        Desktop: full viewport height via lg:min-h-screen, centred with lg:py-0
-      */}
       <div className="relative z-10 flex flex-col justify-center w-full lg:w-[50%] lg:min-h-screen px-6 sm:px-10 lg:pl-[11%] lg:pr-10 pt-16 pb-10 sm:pt-20 sm:pb-14 lg:py-0">
 
         {/* Title */}
@@ -186,7 +148,7 @@ const HeroSection = () => {
           className="text-sm sm:text-[15px] text-gray-500 leading-relaxed max-w-sm mb-6 lg:mb-8"
           style={{ display: "flex", flexWrap: "wrap" }}
         >
-          <SliceText text={heroData.subtitle} inView={entered} baseDelay={0.42} />
+          <SliceText text={heroData.subtitle || ""} inView={entered} baseDelay={0.42} />
         </p>
 
         {/* CTA buttons */}
@@ -242,7 +204,7 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* ── RIGHT — image panel (desktop only, unchanged) ── */}
+      {/* ── RIGHT — image panel (desktop only) ── */}
       <div className="hidden lg:block absolute top-0 right-0 w-[50%] h-full z-0 overflow-hidden">
 
         <div
@@ -267,7 +229,7 @@ const HeroSection = () => {
               }`}
               style={{ objectPosition: "center center" }}
               onLoad={() => setImageLoaded(true)}
-              onError={(e) => { e.target.src = "/src/Components/Images/hero.webp"; setImageLoaded(true); }}
+              onError={() => setImageLoaded(true)}
               loading="eager"
             />
           </div>
@@ -324,7 +286,6 @@ const HeroSection = () => {
       </div>
 
       <style>{`
-        /* ── Word-slice ── */
         .hero-word-wrap {
           display: inline-block;
           overflow: hidden;
@@ -341,8 +302,6 @@ const HeroSection = () => {
           transform: translateY(0);
           opacity: 1;
         }
-
-        /* ── Slide up (CTA row) ── */
         .hero-slide-up {
           display: flex;
           transform: translateY(24px);
@@ -354,8 +313,6 @@ const HeroSection = () => {
           transform: translateY(0);
           opacity: 1;
         }
-
-        /* ── Stat drop-in ── */
         .hero-stat-drop {
           transform: translateY(-18px);
           opacity: 0;
@@ -366,8 +323,6 @@ const HeroSection = () => {
           transform: translateY(0);
           opacity: 1;
         }
-
-        /* ── CTA Buttons ── */
         .cta-primary {
           background: #1a1a2e;
           color: white;
