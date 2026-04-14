@@ -3,7 +3,6 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const ContentSection = require('../models/FrontendContent');
 const {
   getActiveHeroContent,
   getAllHeroContent,
@@ -12,123 +11,74 @@ const {
   deleteHeroContent,
   toggleHeroActive
 } = require('../controllers/contentController');
+const newsPopupController = require('../controllers/newsPopupController');
 
-// Middleware to verify admin token
 const verifyAdmin = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
-  
-  if (!token) {
-    return res.status(401).json({ success: false, message: 'Access denied. No token provided.' });
-  }
-
+  if (!token) return res.status(401).json({ success: false, message: 'Access denied. No token provided.' });
   try {
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Check if user is admin (either hardcoded admin or admin from DB)
-    if (decoded.isAdmin || (decoded.email === 'admin@wvsupport.com')) {
+    if (decoded.isAdmin || decoded.email === 'admin@wvsupport.com') {
       req.user = decoded;
       next();
     } else {
-      return res.status(403).json({ success: false, message: 'Access denied. Admin privileges required.' });
+      return res.status(403).json({ success: false, message: 'Admin privileges required.' });
     }
-  } catch (error) {
+  } catch {
     return res.status(401).json({ success: false, message: 'Invalid token.' });
   }
 };
 
-// Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    cb(null, `hero-${uniqueSuffix}${extension}`);
-  }
-});
-
-// File filter for images only
-const fileFilter = (req, file, cb) => {
-  // Check file type
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'), false);
-  }
-};
-
-// Configure multer upload
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
-  }
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadsDir),
+    filename: (req, file, cb) => {
+      const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, `upload-${unique}${path.extname(file.originalname)}`);
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    file.mimetype.startsWith('image/') ? cb(null, true) : cb(new Error('Only image files are allowed!'), false);
+  },
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-// Simple test route
-router.get('/test', (req, res) => {
-  res.json({ 
-    success: true, 
-    message: "Content routes working!",
-    timestamp: new Date(),
-    uploadsDir: uploadsDir,
-    uploadsDirExists: fs.existsSync(uploadsDir)
-  });
-});
+// Test
+router.get('/test', (req, res) => res.json({ success: true, message: 'Content routes working!' }));
 
 // ======================
-// HERO CONTENT ROUTES
+// HERO ROUTES
 // ======================
-
-// Public route - Get active hero content for frontend
 router.get('/hero/active', getActiveHeroContent);
-
-// Admin routes - Protected with verifyAdmin middleware
 router.get('/hero/admin/all', verifyAdmin, getAllHeroContent);
 router.post('/hero/admin', verifyAdmin, upload.single('backgroundImage'), createHeroContent);
 router.put('/hero/admin/:id', verifyAdmin, upload.single('backgroundImage'), updateHeroContent);
 router.delete('/hero/admin/:id', verifyAdmin, deleteHeroContent);
 router.patch('/hero/admin/:id/toggle-active', verifyAdmin, toggleHeroActive);
 
-// Error handling middleware for multer
+// ======================
+// NEWS POPUP ROUTES
+// ======================
+router.get('/news-popup/active', newsPopupController.getActive);
+router.get('/news-popup/admin/all', verifyAdmin, newsPopupController.getAll);
+router.post('/news-popup/admin', verifyAdmin, upload.single('image'), newsPopupController.create);
+router.put('/news-popup/admin/:id', verifyAdmin, upload.single('image'), newsPopupController.update);
+router.delete('/news-popup/admin/:id', verifyAdmin, newsPopupController.remove);
+router.patch('/news-popup/admin/:id/toggle', verifyAdmin, newsPopupController.toggle);
+
+// ======================
+// MULTER ERROR HANDLER
+// ======================
 router.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
-    if (error.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({
-        success: false,
-        message: 'File too large. Maximum size is 10MB.'
-      });
-    }
-    if (error.code === 'LIMIT_FILE_COUNT') {
-      return res.status(400).json({
-        success: false,
-        message: 'Too many files. Only one file allowed.'
-      });
-    }
+    if (error.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ success: false, message: 'File too large. Maximum size is 10MB.' });
   }
-  
-  if (error.message === 'Only image files are allowed!') {
-    return res.status(400).json({
-      success: false,
-      message: 'Only image files are allowed!'
-    });
-  }
-
-  // Generic error
-  res.status(500).json({
-    success: false,
-    message: error.message || 'An error occurred during file upload'
-  });
+  if (error.message === 'Only image files are allowed!') return res.status(400).json({ success: false, message: 'Only image files are allowed!' });
+  res.status(500).json({ success: false, message: error.message || 'Upload error' });
 });
 
 module.exports = router;

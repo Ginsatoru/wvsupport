@@ -11,6 +11,7 @@ import RetailManagerTroubleshooting from "../Components/home/About";
 import CustomerSupportExperience from "../Components/home/Tech";
 import Partners from "../Components/home/Partners";
 import Hero from "../Components/home/Hero";
+import NewsModal from "../Components/shared/NewsModal";
 
 function Home() {
   const { t } = useTranslation();
@@ -20,6 +21,8 @@ function Home() {
       <section className="team-section-wrapper">
         <Hero />
       </section>
+
+      <NewsModal />
 
       <section className="team-section-wrapper">
         <Partners />
