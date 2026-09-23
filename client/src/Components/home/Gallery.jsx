@@ -99,8 +99,12 @@ const Gallery = () => {
           animation: gl-scroll-rtl 55s linear infinite;
           width: max-content;
         }
-        .gl-track-ltr:hover,
-        .gl-track-rtl:hover { animation-play-state: paused; }
+        .gl-track-ltr img,
+        .gl-track-rtl img {
+          -webkit-user-drag: none;
+          user-select: none;
+          pointer-events: none;
+        }
 
         @media (hover: none) {
           .gl-track-ltr, .gl-track-rtl { animation-duration: 80s; }
@@ -156,7 +160,7 @@ const Gallery = () => {
                   fontWeight: 700,
                   textTransform: "uppercase",
                   letterSpacing: "0.12em",
-                  color: "#9ca3af",
+                  color: "#000000",
                   transitionDelay: "0.1s",
                 }}
               >
@@ -206,6 +210,7 @@ const Gallery = () => {
                   <img
                     src={img}
                     alt=""
+                    draggable={false}
                     style={{
                       width: "100%",
                       height: "100%",
@@ -248,6 +253,7 @@ const Gallery = () => {
                   <img
                     src={img}
                     alt=""
+                    draggable={false}
                     style={{
                       width: "100%",
                       height: "100%",

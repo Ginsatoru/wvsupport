@@ -400,7 +400,7 @@ const NewsletterSection = () => {
                 style={{ transitionDelay: "0.65s" }}
               >
                 <div className="nl-input-wrap">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                     <rect x="2" y="4" width="20" height="16" rx="2" />
                     <path d="M2 7l10 7 10-7" />
                   </svg>
@@ -449,6 +449,7 @@ const NewsletterSection = () => {
               <motion.img
                 src={mockup}
                 alt="App mockup"
+                draggable={false}
                 initial={{ opacity: 0, x: 160 }}
                 animate={inView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.3 }}
@@ -462,6 +463,7 @@ const NewsletterSection = () => {
                   objectFit: "contain",
                   objectPosition: "bottom center",
                   filter: "drop-shadow(0 -6px 28px rgba(0,0,0,0.45))",
+                  userSelect: "none",
                 }}
               />
             </div>

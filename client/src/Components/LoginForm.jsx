@@ -386,13 +386,13 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
         .lm-label { font-size:0.85rem; font-weight:600; color:#374151; }
         .lm-input {
           width:100%; padding:10px 14px; font-size:0.9rem;
-          border:2px solid #e5e7eb; border-radius:10px;
+          border:1px solid #e5e7eb; border-radius:10px;
           background:#fff; color:#111827; outline:none;
           transition:border-color 0.2s, box-shadow 0.2s;
           box-sizing:border-box;
         }
         .lm-input::placeholder { color:#9ca3af; }
-        .lm-input:focus { border-color:#d1d5db; box-shadow:none; }
+        .lm-input:focus { border-color:#000000; box-shadow:none; }
 
         .lm-pw-wrap { position:relative; }
         .lm-pw-wrap .lm-input { padding-right:44px; }

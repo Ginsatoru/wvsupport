@@ -23,6 +23,17 @@ const icons = [
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
 ];
 
+const supportContent = {
+  en: {
+    title: "Technical Support",
+    description: "Reliable technical assistance and troubleshooting for all our products, with fast response times and expert guidance.",
+  },
+  km: {
+    title: "ជំនួយបច្ចេកទេស",
+    description: "ជំនួយបច្ចេកទេស និងដោះស្រាយបញ្ហាដ៏អាចទុកចិត្តបានសម្រាប់ផលិតផលទាំងអស់របស់យើង ជាមួយពេលឆ្លើយតបលឿន និងការណែនាំពីអ្នកជំនាញ។",
+  },
+};
+
 /* ── Word-slice (entrance animation) ── */
 const SliceText = ({ text, baseDelay = 0, className = "" }) => (
   <span className={`inline flex-wrap ${className}`}>
@@ -50,7 +61,7 @@ const DescSlice = ({ text }) => (
 );
 
 /* ── Mobile bento layout ── */
-const MobileServices = ({ services, icons, stats, subtitle, t }) => {
+const MobileServices = ({ services, icons, stats, subtitle, t, isKm }) => {
   const mobRef = useRef(null);
   const hasAnimated = useRef(false);
 
@@ -76,18 +87,18 @@ const MobileServices = ({ services, icons, stats, subtitle, t }) => {
 
         {/* Header */}
         <div className="mb-6 px-1 srv-mob-fade" style={{ transitionDelay: "0s" }}>
-          <h2 className="text-[1.75rem] font-extrabold text-slate-900 leading-tight mb-2">
+          <h2 className="text-[1.75rem] font-extrabold leading-tight mb-2" style={{ color: "#000000" }}>
             {t("services.header.title")}
           </h2>
           <p className="text-[0.8rem] text-slate-400 leading-relaxed">{subtitle}</p>
         </div>
 
         {/* Stats */}
-        <div className="flex border-t border-slate-200 pt-3 mb-6 srv-mob-fade" style={{ transitionDelay: "0.1s" }}>
+        <div className="flex pt-3 mb-6 srv-mob-fade" style={{ transitionDelay: "0.1s" }}>
           {stats.map((s, i) => (
-            <div key={s.value} className={`flex-1 flex flex-col gap-0.5 ${i > 0 ? "pl-4 border-l border-slate-200" : ""}`}>
-              <span className="text-[1.15rem] font-extrabold text-slate-900 leading-none">{s.value}</span>
-              <span className="text-[9px] text-slate-400 uppercase tracking-widest">{s.label}</span>
+            <div key={i} className={`flex-1 flex items-center gap-2 ${i > 0 ? "pl-4 border-l border-slate-200" : ""}`}>
+              {s.icon}
+              <span className="text-[12px] font-medium leading-tight" style={{ color: "#000000" }}>{s.label}</span>
             </div>
           ))}
         </div>
@@ -97,7 +108,7 @@ const MobileServices = ({ services, icons, stats, subtitle, t }) => {
 
           {/* Card 0 — large image */}
           <div className="relative rounded-[1.25rem] overflow-hidden h-60 srv-mob-fade" style={{ transitionDelay: "0.18s" }}>
-            <img src={s0.image} alt={t(`services.${s0.key}.title`)} loading="eager" className="w-full h-full object-cover" />
+            <img src={s0.image} alt={t(`services.${s0.key}.title`)} loading="eager" draggable={false} className="w-full h-full object-cover select-none" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/15 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-5">
               <div className="inline-flex items-center justify-center w-8 h-8 rounded-[9px] bg-white/15 border border-white/25 text-white mb-2">
@@ -111,7 +122,7 @@ const MobileServices = ({ services, icons, stats, subtitle, t }) => {
           {/* Card 1 — horizontal light */}
           <div className="rounded-[1.25rem] overflow-hidden bg-white border border-slate-200 flex h-[110px] srv-mob-fade" style={{ transitionDelay: "0.28s" }}>
             <div className="w-[110px] shrink-0 overflow-hidden">
-              <img src={s1.image} alt={t(`services.${s1.key}.title`)} loading="lazy" className="w-full h-full object-cover" />
+              <img src={s1.image} alt={t(`services.${s1.key}.title`)} loading="lazy" draggable={false} className="w-full h-full object-cover select-none" />
             </div>
             <div className="flex-1 px-4 py-3 flex flex-col justify-center">
               <div className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-sky-100 text-sky-600 mb-1.5 shrink-0">
@@ -127,7 +138,7 @@ const MobileServices = ({ services, icons, stats, subtitle, t }) => {
             {[s2, s3].map((svc, i) => (
               <div key={svc.key} className="rounded-[1.25rem] overflow-hidden bg-white border border-slate-200 flex flex-col">
                 <div className="h-[100px] overflow-hidden">
-                  <img src={svc.image} alt={t(`services.${svc.key}.title`)} loading="lazy" className="w-full h-full object-cover" />
+                  <img src={svc.image} alt={t(`services.${svc.key}.title`)} loading="lazy" draggable={false} className="w-full h-full object-cover select-none" />
                 </div>
                 <div className="p-3 flex flex-col gap-1">
                   <div className="inline-flex items-center justify-center w-[26px] h-[26px] rounded-[7px] bg-slate-100 text-slate-500">
@@ -145,14 +156,14 @@ const MobileServices = ({ services, icons, stats, subtitle, t }) => {
             style={{ transitionDelay: "0.48s", background: "#1a1a2e" }}
           >
             <div className="w-[110px] shrink-0 overflow-hidden">
-              <img src={s4.image} alt={t(`services.${s4.key}.title`)} loading="lazy" className="w-full h-full object-cover" />
+              <img src={s4.image} alt={t(`services.${s4.key}.title`)} loading="lazy" draggable={false} className="w-full h-full object-cover select-none" />
             </div>
             <div className="flex-1 px-4 py-3 flex flex-col justify-center">
               <div className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white/10 text-white mb-1.5 shrink-0">
                 {icons[4]}
               </div>
-              <div className="text-[0.82rem] font-bold text-white leading-snug mb-0.5">{t(`services.${s4.key}.title`)}</div>
-              <div className="text-[0.7rem] text-white/50 leading-relaxed line-clamp-2">{t(`services.${s4.key}.description`)}</div>
+              <div className="text-[0.82rem] font-bold text-white leading-snug mb-0.5">{isKm ? supportContent.km.title : supportContent.en.title}</div>
+              <div className="text-[0.7rem] text-white/50 leading-relaxed line-clamp-2">{isKm ? supportContent.km.description : supportContent.en.description}</div>
             </div>
           </div>
 
@@ -174,27 +185,71 @@ const Services = () => {
     : "End-to-end solutions for retail businesses, from point of sale to online store and everything in between.";
 
   const stats = [
-    { value: "60K+", label: isKm ? "ហាងដែលប្រើ" : "Stores using" },
-    { value: "5",    label: isKm ? "ផលិតផល" : "Products" },
-    { value: "99%",  label: isKm ? "ការពេញចិត្ត" : "Satisfaction" },
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 flex-shrink-0" style={{ color: "#000000" }}>
+          <rect x="3" y="4" width="18" height="12" rx="2" />
+          <path d="M8 20h8M12 16v4" />
+          <path d="M7 8h2M7 11h5" />
+        </svg>
+      ),
+      label: isKm ? "ប្រព័ន្ធលក់ពេញលេញ" : "All-in-One POS System",
+    },
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 flex-shrink-0" style={{ color: "#000000" }}>
+          <path d="M7 18a4 4 0 01-.5-7.97A5.5 5.5 0 0117.5 9a4.5 4.5 0 01-.7 8.93" />
+          <path d="M12 12v6m0 0l-2-2m2 2l2-2" />
+        </svg>
+      ),
+      label: isKm ? "ធ្វើសមកាលកម្មច្រើនហាងលើពពក" : "Cloud-Synced Multi-Store",
+    },
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 flex-shrink-0" style={{ color: "#000000" }}>
+          <path d="M4 13a8 8 0 0116 0" />
+          <path d="M3 13v3a2 2 0 002 2h1v-6H5a2 2 0 00-2 2z" />
+          <path d="M21 13v3a2 2 0 01-2 2h-1v-6h1a2 2 0 012 2z" />
+          <path d="M15 19a3 3 0 01-3 2" />
+        </svg>
+      ),
+      label: isKm ? "ក្រុមគាំទ្រក្នុងតំបន់ AU/NZ" : "Local AU/NZ Support Team",
+    },
   ];
 
   useEffect(() => {
-    const panels     = sectionRef.current.querySelectorAll(".srv-panel");
-    const imgs       = sectionRef.current.querySelectorAll(".srv-img");
-    const rows       = sectionRef.current.querySelectorAll(".srv-row");
-    const totalSteps = services.length;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          sectionRef.current?.classList.add("srv-entered");
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(sectionRef.current);
 
-    const activate = (idx) => {
-      if (idx === activeIdxRef.current) return;
-      panels[activeIdxRef.current]?.classList.remove("is-active");
-      imgs[activeIdxRef.current]?.classList.remove("is-active");
-      rows[activeIdxRef.current]?.classList.remove("is-active");
-      activeIdxRef.current = idx;
-      panels[idx]?.classList.add("is-active");
-      imgs[idx]?.classList.add("is-active");
-      rows[idx]?.classList.add("is-active");
+    return () => {
+      observer.disconnect();
     };
+  }, []);
+
+  const activate = (idx) => {
+    const panels = sectionRef.current.querySelectorAll(".srv-panel");
+    const imgs   = sectionRef.current.querySelectorAll(".srv-img");
+    const rows   = sectionRef.current.querySelectorAll(".srv-row");
+    if (idx === activeIdxRef.current) return;
+    panels[activeIdxRef.current]?.classList.remove("is-active");
+    imgs[activeIdxRef.current]?.classList.remove("is-active");
+    rows[activeIdxRef.current]?.classList.remove("is-active");
+    activeIdxRef.current = idx;
+    panels[idx]?.classList.add("is-active");
+    imgs[idx]?.classList.add("is-active");
+    rows[idx]?.classList.add("is-active");
+  };
+
+  useEffect(() => {
+    const totalSteps = services.length;
 
     const onScroll = () => {
       const el = sectionRef.current;
@@ -211,20 +266,8 @@ const Services = () => {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
-          sectionRef.current?.classList.add("srv-entered");
-        }
-      },
-      { threshold: 0.1 }
-    );
-    observer.observe(sectionRef.current);
-
     return () => {
       window.removeEventListener("scroll", onScroll);
-      observer.disconnect();
     };
   }, []);
 
@@ -286,11 +329,8 @@ const Services = () => {
         .srv-entered .srv-right { opacity: 1; }
 
         /* ── Row active states ── */
-        .srv-row.is-active .srv-row-icon {
-          background: #e0f2fe;
-          color: #0f8abe;
-        }
-        .srv-row.is-active .srv-row-title { color: #0f172a; }
+        .srv-row.is-active .srv-row-title { color: #000000; }
+        .srv-row:hover .srv-row-title { color: #000000; }
         .srv-row.is-active .srv-row-desc  { max-height: 80px; }
         .srv-row.is-active .srv-desc-word {
           transform: translate3d(0,0%,0);
@@ -310,21 +350,15 @@ const Services = () => {
           transition: max-height 0.6s cubic-bezier(0.25,0.46,0.45,0.94);
         }
 
-        /* ── Image transitions ── */
+        /* ── Image transitions (succession / rolling-carousel style) ── */
         .srv-img {
           position: absolute;
           inset: 0;
           opacity: 0;
-          transform: translateY(100%);
-          transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94);
+          transform: scale(1.06);
+          transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.25,0.46,0.45,0.94);
         }
-        .srv-img.is-active { opacity: 1; transform: translateY(0); }
-        .srv-badge {
-          opacity: 0;
-          transform: translateY(10px);
-          transition: opacity 0.5s 0.2s, transform 0.5s 0.2s;
-        }
-        .srv-img.is-active .srv-badge { opacity: 1; transform: translateY(0); }
+        .srv-img.is-active { opacity: 1; transform: scale(1); }
 
         /* ── Mobile entrance ── */
         .srv-mob-fade {
@@ -351,26 +385,26 @@ const Services = () => {
 
             {/* Header */}
             <div className="w-full mb-2">
-              <h2 className="text-[clamp(1.8rem,3vw,2.6rem)] font-extrabold text-slate-900 leading-tight m-0 flex flex-wrap">
+              <h2 className="text-[clamp(1.8rem,3vw,2.6rem)] font-extrabold leading-tight m-0 flex flex-wrap" style={{ color: "#000000" }}>
                 <SliceText text={t("services.header.title")} baseDelay={0.1} />
               </h2>
             </div>
 
             {/* Subtitle */}
-            <p className="srv-subtitle text-[0.82rem] leading-relaxed text-slate-400 max-w-[480px] mb-5">
+            <p className="srv-subtitle text-[0.82rem] leading-relaxed max-w-[480px] mb-5" style={{ color: "#000000" }}>
               {subtitle}
             </p>
 
             {/* Stats */}
-            <div className="flex items-stretch w-full border-t border-slate-100 pt-3 mb-3">
+            <div className="flex items-stretch w-full pt-3 mb-3">
               {stats.map((s, i) => (
                 <div
-                  key={s.value}
-                  className={`srv-stat flex flex-col gap-0.5 flex-1 pr-4 ${i > 0 ? "pl-4 border-l border-slate-100" : ""}`}
+                  key={i}
+                  className={`srv-stat flex items-center gap-2 flex-1 pr-4 ${i > 0 ? "pl-4 border-l border-slate-100" : ""}`}
                   style={{ transitionDelay: `${0.5 + i * 0.1}s` }}
                 >
-                  <span className="text-[1.3rem] font-extrabold text-slate-900 leading-none">{s.value}</span>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-[0.08em]">{s.label}</span>
+                  {s.icon}
+                  <span className="text-[13px] font-medium leading-tight" style={{ color: "#000000" }}>{s.label}</span>
                 </div>
               ))}
             </div>
@@ -383,18 +417,20 @@ const Services = () => {
             {/* Service list */}
             <div className="w-full flex flex-col">
               {services.map((svc, i) => {
-                const desc = t(`services.${svc.key}.description`);
+                const desc = svc.key === "support" ? (isKm ? supportContent.km.description : supportContent.en.description) : t(`services.${svc.key}.description`);
+                const title = svc.key === "support" ? (isKm ? supportContent.km.title : supportContent.en.title) : t(`services.${svc.key}.title`);
                 return (
                   <div
                     key={svc.key}
-                    className={`srv-row flex items-start gap-4 py-4 border-b border-slate-100 cursor-default ${i === 0 ? "border-t is-active" : ""}`}
+                    onClick={() => activate(i)}
+                    className={`srv-row flex items-start gap-4 py-4 px-2 -mx-2 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors duration-300 ${i === 0 ? "is-active" : ""}`}
                   >
-                    <div className="srv-row-icon w-[38px] h-[38px] rounded-[10px] bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 transition-[background,color] duration-[0.6s] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]">
+                    <div className="srv-row-icon w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: "#000000", color: "#ffffff" }}>
                       {icons[i]}
                     </div>
                     <div className="flex-1">
                       <div className="srv-row-title text-[0.92rem] font-bold text-slate-400 mb-0.5 transition-colors duration-[0.6s]">
-                        {t(`services.${svc.key}.title`)}
+                        {title}
                       </div>
                       <div className="srv-row-desc text-[0.78rem] leading-relaxed flex flex-wrap">
                         <DescSlice text={desc} />
@@ -411,10 +447,7 @@ const Services = () => {
             <div className="relative w-full h-[70%] rounded-[1.5rem] overflow-hidden">
               {services.map((svc, i) => (
                 <div key={svc.key} className={`srv-img${i === 0 ? " is-active" : ""}`}>
-                  <img src={svc.image} alt={t(`services.${svc.key}.title`)} loading={i === 0 ? "eager" : "lazy"} className="w-full h-full object-cover" />
-                  <div className="srv-badge absolute bottom-6 right-6 z-10 bg-black/20 backdrop-blur-xl border border-white/15 rounded-2xl px-[1.1rem] py-[0.9rem] text-[0.85rem] font-semibold text-white flex items-center gap-2 pointer-events-none">
-                    {t(`services.${svc.key}.title`)}
-                  </div>
+                  <img src={svc.image} alt={t(`services.${svc.key}.title`)} loading={i === 0 ? "eager" : "lazy"} draggable={false} className="w-full h-full object-cover select-none" />
                 </div>
               ))}
             </div>
@@ -424,7 +457,7 @@ const Services = () => {
       </div>
 
       {/* ── MOBILE ── */}
-      <MobileServices services={services} icons={icons} stats={stats} subtitle={subtitle} t={t} />
+      <MobileServices services={services} icons={icons} stats={stats} subtitle={subtitle} t={t} isKm={isKm} />
     </>
   );
 };

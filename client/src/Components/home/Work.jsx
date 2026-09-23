@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Monitor, Phone, Mail, Server, CheckCircle, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import teamviewerLogo from "../Images/tools/teamviewer.webp";
 import hubspotLogo from "../Images/tools/hubspot.webp";
@@ -41,7 +41,7 @@ const Work = () => {
           observer.disconnect();
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.15 },
     );
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
@@ -57,44 +57,28 @@ const Work = () => {
 
   const services = [
     {
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" />
-        </svg>
-      ),
+      icon: <Monitor size={18} strokeWidth={1.8} />,
       title: isKm ? "ការជំនួយពីចម្ងាយ" : "Remote Support",
       desc: isKm
         ? "ភ្ជាប់ TeamViewer ដោះស្រាយបញ្ហា POS ក្នុងពេលភ្លាមៗ"
         : "TeamViewer-powered troubleshooting for POS issues in real time.",
     },
     {
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3-8.59A2 2 0 0 1 3.62 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-1.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 15z" />
-        </svg>
-      ),
+      icon: <Phone size={18} strokeWidth={1.8} />,
       title: isKm ? "ជំនួយតាមទូរស័ព្ទ" : "Phone Assistance",
       desc: isKm
         ? "ការឆ្លើយតបក្នុងរយៈពេល ១៥ នាទីសម្រាប់បញ្ហាបន្ទាន់"
         : "Under 15-minute response for critical issues via direct phone line.",
     },
     {
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-      ),
+      icon: <Mail size={18} strokeWidth={1.8} />,
       title: isKm ? "ការគាំទ្រតាមអ៊ីមែល" : "Email & Ticket Support",
       desc: isKm
         ? "ប្រព័ន្ធ ticket ស្វ័យប្រវត្តិ ជាមួយការតាមដានសំណើ"
         : "Structured ticketing system with full request tracking and logging.",
     },
     {
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="2" width="20" height="8" rx="2" /><rect x="2" y="14" width="20" height="8" rx="2" /><line x1="6" y1="6" x2="6.01" y2="6" /><line x1="6" y1="18" x2="6.01" y2="18" />
-        </svg>
-      ),
+      icon: <Server size={18} strokeWidth={1.8} />,
       title: isKm ? "ការគ្រប់គ្រងប្រព័ន្ធ" : "System Management",
       desc: isKm
         ? "ត្រួតពិនិត្យ RetailManager, ធ្វើបច្ចុប្បន្នភាព និងបង្កើនប្រសិទ្ធភាព"
@@ -146,8 +130,6 @@ const Work = () => {
           opacity: 0;
           transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
                       opacity 0.35s ease,
-                      box-shadow 0.25s ease,
-                      border-color 0.25s ease,
                       background 0.25s ease;
         }
         .fs-entered .fs-card-pop {
@@ -176,11 +158,10 @@ const Work = () => {
           font-size: 14px;
           font-weight: 600;
           cursor: pointer;
-          transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease;
+          transition: background 0.25s ease;
         }
         .fs-cta-btn:hover {
           background: #2a2a2a;
-          transform: translateY(-1px);
         }
 
         .fs-container {
@@ -232,18 +213,6 @@ const Work = () => {
           position: "relative",
         }}
       >
-        {/* Subtle dot grid */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: "radial-gradient(circle, #cbd5e1 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-            opacity: 0.22,
-            pointerEvents: "none",
-          }}
-        />
-
         <div className="fs-container">
           <div
             className="fs-main-grid"
@@ -255,10 +224,8 @@ const Work = () => {
               minHeight: 560,
             }}
           >
-
             {/* ── LEFT ── */}
             <div style={{ display: "flex", flexDirection: "column" }}>
-
               {/* Eyebrow */}
               <div style={{ overflow: "hidden", marginBottom: 18 }}>
                 <span
@@ -284,7 +251,7 @@ const Work = () => {
                   fontWeight: 800,
                   lineHeight: 1.12,
                   letterSpacing: "-0.02em",
-                  color: "#0d1f2d",
+                  color: "#000000",
                   marginBottom: 20,
                 }}
               >
@@ -307,7 +274,7 @@ const Work = () => {
                 className="fs-slide-up"
                 style={{
                   fontSize: 14,
-                  color: "#64748b",
+                  color: "#000000",
                   lineHeight: 1.8,
                   maxWidth: 360,
                   marginBottom: 28,
@@ -319,13 +286,10 @@ const Work = () => {
 
               {/* CTA */}
               <div className="fs-slide-up" style={{ transitionDelay: "0.7s" }}>
-                <button
-                  className="fs-cta-btn"
-                  onClick={() => navigate("/support")}
-                >
+                <a href="https://aaapos.com/support" className="fs-cta-btn">
                   {isKm ? "ស្វែងយល់បន្ថែម" : "Learn More"}
                   <ArrowRight size={15} />
-                </button>
+                </a>
               </div>
 
               {/* Trust badge strip */}
@@ -343,19 +307,26 @@ const Work = () => {
                     fontWeight: 700,
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
-                    color: "#cbd5e1",
+                    color: "#000000",
                     marginBottom: 14,
                     transitionDelay: "0.85s",
                   }}
                 >
                   {isKm ? "ឧបករណ៍ដែលយើងប្រើ" : "Tools we work with"}
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 16,
+                    flexWrap: "wrap",
+                  }}
+                >
                   {[
                     { src: teamviewerLogo, alt: "TeamViewer" },
-                    { src: hubspotLogo,    alt: "HubSpot" },
-                    { src: aircallLogo,    alt: "Aircall" },
-                    { src: jiraLogo,       alt: "Jira" },
+                    { src: hubspotLogo, alt: "HubSpot" },
+                    { src: aircallLogo, alt: "Aircall" },
+                    { src: jiraLogo, alt: "Jira" },
                   ].map((tool, i) => (
                     <div
                       key={tool.alt}
@@ -380,7 +351,15 @@ const Work = () => {
                           userSelect: "none",
                         }}
                       />
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>{tool.alt}</span>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: "#000000",
+                        }}
+                      >
+                        {tool.alt}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -410,33 +389,6 @@ const Work = () => {
                 }}
               />
 
-              {/* Dot grid accent */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: 16,
-                  right: -6,
-                  display: "grid",
-                  gridTemplateColumns: "repeat(5, 1fr)",
-                  gap: 7,
-                  zIndex: 1,
-                }}
-              >
-                {Array.from({ length: 20 }).map((_, i) => (
-                  <span
-                    key={i}
-                    style={{
-                      display: "block",
-                      width: 5,
-                      height: 5,
-                      borderRadius: "50%",
-                      background: "#111111",
-                      opacity: 0.28,
-                    }}
-                  />
-                ))}
-              </div>
-
               {/* Person */}
               <img
                 src={techGuy}
@@ -452,8 +404,10 @@ const Work = () => {
                   objectFit: "contain",
                   objectPosition: "bottom",
                   filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.10))",
-                  maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
-                  WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
+                  maskImage:
+                    "linear-gradient(to bottom, black 60%, transparent 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to bottom, black 60%, transparent 100%)",
                   userSelect: "none",
                   pointerEvents: "none",
                 }}
@@ -471,21 +425,39 @@ const Work = () => {
                   gap: 10,
                   padding: "10px 14px",
                   borderRadius: 20,
-                  background: "rgba(255,255,255,0.88)",
-                  backdropFilter: "blur(12px)",
-                  WebkitBackdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255,255,255,0.95)",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  background: "#f1f5f9",
                   whiteSpace: "nowrap",
                 }}
                 initial={{ opacity: 0, x: 60, y: 80, scale: 0.6 }}
-                animate={entered ? { opacity: 1, x: 0, y: [0, -9, 0], scale: 1 } : {}}
-                transition={entered ? {
-                  opacity: { duration: 0.5, delay: 0.9 },
-                  scale: { type: "spring", stiffness: 80, damping: 18, delay: 0.9 },
-                  x: { type: "spring", stiffness: 80, damping: 18, delay: 0.9 },
-                  y: { duration: 3.2, repeat: Infinity, repeatType: "loop", ease: "easeInOut", delay: 2.2 },
-                } : {}}
+                animate={
+                  entered ? { opacity: 1, x: 0, y: [0, -9, 0], scale: 1 } : {}
+                }
+                transition={
+                  entered
+                    ? {
+                        opacity: { duration: 0.5, delay: 0.9 },
+                        scale: {
+                          type: "spring",
+                          stiffness: 80,
+                          damping: 18,
+                          delay: 0.9,
+                        },
+                        x: {
+                          type: "spring",
+                          stiffness: 80,
+                          damping: 18,
+                          delay: 0.9,
+                        },
+                        y: {
+                          duration: 3.2,
+                          repeat: Infinity,
+                          repeatType: "loop",
+                          ease: "easeInOut",
+                          delay: 2.2,
+                        },
+                      }
+                    : {}
+                }
               >
                 <div
                   style={{
@@ -499,15 +471,20 @@ const Work = () => {
                     flexShrink: 0,
                   }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  <CheckCircle size={14} className="text-white" />
                 </div>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#0d1f2d", lineHeight: 1 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "#000000",
+                      lineHeight: 1,
+                    }}
+                  >
                     {isKm ? "ពីចម្ងាយ ១០០%" : "100% Remote"}
                   </div>
-                  <div style={{ fontSize: 10, color: "#8a9bb0", marginTop: 2 }}>
+                  <div style={{ fontSize: 10, color: "#000000", marginTop: 2 }}>
                     {isKm ? "ភ្ជាប់ជា TeamViewer" : "Via TeamViewer"}
                   </div>
                 </div>
@@ -525,21 +502,39 @@ const Work = () => {
                   gap: 10,
                   padding: "10px 14px",
                   borderRadius: 20,
-                  background: "rgba(255,255,255,0.88)",
-                  backdropFilter: "blur(12px)",
-                  WebkitBackdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255,255,255,0.95)",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  background: "#f1f5f9",
                   whiteSpace: "nowrap",
                 }}
                 initial={{ opacity: 0, x: -60, y: -80, scale: 0.6 }}
-                animate={entered ? { opacity: 1, x: 0, y: [0, -11, 0], scale: 1 } : {}}
-                transition={entered ? {
-                  opacity: { duration: 0.5, delay: 1.1 },
-                  scale: { type: "spring", stiffness: 70, damping: 18, delay: 1.1 },
-                  x: { type: "spring", stiffness: 70, damping: 18, delay: 1.1 },
-                  y: { duration: 3.8, repeat: Infinity, repeatType: "loop", ease: "easeInOut", delay: 2.6 },
-                } : {}}
+                animate={
+                  entered ? { opacity: 1, x: 0, y: [0, -11, 0], scale: 1 } : {}
+                }
+                transition={
+                  entered
+                    ? {
+                        opacity: { duration: 0.5, delay: 1.1 },
+                        scale: {
+                          type: "spring",
+                          stiffness: 70,
+                          damping: 18,
+                          delay: 1.1,
+                        },
+                        x: {
+                          type: "spring",
+                          stiffness: 70,
+                          damping: 18,
+                          delay: 1.1,
+                        },
+                        y: {
+                          duration: 3.8,
+                          repeat: Infinity,
+                          repeatType: "loop",
+                          ease: "easeInOut",
+                          delay: 2.6,
+                        },
+                      }
+                    : {}
+                }
               >
                 <div
                   style={{
@@ -553,17 +548,20 @@ const Work = () => {
                     flexShrink: 0,
                   }}
                 >
-                  {/* Clock icon */}
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
+                  <Clock size={14} className="text-white" />
                 </div>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#0d1f2d", lineHeight: 1 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "#000000",
+                      lineHeight: 1,
+                    }}
+                  >
                     {isKm ? "ឆ្លើយតបក្នុង ១៥ នាទី" : "15 Min Response"}
                   </div>
-                  <div style={{ fontSize: 10, color: "#8a9bb0", marginTop: 2 }}>
+                  <div style={{ fontSize: 10, color: "#000000", marginTop: 2 }}>
                     {isKm ? "ពេលវេលាឆ្លើយតបជាមធ្យម" : "Avg. Response Time"}
                   </div>
                 </div>
@@ -590,8 +588,7 @@ const Work = () => {
                     gap: 14,
                     padding: "16px 18px",
                     borderRadius: 20,
-                    border: "1.5px solid #e8edf2",
-                    background: "#fafbfc",
+                    background: "#f1f5f9",
                     transitionDelay: `${0.6 + i * 0.1}s`,
                   }}
                 >
@@ -601,8 +598,8 @@ const Work = () => {
                       width: 36,
                       height: 36,
                       borderRadius: 12,
-                      background: "#f1f5f9",
-                      color: "#94a3b8",
+                      background: "#000000",
+                      color: "#ffffff",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -617,7 +614,7 @@ const Work = () => {
                       style={{
                         fontSize: 13,
                         fontWeight: 700,
-                        color: "#0d1f2d",
+                        color: "#000000",
                         lineHeight: 1.2,
                         marginBottom: 4,
                       }}
@@ -628,7 +625,7 @@ const Work = () => {
                       className="fs-card-desc"
                       style={{
                         fontSize: 12,
-                        color: "#475569",
+                        color: "#000000",
                         lineHeight: 1.6,
                       }}
                     >
@@ -638,7 +635,6 @@ const Work = () => {
                 </div>
               ))}
             </div>
-
           </div>
         </div>
       </section>

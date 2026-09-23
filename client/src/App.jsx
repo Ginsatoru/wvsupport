@@ -11,28 +11,16 @@ import { useEffect, useState } from "react";
 import Nav from "./Components/shared/Navbar";
 import Footer from "./Components/shared/Footer";
 import Home from "./pages/Home";
-import Aboutus from "./Components/Aboutus";
+import Aboutus from "./pages/Aboutus";
 import Contact from "./pages/Contact";
-import Project from "./Components/Projects";
-import Pages from "./Components/Pages";
-import Support from "./Components/Support";
-import Services from "./Components/Services";
-import Whoweare from "./Components/Whoweare";
+import Services from "./pages/Services";
 import LoginForm from "./Components/LoginForm";
 import AdminPanel from "./admin/Main/AdminPanel";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ChatBox from "./Components/shared/ChatBox";
-import Legal from "./Components/Legal";
-import Careers from "./Components/Careers";
-import Partner from "./Components/Partner";
-import FAQ from "./Components/FAQ";
-import POS from "./Components/POS";
-import Remote from "./Components/Remote";
-import Software from "./Components/Software";
-import Integration from "./Components/Integration";
-import Networking from "./Components/Networking";
-import Training from "./Components/Training";
-import Retailmanager from "./Components/RetailManager";
+import Legal from "./pages/Legal";
+import Careers from "./pages/Careers";
+import FAQ from "./pages/FAQ";
 
 function App() {
   const location = useLocation();
@@ -52,9 +40,7 @@ function App() {
       try {
         initTracker();
         setTrackerInitialized(true);
-        console.log("Analytics tracker initialized");
       } catch (error) {
-        console.error("Failed to initialize analytics tracker:", error);
       }
     }
   }, [hideLayout, trackerInitialized]);
@@ -76,22 +62,10 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/aboutus" element={<Aboutus />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/project" element={<Project />} />
-            <Route path="/pages" element={<Pages />} />
-            <Route path="/support" element={<Support />} />
             <Route path="/services" element={<Services />} />
-            <Route path="/whoweare" element={<Whoweare />} />
             <Route path="/Legal" element={<Legal />} />
             <Route path="/Careers" element={<Careers />} />
-            <Route path="/Partner" element={<Partner />} />
             <Route path="/FAQ" element={<FAQ />} />
-            <Route path="/pos" element={<POS />} />
-            <Route path="/remote" element={<Remote />} />
-            <Route path="/software" element={<Software />} />
-            <Route path="/integrations" element={<Integration />} />
-            <Route path="/networking" element={<Networking />} />
-            <Route path="/training" element={<Training />} />
-            <Route path="/retailmanager" element={<Retailmanager />} />
 
             {/* Admin routes */}
             <Route

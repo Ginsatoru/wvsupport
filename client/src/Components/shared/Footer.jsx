@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../context/SettingsContext";
-import { FaFacebookF, FaTwitter, FaLinkedinIn, FaPhone, FaEnvelope } from "react-icons/fa";
+import { FaFacebookF, FaTwitter, FaLinkedinIn, FaPhone, FaEnvelope, FaYoutube} from "react-icons/fa";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -16,25 +16,23 @@ const Footer = () => {
         { label: t("footer.about"),   href: "/Aboutus" },
         { label: t("footer.legal"),   href: "/Legal" },
         { label: t("footer.contact"), href: "/contact" },
-        { label: t("footer.project"), href: "/Project" },
         { label: t("footer.careers"), href: "/Careers" },
       ],
     },
-    {
-      heading: t("footer.usefulLinks"),
-      links: [
-        { label: t("footer.browseToAAAPOS"), href: "https://www.aaapos.com/", external: true },
-        { label: t("footer.partners"),       href: "/Partner" },
-        { label: t("footer.faqs"),           href: "/FAQ" },
-        { label: t("footer.support"),        href: "/Support" },
-      ],
-    },
+{
+  heading: t("footer.usefulLinks"),
+  links: [
+    { label: t("footer.browseToAAAPOS"), href: "https://www.aaapos.com/", external: true },
+    { label: "Webstore Manager", href: "https://www.aaapos.com/webstore-manager", external: true },
+    { label: "RM Mobile", href: "https://www.aaapos.com/rm-mobile", external: true },
+    { label: t("footer.faqs"), href: "/FAQ" },
+  ],
+},
   ];
 
   const socials = [
-    { icon: FaFacebookF, href: "https://facebook.com",  label: "Facebook" },
-    { icon: FaTwitter,   href: "https://twitter.com",   label: "Twitter" },
-    { icon: FaLinkedinIn,href: "https://linkedin.com",  label: "LinkedIn" },
+    { icon: FaFacebookF, href: "https://www.facebook.com/aaapos.retailmanager/",  label: "Facebook" },
+    { icon: FaYoutube,href: "https://www.youtube.com/@aaapos/about",  label: "Youtube" },
   ];
 
   return (
@@ -308,7 +306,7 @@ const Footer = () => {
         <div className="ft-container">
           <div className="ft-bottom">
             <span className="ft-copyright">
-              © {new Date().getFullYear()} {settings?.companyName || "WV Support"}. Developed by AAAPOS.
+              © {new Date().getFullYear()} {settings?.companyName || "WV Support"}
             </span>
 
             <div className="ft-right">

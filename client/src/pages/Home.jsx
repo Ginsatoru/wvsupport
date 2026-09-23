@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import "./Home.css";
 import "../Components/i18n";
-import Team from "../Components/home/Team";
+// import Team from "../Components/home/Team";
 import Gallery from "../Components/home/Gallery";
 import FeaturesSection from "../Components/home/Work";
 import Newsletter from "../Components/home/Newsletter";
@@ -44,9 +44,9 @@ function Home() {
         <FeaturesSection />
       </section>
 
-      <section className="team-section-wrapper">
+      {/* <section className="team-section-wrapper">
         <Team />
-      </section>
+      </section> */}
 
       <section className="team-section-wrapper">
         <Gallery />

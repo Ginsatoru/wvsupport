@@ -10,6 +10,7 @@ import {
   Monitor,
   Tablet,
   CheckCircle,
+  MonitorSmartphone,
 } from "lucide-react";
 import retailGuy from "../Images/retail-guy.webp";
 
@@ -38,15 +39,15 @@ const Tech = () => {
 
   const devices = [
     {
-      icon: <Smartphone size={13} />,
+      icon: <Smartphone size={16} strokeWidth={2.2} />,
       label: isKm ? "iOS កម្មវិធី" : "iOS App",
     },
     {
-      icon: <Smartphone size={13} />,
+      icon: <Smartphone size={16} strokeWidth={2.2} />,
       label: isKm ? "Android កម្មវិធី" : "Android App",
     },
-    { icon: <Monitor size={13} />, label: isKm ? "កុំព្យូទ័រ" : "Desktop" },
-    { icon: <Tablet size={13} />, label: isKm ? "ថេប្លេត" : "Tablet" },
+    { icon: <Monitor size={16} strokeWidth={2.2} />, label: isKm ? "កុំព្យូទ័រ" : "Desktop" },
+    { icon: <Tablet size={16} strokeWidth={2.2} />, label: isKm ? "ថេប្លេត" : "Tablet" },
   ];
 
   const avatars = [
@@ -94,20 +95,6 @@ const Tech = () => {
             }}
           />
 
-          {/* Dot grid */}
-          <div
-            className="absolute top-4 right-[-10px] grid gap-[7px] z-10"
-            style={{ gridTemplateColumns: "repeat(5, 1fr)" }}
-          >
-            {Array.from({ length: 20 }).map((_, i) => (
-              <span
-                key={i}
-                className="block w-[5px] h-[5px] rounded-full opacity-40"
-                style={{ background: "#1a1a2e" }}
-              />
-            ))}
-          </div>
-
           {/* Person image — bigger with bottom fade */}
           <img
             src={retailGuy}
@@ -118,8 +105,10 @@ const Tech = () => {
               maxHeight: 510,
               transform: "translateX(-46%)",
               filter: "drop-shadow(0 8px 24px rgba(26,26,46,0.10))",
-              maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
+              maskImage:
+                "linear-gradient(to bottom, black 60%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, black 60%, transparent 100%)",
             }}
             draggable={false}
           />
@@ -128,10 +117,7 @@ const Tech = () => {
           <motion.div
             className="absolute top-7 left-[-10px] z-30 flex items-center gap-3 px-4 py-[10px] rounded-2xl"
             style={{
-              background: "rgba(255,255,255,0.82)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              border: "1px solid rgba(255,255,255,0.95)",
+              background: "#f1f5f9",
             }}
             initial={{ opacity: 0, x: 100, y: 120, scale: 0.6 }}
             animate={
@@ -174,7 +160,7 @@ const Tech = () => {
               <p className="text-[12px] font-bold text-[#1a1a2e] leading-none">
                 {isKm ? "សមកាលកម្មពហុឧបករណ៍" : "Multi-Device Sync"}
               </p>
-              <p className="text-[10px] text-[#8a9bb0] mt-[3px]">
+              <p className="text-[10px] text-black mt-[3px]">
                 {isKm
                   ? "ពេលវេលាជាក់ស្តែងគ្រប់ Platform"
                   : "Real-time across all platforms"}
@@ -188,10 +174,7 @@ const Tech = () => {
             style={{
               transform: "translateX(-50%)",
               minWidth: "190px",
-              background: "rgba(255,255,255,0.88)",
-              backdropFilter: "blur(14px)",
-              WebkitBackdropFilter: "blur(14px)",
-              border: "1px solid rgba(255,255,255,0.95)",
+              background: "#f1f5f9",
             }}
             initial={{ opacity: 0, x: -60, y: -120, scale: 0.6 }}
             animate={
@@ -228,12 +211,12 @@ const Tech = () => {
               className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2"
               style={{ background: "#1a1a2e" }}
             >
-              <Smartphone size={17} className="text-white" />
+              <MonitorSmartphone size={18} className="text-white" />
             </div>
             <p className="text-[13px] font-bold text-[#1a1a2e]">
-              {isKm ? "RetailManager មូបាល់" : "RetailManager Mobile"}
+              {isKm ? "RM ម៉ូបាល" : "RM Mobile"}
             </p>
-            <p className="text-[10px] text-[#8a9bb0] mt-[5px] leading-[1.6]">
+            <p className="text-[10px] text-black mt-[5px] leading-[1.6]">
               {isKm
                 ? "មានជា iOS & Android\nធ្វើសមកាលកម្មភ្លាមៗ"
                 : "Available on iOS & Android\nSyncs instantly with desktop"}
@@ -246,7 +229,7 @@ const Tech = () => {
           {/* Eyebrow */}
           <div className="overflow-hidden mb-4">
             <span
-              className="inline-block text-[11px] font-bold uppercase tracking-[0.12em] text-gray-400 tech-slide-up"
+              className="inline-block text-[11px] font-bold uppercase tracking-[0.12em] text-black tech-slide-up"
               style={{ transitionDelay: "0.1s" }}
             >
               {eyebrow}
@@ -273,7 +256,7 @@ const Tech = () => {
 
           {/* Body paragraph */}
           <p
-            className="text-[15px] leading-[1.8] mb-7 text-gray-500 mt-5"
+            className="text-[15px] leading-[1.8] mb-7 text-black mt-5"
             style={{ display: "flex", flexWrap: "wrap" }}
           >
             <SliceText text={body} inView={inView} baseDelay={0.55} />
@@ -311,12 +294,12 @@ const Tech = () => {
             </div>
             {/* label */}
             <span
-              className="ml-4 text-[13px] text-gray-700 tech-avatar-drop"
+              className="ml-4 text-[13px] text-black tech-avatar-drop"
               style={{
                 transitionDelay: `${0.9 + (avatars.length + 1) * 0.1}s`,
               }}
             >
-              <span className="font-bold text-gray-900">60,000+</span>{" "}
+              <span className="font-bold text-black">60,000+</span>{" "}
               {isKm ? "អាជីវកម្មសកម្ម" : "active businesses"}
             </span>
           </div>
@@ -326,10 +309,10 @@ const Tech = () => {
             {devices.map((d, i) => (
               <div
                 key={d.label}
-                className="tech-badge-pop flex items-center gap-[7px] px-4 py-[7px] rounded-full text-[12px] font-semibold text-gray-600"
+                className="tech-badge-pop flex items-center gap-[7px] px-4 py-[7px] rounded-full text-[12px] font-semibold"
                 style={{
-                  background: "rgba(26,26,46,0.05)",
-                  border: "1px solid rgba(26,26,46,0.12)",
+                  background: "#f1f5f9",
+                  color: "#000000",
                   transitionDelay: `${1.35 + i * 0.08}s`,
                 }}
               >
@@ -344,27 +327,13 @@ const Tech = () => {
             className="flex items-center gap-5 tech-slide-up"
             style={{ transitionDelay: "1.7s" }}
           >
-            <button
-              onClick={() => navigate("/RetailManager")}
+            <a
+              href="https://www.aaapos.com/"
               className="cta-primary-tech px-6 py-3.5 text-sm font-semibold"
             >
               {isKm ? "ស្វែងយល់បន្ថែម" : "Learn More"}
               <ArrowRight size={15} className="ml-2 inline-block" />
-            </button>
-            <button
-              className="cta-ghost-tech group"
-              onClick={() => window.open("https://aaapos.com", "_blank")}
-            >
-              <span className="cta-ghost-tech__ring group-hover:bg-gray-900 group-hover:border-gray-900 transition-colors duration-200">
-                <Play
-                  size={11}
-                  fill="#374151"
-                  stroke="none"
-                  className="group-hover:fill-white transition-colors duration-200"
-                />
-              </span>
-              {isKm ? "មើលរបៀបដំណើរការ" : "See how it works"}
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -433,7 +402,6 @@ const Tech = () => {
           font-weight: 600;
           font-size: 0.875rem;
           transition: all 0.25s ease;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.12);
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -443,8 +411,6 @@ const Tech = () => {
         }
         .cta-primary-tech:hover {
           background: #2d2d44;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(0,0,0,0.18);
         }
         .cta-ghost-tech {
           padding-left: 10px !important;

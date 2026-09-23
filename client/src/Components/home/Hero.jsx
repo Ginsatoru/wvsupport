@@ -53,30 +53,6 @@ const HeroSection = () => {
   const [heroData, setHeroData] = useState(DEFAULT_CONTENT.en);
   const [loading, setLoading] = useState(false);
   const [entered, setEntered] = useState(false);
-  const mainLayerRef = useRef(null);
-  const rafRef = useRef(null);
-
-  /* ── Parallax scroll ── */
-  useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        rafRef.current = requestAnimationFrame(() => {
-          const y = window.scrollY;
-          if (mainLayerRef.current) {
-            mainLayerRef.current.style.transform = `translate3d(0, ${y * 0.5}px, 0)`;
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
 
   /* ── Fetch hero content ── */
   useEffect(() => {
@@ -119,10 +95,49 @@ const HeroSection = () => {
   const isKm = i18n.language === "km";
   const titleLines = (heroData.title || "").split("\n");
 
-  const stats = [
-    { value: "100K+", label: isKm ? "អ្នកប្រើប្រាស់ទូទាំងពិភពលោក" : "Worldwide Users" },
-    { value: "20K+",  label: isKm ? "ឱកាសការងារ" : "Job Opportunities" },
-    { value: "6.7K+", label: isKm ? "ក្រុមហ៊ុនចូលរួម" : "Joined Companies" },
+  const features = [
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#000000" }}>
+          <path d="M12 2.5l8 4v5.5c0 5.2-3.4 8.7-8 10-4.6-1.3-8-4.8-8-10V6.5l8-4z" />
+          <path d="M8.5 12l2.3 2.3L15.5 9.5" />
+        </svg>
+      ),
+      label: isKm ? (
+        <>ទុកចិត្តជាង 25 ឆ្នាំ</>
+      ) : (
+        <>25+ Years<br />Trusted</>
+      ),
+    },
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#000000" }}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18" />
+          <path d="M12 3c2.5 2.6 4 6 4 9s-1.5 6.4-4 9c-2.5-2.6-4-6-4-9s1.5-6.4 4-9z" />
+        </svg>
+      ),
+      label: isKm ? (
+        <>អាស៊ី-ប៉ាស៊ីហ្វិក</>
+      ) : (
+        <>AU, NZ &amp; Asia-<br />Pacific Reach</>
+      ),
+    },
+    {
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#000000" }}>
+          <path d="M4 13a8 8 0 0116 0" />
+          <path d="M3 13v3a2 2 0 002 2h1v-6H5a2 2 0 00-2 2z" />
+          <path d="M21 13v3a2 2 0 01-2 2h-1v-6h1a2 2 0 012 2z" />
+          <path d="M15 19a3 3 0 01-3 2" />
+        </svg>
+      ),
+      label: isKm ? (
+        <>គាំទ្រ 7 ថ្ងៃក្នុងសប្តាហ៍</>
+      ) : (
+        <>7 Days a Week<br />Support</>
+      ),
+    },
   ];
 
   return (
@@ -146,8 +161,8 @@ const HeroSection = () => {
 
         {/* Subtitle */}
         <p
-          className="text-sm sm:text-[15px] text-gray-500 leading-relaxed max-w-sm mb-6 lg:mb-8"
-          style={{ display: "flex", flexWrap: "wrap" }}
+          className="text-sm sm:text-[15px] leading-relaxed max-w-sm mb-6 lg:mb-8"
+          style={{ display: "flex", flexWrap: "wrap", color: "#000000" }}
         >
           <SliceText text={heroData.subtitle || ""} inView={entered} baseDelay={0.42} />
         </p>
@@ -184,21 +199,19 @@ const HeroSection = () => {
           </button>
         </div>
 
-        {/* Stats */}
-        <div className="flex items-start border-t border-gray-200 pt-5 lg:pt-6">
-          {stats.map((s, i, arr) => (
+        {/* Feature highlights */}
+        <div className="flex items-center">
+          {features.map((f, i, arr) => (
             <div
-              key={s.value}
-              className={`hero-stat-drop flex flex-col gap-1 flex-1 ${i !== 0 ? "pl-4 sm:pl-7" : ""} ${
+              key={i}
+              className={`hero-stat-drop flex items-center gap-2.5 flex-1 ${i !== 0 ? "pl-4 sm:pl-7" : ""} ${
                 i !== arr.length - 1 ? "pr-4 sm:pr-7 border-r border-gray-200" : ""
               }`}
               style={{ transitionDelay: `${1.0 + i * 0.12}s` }}
             >
-              <span className="text-lg sm:text-2xl font-extrabold text-gray-900 leading-none">
-                {s.value}
-              </span>
-              <span className="text-[9px] sm:text-[11px] text-gray-400 leading-tight">
-                {s.label}
+              {f.icon}
+              <span className="text-[10px] sm:text-[12px] font-medium leading-tight" style={{ color: "#000000" }}>
+                {f.label}
               </span>
             </div>
           ))}
@@ -217,18 +230,17 @@ const HeroSection = () => {
 
         {heroData.backgroundImage && (
           <div
-            ref={mainLayerRef}
             className="absolute inset-0 w-full h-full z-1"
-            style={{ willChange: "transform", backfaceVisibility: "hidden" }}
           >
             <img
               src={heroData.backgroundImage || fallbackHero}
               alt=""
               aria-hidden="true"
-              className={`w-full h-[120%] object-cover transition-opacity duration-1000 ${
+              draggable={false}
+              className={`w-full h-full object-cover scale-95 translate-y-12 transition-opacity duration-1000 ${
                 imageLoaded ? (heroData.personImage ? "opacity-[0.07]" : "opacity-100") : "opacity-0"
               }`}
-              style={{ objectPosition: "center center" }}
+              style={{ objectPosition: "center center", userSelect: "none" }}
               onLoad={() => setImageLoaded(true)}
               onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackHero; setImageLoaded(true); }}
               loading="eager"

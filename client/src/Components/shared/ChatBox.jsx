@@ -175,9 +175,15 @@ const ChatBox = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: transform 0.2s ease, background 0.2s ease;
+          transition: transform 0.2s ease, background 0.2s ease, bottom 0.2s ease;
         }
         .cb-toggle:hover { background: #0d7aaa; transform: scale(1.06); }
+
+        /* Below the lg breakpoint, the site's mobile bottom nav bar occupies
+           roughly the bottom ~90px of the viewport, so lift the toggle above it. */
+        @media (max-width: 1024px) {
+          .cb-toggle { bottom: 92px; right: 16px; }
+        }
 
         /* ── Panel — sized to match screenshot ── */
         .cb-panel {
@@ -196,6 +202,11 @@ const ChatBox = () => {
             0 8px 40px rgba(0, 0, 0, 0.18),
             0 2px 10px rgba(0, 0, 0, 0.10);
           animation: cb-slide-up 0.24s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+          transition: bottom 0.2s ease;
+        }
+
+        @media (max-width: 1024px) {
+          .cb-panel { bottom: 154px; }
         }
 
         @media (max-width: 480px) {
@@ -208,7 +219,7 @@ const ChatBox = () => {
             right: auto;
             animation: cb-fade-in 0.2s ease forwards;
           }
-          .cb-toggle { bottom: 16px; right: 16px; }
+          .cb-toggle { bottom: 92px; right: 16px; }
           .cb-toggle.is-open { display: none; }
         }
 

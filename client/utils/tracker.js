@@ -108,12 +108,9 @@ class AnalyticsTracker {
 
       if (response.ok) {
         this.hasTrackedPageView = true;
-        console.log('Page view tracked successfully');
       } else {
-        console.warn('Failed to track page view:', response.status);
       }
     } catch (error) {
-      console.error('Error tracking page view:', error);
     }
   }
 
