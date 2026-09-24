@@ -5,35 +5,40 @@ import { useSettings } from "../../context/SettingsContext";
 import { FaFacebookF, FaTwitter, FaLinkedinIn, FaPhone, FaEnvelope, FaYoutube} from "react-icons/fa";
 
 const Footer = () => {
-  const { t } = useTranslation();
+  const { i18n } = useTranslation();
+  const isKm = i18n.language === "km";
   const { settings } = useSettings();
   const location = useLocation();
 
   const columns = [
     {
-      heading: t("footer.aboutUs"),
+      heading: isKm ? "អំពីយើង" : "About Us",
       links: [
-        { label: t("footer.about"),   href: "/Aboutus" },
-        { label: t("footer.legal"),   href: "/Legal" },
-        { label: t("footer.contact"), href: "/contact" },
-        { label: t("footer.careers"), href: "/Careers" },
+        { label: isKm ? "អំពី" : "About",     href: "/Aboutus" },
+        { label: isKm ? "ផ្នែកច្បាប់" : "Legal", href: "/Legal" },
+        { label: isKm ? "ទំនាក់ទំនង" : "Contact", href: "/contact" },
+        { label: isKm ? "ការងារ" : "Careers", href: "/Careers" },
       ],
     },
-{
-  heading: t("footer.usefulLinks"),
-  links: [
-    { label: t("footer.browseToAAAPOS"), href: "https://www.aaapos.com/", external: true },
-    { label: "Webstore Manager", href: "https://www.aaapos.com/webstore-manager", external: true },
-    { label: "RM Mobile", href: "https://www.aaapos.com/rm-mobile", external: true },
-    { label: t("footer.faqs"), href: "/FAQ" },
-  ],
-},
+    {
+      heading: isKm ? "តំណភ្ជាប់មានប្រយោជន៍" : "Useful Links",
+      links: [
+        { label: isKm ? "រកមើល AAAPOS" : "Browse to AAAPOS", href: "https://www.aaapos.com/", external: true },
+        { label: "Webstore Manager", href: "https://www.aaapos.com/webstore-manager", external: true },
+        { label: "RM Mobile", href: "https://www.aaapos.com/rm-mobile", external: true },
+        { label: isKm ? "សំណួរញឹកញាប់" : "FAQs", href: "/FAQ" },
+      ],
+    },
   ];
 
   const socials = [
     { icon: FaFacebookF, href: "https://www.facebook.com/aaapos.retailmanager/",  label: "Facebook" },
     { icon: FaYoutube,href: "https://www.youtube.com/@aaapos/about",  label: "Youtube" },
   ];
+
+  const defaultDescription = isKm
+    ? "WV Support គឺជាក្រុមការងារនៅសៀមរាប ដែលផ្តល់ការគាំទ្របច្ចេកទេសពីចម្ងាយសម្រាប់ RetailManager ជូនអតិថិជនអូស្ត្រាលី និយសេឡង់ និងតំបន់អាស៊ី-ប៉ាស៊ីហ្វិក។"
+    : "WV Support is a Siem Reap-based team delivering remote technical support for RetailManager, helping retailers across Australia, New Zealand, and the Asia-Pacific region.";
 
   return (
     <>
@@ -253,7 +258,7 @@ const Footer = () => {
               </Link>
 
               <p className="ft-desc">
-                {settings?.companyDescription || t("footer.defaultDescription")}
+                {settings?.companyDescription || defaultDescription}
               </p>
 
               <div className="ft-contact-list">
@@ -310,7 +315,7 @@ const Footer = () => {
             </span>
 
             <div className="ft-right">
-              <span className="ft-follow">{t("footer.followUs")}</span>
+              <span className="ft-follow">{isKm ? "តាមដានយើង" : "Follow Us"}</span>
               <div className="ft-socials">
                 {socials.map(({ icon: Icon, href, label }) => (
                   <a
