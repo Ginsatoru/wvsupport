@@ -87,7 +87,7 @@ const Sidebar = ({
               <IconComponent className="mr-3 h-5 w-5" style={{ color: isActiveState && !hasActiveChild ? '#ffffff' : textColor }} />
               <span className="font-medium text-base">{item.label}</span>
               {hasNotification && (
-                <span className="ml-2 px-2 py-1 text-xs font-bold bg-red-500 text-white rounded-full min-w-[20px] text-center">
+                <span className="ml-2 inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 text-[11px] font-bold leading-none bg-black text-white dark:bg-white dark:text-black rounded-full">
                   {item.notification > 99 ? "99+" : item.notification}
                 </span>
               )}
@@ -126,12 +126,12 @@ const Sidebar = ({
             {isOpen && <span className="font-medium text-base">{item.label}</span>}
           </div>
           {isOpen && hasNotification && (
-            <span className="px-2 py-1 text-xs font-bold bg-red-500 text-white rounded-full min-w-[20px] text-center">
+            <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 text-[11px] font-bold leading-none bg-black text-white dark:bg-white dark:text-black rounded-full">
               {item.notification > 99 ? "99+" : item.notification}
             </span>
           )}
           {!isOpen && hasNotification && (
-            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
+            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 text-[11px] font-bold leading-none bg-black text-white dark:bg-white dark:text-black rounded-full">
               {item.notification > 99 ? "99+" : item.notification}
             </span>
           )}
