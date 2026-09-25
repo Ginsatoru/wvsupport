@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  FiHome, FiMail, FiImage, FiSettings, FiUsers, FiBarChart,
-  FiShoppingCart, FiFileText, FiChevronDown, FiChevronRight,
-  FiTrendingUp, FiArchive, FiUserPlus,
+  FiHome, FiMail, FiSettings, FiUsers, FiFileText,
+  FiChevronDown, FiChevronRight, FiUserCheck,
 } from "react-icons/fi";
 import VisitorRecord from "./VisitorRecord";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,9 +28,11 @@ const Sidebar = ({
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: FiHome, route: "/admin-panel/dashboard", notification: null },
-    { id: "inbox", label: "Inbox", icon: FiMail, route: "/admin-panel/inbox", notification: null },
+    // Unread chats + contact emails (from AdminPanel)
+    { id: "inbox", label: "Inbox", icon: FiMail, route: "/admin-panel/inbox", notification: notifications.inbox },
     { id: "subscribers", label: "Subscribers", icon: FiUsers, route: "/admin-panel/subscribers" },
     { id: "content", label: "Content", icon: FiFileText, route: "/admin-panel/frontend" },
+    { id: "users", label: "Users", icon: FiUserCheck, route: "/admin-panel/users" },
     { id: "settings", label: "Settings", icon: FiSettings, route: "/admin-panel/settings" },
   ];
 
@@ -78,7 +79,7 @@ const Sidebar = ({
           <button
             onClick={() => handleNavClick(item)}
             className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${
-              isActiveState && !hasActiveChild ? "bg-sky-400 shadow-lg" : "hover:bg-gray-100 dark:hover:bg-gray-700"
+              isActiveState && !hasActiveChild ? "bg-[#0f8abe] shadow-lg" : "hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
             style={{ color: isActiveState && !hasActiveChild ? '#ffffff' : textColor }}
           >
@@ -115,7 +116,7 @@ const Sidebar = ({
         <button
           onClick={() => isChild ? handleSubmenuClick(item) : handleNavClick(item)}
           className={`w-full flex items-center ${isOpen ? "justify-between" : "justify-center"} p-3.5 rounded-xl transition-colors ${
-            isItemActive ? "bg-sky-400 shadow-sm" : "hover:bg-gray-100 dark:hover:bg-gray-700"
+            isItemActive ? "bg-[#0f8abe] shadow-sm" : "hover:bg-gray-100 dark:hover:bg-gray-700"
           }`}
           style={{ color: itemTextColor }}
           title={!isOpen ? item.label : ""}

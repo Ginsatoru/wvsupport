@@ -114,7 +114,8 @@ const NewsletterSection = () => {
     try {
       setLoading(true);
       setShowRecaptcha(false);
-      const result = await subscribeToNewsletter(emailAddress);
+      // Home page newsletter section → shows as "Landing Page" on the Subscribers page
+      const result = await subscribeToNewsletter(emailAddress, "landing_page");
 
       if (result.isDuplicate) {
         setStatusMessage({ type: "warning", text: t("alreadySubscribed") });

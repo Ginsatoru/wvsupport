@@ -1,25 +1,14 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const jwt = require("jsonwebtoken");
 const Message = require("../models/Message");
+const verifyAdmin = require("../middleware/verifyAdmin");
 const { setupChatUpload } = require("../config/multer");
 
 const router = express.Router();
 const chatUpload = setupChatUpload();
 
 // ── Helpers ──
-const verifyAdmin = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "No token provided" });
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded.isAdmin) return res.status(403).json({ message: "Admin access required" });
-    next();
-  } catch {
-    res.status(401).json({ message: "Invalid token" });
-  }
-};
 
 // Accepts up to 5 files in the "attachments" field (JSON requests pass straight through)
 const withAttachments = (req, res, next) =>
@@ -149,6 +138,27 @@ router.post(
     });
     socket(req).broadcastToAdmins("message_updated", thread);
 
+    res.json(thread);
+  })
+);
+
+// ── Admin: mark all visitor lines in a thread as read (doesn't bump updatedAt / list order) ──
+router.patch(
+  "/:sessionId/read",
+  verifyAdmin,
+  handle(async (req, res) => {
+    const thread = await Message.findOneAndUpdate(
+      { sessionId: req.params.sessionId },
+      { $set: { "messages.$[line].status": "read" } },
+      {
+        new: true,
+        timestamps: false,
+        arrayFilters: [{ "line.sender": "user", "line.status": { $ne: "read" } }],
+      }
+    );
+    if (!thread) return res.status(404).json({ message: "Thread not found" });
+
+    socket(req).broadcastToAdmins("message_updated", thread);
     res.json(thread);
   })
 );

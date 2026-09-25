@@ -15,6 +15,8 @@ import NotificationsDropdown from "./NotificationsDropdown";
 import blueLogo from "../../../Components/Images/bluelogo.png";
 import tranlogo from "../../../Components/Images/tranlogo.png";
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
 // Searchable admin sections — label + route + a few keywords to match against.
 // Mirrors the sections available in the sidebar/content management area.
 const SEARCHABLE_SECTIONS = [
@@ -24,8 +26,34 @@ const SEARCHABLE_SECTIONS = [
   { label: "Closed Messages", route: "/admin-panel/inbox/closed", keywords: ["inbox", "closed", "archive", "messages"] },
   { label: "Subscribers", route: "/admin-panel/subscribers", keywords: ["newsletter", "email list", "users"] },
   { label: "Pages", route: "/admin-panel/frontend", keywords: ["content", "frontend", "hero", "team"] },
+  { label: "Users", route: "/admin-panel/users", keywords: ["accounts", "team", "roles", "admin", "support"] },
   { label: "Settings", route: "/admin-panel/settings", keywords: ["company", "logo", "config"] },
 ];
+
+// Profile for the top bar — the account's name, or the email's first part when no name is set
+// (admin@wvsupport.com → "Admin")
+const toProfile = ({ name = "", email = "", role, createdAt } = {}) => {
+  const local = email.split("@")[0] || "Admin";
+  return {
+    name: name || local.charAt(0).toUpperCase() + local.slice(1),
+    email,
+    avatar: blueLogo,
+    role: role === "support" ? "Support" : "Admin", // matches the role names on the Users page
+    memberSince: createdAt
+      ? new Date(createdAt).toLocaleDateString("en-AU", { month: "short", year: "numeric" })
+      : null,
+  };
+};
+
+// Instant first paint from the login token, before the server answers
+const profileFromToken = () => {
+  try {
+    const payload = localStorage.getItem("adminToken").split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return toProfile(JSON.parse(atob(payload)));
+  } catch {
+    return toProfile();
+  }
+};
 
 const TopBar = ({
   onLogout = () => {},
@@ -33,16 +61,10 @@ const TopBar = ({
   setSidebarOpen = () => {},
   darkMode = false,
   setDarkMode = () => {},
-  notifications = [
-    { id: 1, title: "New user registered", time: "2 min ago", type: "user" },
-    {
-      id: 2,
-      title: "Server maintenance scheduled",
-      time: "1 hour ago",
-      type: "system",
-    },
-    { id: 3, title: "Payment received", time: "3 hours ago", type: "payment" },
-  ],
+  notifications = [],
+  onOpenNotification = () => {},
+  onMarkNotificationRead = () => {},
+  onMarkAllNotificationsRead = () => {},
 }) => {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -52,22 +74,30 @@ const TopBar = ({
   const [showSearchResults, setShowSearchResults] = useState(false);
   const searchWrapRef = useRef(null);
   const mobileSearchWrapRef = useRef(null);
-  const [profileData, setProfileData] = useState(() => {
-    const savedProfile = localStorage.getItem("profileData");
-    return savedProfile
-      ? JSON.parse(savedProfile)
-      : {
-          name: "Admin User",
-          email: "admin@wvsupport.com",
-          avatar: blueLogo,
-          role: "Administrator",
-          // Add other profile fields as needed
-        };
-  });
+  const [profileData, setProfileData] = useState(profileFromToken);
 
+  // Load the logged-in admin from the server (on open, and after you edit your own account).
+  // A rejected token means the session is over.
   useEffect(() => {
-    localStorage.setItem("profileData", JSON.stringify(profileData));
-  }, [profileData]);
+    const loadProfile = () =>
+      fetch(`${API_BASE_URL}/api/admin/me`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` },
+      })
+        .then((res) => {
+          if (res.status === 401) {
+            onLogout();
+            return null;
+          }
+          return res.ok ? res.json() : null;
+        })
+        .then((data) => data?.user && setProfileData(toProfile(data.user)))
+        .catch((err) => console.error("Failed to load admin profile:", err));
+
+    loadProfile();
+    window.addEventListener("admin-profile-updated", loadProfile);
+    return () => window.removeEventListener("admin-profile-updated", loadProfile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Filter searchable sections against the current query
   const searchResults = (() => {
@@ -127,18 +157,6 @@ const TopBar = ({
     if (setDarkMode) {
       setDarkMode(!darkMode);
     }
-  };
-
-  // Gradient styles
-  const gradientStyle = {
-    background: "linear-gradient(to right, #60a5fa, #3b82f6)", // blue-400 to blue-500
-  };
-
-  const gradientTextStyle = {
-    background: "linear-gradient(120deg, #60a5fa 0%, #60a5fa 100%)",
-    WebkitBackgroundClip: "text",
-    backgroundClip: "text",
-    color: "transparent",
   };
 
   // Shared results dropdown UI
@@ -213,11 +231,7 @@ const TopBar = ({
                 : "text-sky-300 bg-gray-100 hover:bg-gray-200"
             } transition-all duration-200`}
           >
-            {sidebarOpen ? (
-              <FiMenu className="h-5 w-5 sm:h-5 sm:w-5 transition-transform duration-200" />
-            ) : (
-              <FiMenu className="h-5 w-5 sm:h-5 sm:w-5 transition-transform duration-200" />
-            )}
+            <FiMenu className="h-5 w-5 sm:h-5 sm:w-5 transition-transform duration-200" />
           </button>
         </div>
 
@@ -245,11 +259,7 @@ const TopBar = ({
                   <FiX className="h-5 w-5" />
                 </button>
                 <div className="absolute inset-y-0 left-12 pl-2 flex items-center pointer-events-none">
-                  <FiSearch
-                    className={`${
-                      darkMode ? "text-gray-400" : "text-gray-400"
-                    }`}
-                  />
+                  <FiSearch className="text-gray-400" />
                 </div>
                 <input
                   type="text"
@@ -326,14 +336,11 @@ const TopBar = ({
               } transition-all duration-200`}
             >
               <FiBell className="h-5 w-5" />
-              {/* {notifications.length > 0 && (
-                <span
-                  style={gradientStyle}
-                  className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 text-white text-xs rounded-full flex items-center justify-center animate-bounce"
-                >
-                  {notifications.length}
+              {notifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-sky-500 text-white text-[10px] font-semibold rounded-full flex items-center justify-center">
+                  {notifications.length > 99 ? "99+" : notifications.length}
                 </span>
-              )} */}
+              )}
             </button>
 
             {/* Notifications Dropdown */}
@@ -341,6 +348,12 @@ const TopBar = ({
               darkMode={darkMode}
               notifications={notifications}
               showNotifications={showNotifications}
+              onOpen={(item) => {
+                setShowNotifications(false);
+                onOpenNotification(item);
+              }}
+              onMarkRead={onMarkNotificationRead}
+              onMarkAllRead={onMarkAllNotificationsRead}
             />
           </div>
 
@@ -376,7 +389,7 @@ const TopBar = ({
 
           {/* Profile Dropdown */}
           <div
-            className={`relative rounded-3xl ${
+            className={`relative flex-shrink-0 rounded-3xl ${
               darkMode ? "bg-gray-700" : "bg-sky-50"
             }`}
           >
@@ -384,7 +397,7 @@ const TopBar = ({
               onClick={toggleProfile}
               className={`flex items-center p-1.5 sm:p-2 pl-2 sm:pl-3 rounded-3xl ${
                 darkMode ? "hover:bg-gray-600" : "hover:bg-sky-100"
-              } transition-all duration-200 group min-w-[40px] sm:min-w-[180px] max-w-full`}
+              } transition-all duration-200 group pr-2 sm:pr-3 max-w-full`}
             >
               <div className="relative flex-shrink-0 mr-1 sm:mr-3">
                 <img
@@ -399,7 +412,7 @@ const TopBar = ({
                 />
               </div>
 
-              <div className="hidden sm:flex flex-col px-1 text-left min-w-0 overflow-hidden">
+              <div className="hidden sm:flex flex-col px-1 text-left whitespace-nowrap">
                 <p
                   className={`text-sm font-semibold truncate ${
                     darkMode
@@ -431,10 +444,8 @@ const TopBar = ({
             <ProfileDropdown
               showProfile={showProfile}
               darkMode={darkMode}
-              toggleDarkMode={toggleDarkMode}
               onLogout={onLogout}
               profileData={profileData}
-              onProfileUpdate={(updatedData) => setProfileData(updatedData)}
             />
           </div>
         </div>

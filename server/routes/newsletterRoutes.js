@@ -1,11 +1,14 @@
-const express = require('express');
+const express = require("express");
+const verifyAdmin = require("../middleware/verifyAdmin");
+const newsletterController = require("../controllers/newsletterController");
+
 const router = express.Router();
-const newsletterController = require('../controllers/newsletterController');
 
-// Subscribe to newsletter
-router.post('/', newsletterController.subscribeEmail);
+// Public: subscribe
+router.post("/", newsletterController.subscribeEmail);
 
-// Get all emails (admin only)
-router.get('/', newsletterController.getAllEmails);
+// Admin only
+router.get("/", verifyAdmin, newsletterController.getAllEmails);
+router.patch("/seen", verifyAdmin, newsletterController.markSeen);
 
 module.exports = router;

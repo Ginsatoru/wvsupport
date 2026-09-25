@@ -1,18 +1,23 @@
 // routes/analytics.js
-const express = require('express');
+const express = require("express");
+const verifyAdmin = require("../middleware/verifyAdmin");
+const {
+  trackVisit,
+  trackEngagement,
+  getOverviewStats,
+  getAnalyticsSummary,
+  getViewTrends,
+} = require("../controllers/analyticsController");
+
 const router = express.Router();
-const analyticsController = require('../controllers/analyticsController');
 
-// Track a visit - POST /api/analytics/track
-router.post('/track', analyticsController.trackVisit);
+// Public: called by the site's tracker
+router.post("/track", trackVisit);
+router.post("/engagement", trackEngagement);
 
-// Get overview stats for dashboard - GET /api/analytics/overview  
-router.get('/overview', analyticsController.getOverviewStats);
-
-// Get today's stats only - GET /api/analytics/today
-router.get('/today', analyticsController.getTodayStats);
-
-// Get analytics summary (for detailed dashboard) - GET /api/analytics/summary
-router.get('/summary', analyticsController.getAnalyticsSummary);
+// Admin only
+router.get("/overview", verifyAdmin, getOverviewStats);
+router.get("/summary", verifyAdmin, getAnalyticsSummary);
+router.get("/trends", verifyAdmin, getViewTrends);
 
 module.exports = router;

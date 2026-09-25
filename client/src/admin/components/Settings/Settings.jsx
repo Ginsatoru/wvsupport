@@ -148,7 +148,6 @@ export default function SettingsPage() {
           <div className="w-12 h-12 border-4 border-gray-200 dark:border-gray-700 border-t-[#0f8abe] rounded-full animate-spin" />
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-2" style={{ color: textColor }}>Loading...</h2>
-            <p style={{ color: textColor }}>Please wait while we prepare your content</p>
           </div>
         </div>
       </div>
@@ -162,7 +161,6 @@ export default function SettingsPage() {
       <div className="container mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold" style={{ color: textColor }}>Company Settings</h1>
-          <p className="text-sm" style={{ color: textColor }}>Manage your company information and frontend display settings</p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
@@ -193,7 +191,7 @@ export default function SettingsPage() {
                   >
                     {isCompressing ? (<><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Compressing...</>) : (<><Upload className="w-4 h-4" />Upload Logo</>)}
                   </label>
-                  <p className="text-xs mt-1" style={{ color: textColor }}>Max 10MB. Images will be automatically compressed.</p>
+                  <p className="text-xs mt-1" style={{ color: textColor }}>Max 10MB.</p>
                 </div>
               </div>
             </div>
@@ -229,7 +227,6 @@ export default function SettingsPage() {
                     placeholder={placeholder}
                   />
                 )}
-                {name === "mapEmbedCode" && <p className="text-xs" style={{ color: textColor }}>Get this from Google Maps → Share → Embed a map</p>}
               </div>
             ))}
           </div>

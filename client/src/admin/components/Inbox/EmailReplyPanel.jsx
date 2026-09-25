@@ -9,9 +9,52 @@ import {
   FiAlertCircle,
   FiChevronDown,
   FiChevronUp,
+  FiFileText,
+  FiPaperclip,
+  FiX,
 } from "react-icons/fi";
 import bluelogo from "../../../Components/Images/bluelogo.png";
 import { getInitials } from "./inboxUtils";
+
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+// Same types the server accepts for contact replies (images, PDF, Word, Excel, text/CSV)
+const ACCEPTED_FILES =
+  "image/jpeg,image/png,image/gif,image/webp,application/pdf,application/msword," +
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel," +
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,text/csv";
+const MAX_FILES = 5;
+
+// Old replies stored full URLs; new ones store "/uploads/..." paths on the API server
+const fileUrl = (url = "") => (url.startsWith("http") ? url : `${API_BASE_URL}${url}`);
+
+// Images show as thumbnails, other files as a link — both open in a new tab
+const EmailAttachments = ({ items }) => (
+  <div className="flex flex-wrap gap-2 mt-2">
+    {items.map((a, i) =>
+      a.type?.startsWith("image/") ? (
+        <a key={i} href={fileUrl(a.url)} target="_blank" rel="noopener noreferrer">
+          <img
+            src={fileUrl(a.url)}
+            alt={a.name}
+            className="max-w-[220px] max-h-[160px] rounded-lg border border-gray-200 dark:border-gray-600 object-cover"
+          />
+        </a>
+      ) : (
+        <a
+          key={i}
+          href={fileUrl(a.url)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-sm text-sky-600 dark:text-sky-400 max-w-[240px]"
+        >
+          <FiFileText className="flex-shrink-0" />
+          <span className="truncate">{a.name}</span>
+        </a>
+      )
+    )}
+  </div>
+);
 
 // ── Inline reply panel for emails — mirrors MessageField's layout/style ──
 const EmailReplyPanel = ({ item, onStatusAction, onDelete, onReplySuccess }) => {
@@ -22,8 +65,18 @@ const EmailReplyPanel = ({ item, onStatusAction, onDelete, onReplySuccess }) => 
   const [startY, setStartY] = useState(0);
   const [startHeight, setStartHeight] = useState(0);
   const [expandedMessages, setExpandedMessages] = useState({});
+  const [attachments, setAttachments] = useState([]);
   const textareaRef = useRef(null);
   const contentRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setAttachments((prev) => [...prev, ...files].slice(0, MAX_FILES));
+    e.target.value = "";
+  };
+
+  const removeAttachment = (index) => setAttachments((prev) => prev.filter((_, i) => i !== index));
 
   const toggleMessageExpand = (messageId) => {
     setExpandedMessages((prev) => ({
@@ -88,7 +141,7 @@ const EmailReplyPanel = ({ item, onStatusAction, onDelete, onReplySuccess }) => 
 
   const handleReplySubmit = async (e) => {
     e.preventDefault();
-    if (!replyContent.trim()) {
+    if (!replyContent.trim() && attachments.length === 0) {
       setError("Reply content is required");
       return;
     }
@@ -97,14 +150,17 @@ const EmailReplyPanel = ({ item, onStatusAction, onDelete, onReplySuccess }) => 
     try {
       const formData = new FormData();
       formData.append("replyMessage", replyContent.trim());
-      const response = await fetch(`/api/contact/admin/messages/${item._id}/reply`, {
+      attachments.forEach((file) => formData.append("attachments", file));
+      const response = await fetch(`${API_BASE_URL}/api/contact/admin/messages/${item._id}/reply`, {
         method: "PATCH",
+        headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` },
         body: formData,
       });
       const result = await response.json();
       if (!result.success) throw new Error(result.message || "Failed to send reply");
       onReplySuccess(result.data);
       setReplyContent("");
+      setAttachments([]);
     } catch (err) {
       setError(err.message || "Failed to send reply");
     } finally {
@@ -245,10 +301,13 @@ const EmailReplyPanel = ({ item, onStatusAction, onDelete, onReplySuccess }) => 
                       </button>
                     </div>
 
-                    {isExpanded && (
+                    {isExpanded && message.content && (
                       <div className="mf-content whitespace-pre-wrap text-sm text-left mt-1">
                         {message.content}
                       </div>
+                    )}
+                    {isExpanded && message.attachments?.length > 0 && (
+                      <EmailAttachments items={message.attachments} />
                     )}
                   </div>
                 </div>
@@ -265,6 +324,27 @@ const EmailReplyPanel = ({ item, onStatusAction, onDelete, onReplySuccess }) => 
             <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-2">
               <FiAlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 mt-0.5" />
               <span className="text-sm text-red-700 dark:text-red-300">{error}</span>
+            </div>
+          )}
+
+          {attachments.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2 px-2 pt-2">
+              {attachments.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-xl px-3 py-2 text-sm"
+                >
+                  <FiPaperclip className="text-gray-500 dark:text-gray-400" />
+                  <span className="text-gray-700 dark:text-gray-300 truncate max-w-xs">{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(index)}
+                    className="text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+                  >
+                    <FiX size={14} />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
 
@@ -286,10 +366,29 @@ const EmailReplyPanel = ({ item, onStatusAction, onDelete, onReplySuccess }) => 
               style={{ minHeight: "80px", maxHeight: "400px" }}
             />
 
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept={ACCEPTED_FILES}
+              className="hidden"
+              multiple
+            />
+
             <div className="absolute bottom-3 right-3 flex items-center gap-2">
               <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={attachments.length >= MAX_FILES || isSubmitting}
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+                title="Attach files"
+              >
+                <FiPaperclip className="h-5 w-5" />
+              </button>
+
+              <button
                 type="submit"
-                disabled={!replyContent.trim() || isSubmitting}
+                disabled={(!replyContent.trim() && attachments.length === 0) || isSubmitting}
                 className="px-4 py-2 text-sm font-medium rounded-xl text-white bg-sky-600 hover:bg-sky-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
               >
                 {isSubmitting ? (

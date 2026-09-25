@@ -1,4 +1,5 @@
 const express = require("express");
+const verifyAdmin = require("../middleware/verifyAdmin");
 const {
   sendContactMessage,
   getAllMessages,
@@ -8,33 +9,21 @@ const {
   deleteMessage,
   closeMessage,
   reopenMessage,
-  uploadAttachments  // Import the multer middleware
+  uploadAttachments,
 } = require("../controllers/contactController");
 
 const router = express.Router();
 
-// Public route - send contact message
+// Public: contact form
 router.post("/", sendContactMessage);
 
-// Admin routes - get all messages
-router.get("/admin/messages", getAllMessages);
-
-// Admin routes - reply to message WITH FILE UPLOAD SUPPORT
-router.patch("/admin/messages/:id/reply", uploadAttachments, replyToMessage);
-
-// Admin routes - mark as read
-router.patch("/admin/messages/:id/read", markAsRead);
-
-// Admin routes - toggle star
-router.patch("/admin/messages/:id/star", toggleStar);
-
-// Admin routes - delete message
-router.delete("/admin/messages/:id", deleteMessage);
-
-// Admin routes - close message
-router.patch("/admin/messages/:id/close", closeMessage);
-
-// Admin routes - reopen message
-router.patch("/admin/messages/:id/reopen", reopenMessage);
+// Admin only
+router.get("/admin/messages", verifyAdmin, getAllMessages);
+router.patch("/admin/messages/:id/reply", verifyAdmin, uploadAttachments, replyToMessage);
+router.patch("/admin/messages/:id/read", verifyAdmin, markAsRead);
+router.patch("/admin/messages/:id/star", verifyAdmin, toggleStar);
+router.patch("/admin/messages/:id/close", verifyAdmin, closeMessage);
+router.patch("/admin/messages/:id/reopen", verifyAdmin, reopenMessage);
+router.delete("/admin/messages/:id", verifyAdmin, deleteMessage);
 
 module.exports = router;

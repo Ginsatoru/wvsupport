@@ -72,7 +72,7 @@ const ConfirmationModal = ({
             aria-labelledby="modal-title"
             aria-describedby="modal-description"
             className={`relative z-10 w-full max-w-md p-6 mx-4 rounded-2xl shadow-xl transition-colors duration-200 ${
-              darkMode ? "bg-gray-800 text-gray-100" : "bg-white text-gray-900"
+              darkMode ? "bg-gray-900 text-white" : "bg-white text-black"
             }`}
             variants={modalVariants}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
@@ -81,25 +81,21 @@ const ConfirmationModal = ({
             {showCloseButton && !dangerOnly && (
               <button
                 onClick={onCancel}
-                className={`absolute top-4 right-4 p-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                className={`absolute top-4 right-4 p-2 rounded-full transition focus:outline-none ${
                   darkMode
-                    ? "text-gray-300 hover:bg-gray-700 focus:ring-sky-300"
-                    : "text-gray-500 hover:bg-gray-100 focus:ring-sky-300"
+                    ? "text-gray-300 hover:bg-gray-700"
+                    : "text-gray-500 hover:bg-gray-100"
                 }`}
                 aria-label="Close"
               >
-                <FiX className="w-5 h-5 text-sky-400" />
+                <FiX className="w-5 h-5" />
               </button>
             )}
 
             {/* Icon */}
             <div
               className={`flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full ${
-                danger
-                  ? "bg-red-100 dark:bg-red-100"
-                  : darkMode
-                  ? "bg-sky-900"
-                  : "bg-sky-100"
+                darkMode ? "bg-gray-800" : "bg-gray-100"
               }`}
             >
               {customIcon ? (
@@ -109,11 +105,7 @@ const ConfirmationModal = ({
               ) : (
                 <FiAlertCircle
                   className={`w-8 h-8 ${
-                    danger
-                      ? "text-red-600 dark:text-red-400"
-                      : darkMode
-                      ? "text-sky-300"
-                      : "text-sky-400"
+                    darkMode ? "text-white" : "text-black"
                   }`}
                 />
               )}
@@ -124,7 +116,7 @@ const ConfirmationModal = ({
               <h2
                 id="modal-title"
                 className={`text-xl font-semibold mb-2 ${
-                  darkMode ? "text-gray-100" : "text-gray-900"
+                  darkMode ? "text-white" : "text-black"
                 }`}
               >
                 {title}
@@ -143,9 +135,13 @@ const ConfirmationModal = ({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={onConfirm}
-                className="inline-flex items-center justify-center px-6 py-3 text-sm font-medium rounded-[8px] shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 bg-sky-600 text-white hover:bg-sky-700 focus:ring-sky-300"
+                className={`inline-flex items-center justify-center px-6 py-3 text-sm font-medium rounded-[8px] shadow-sm transition focus:outline-none ${
+                  darkMode
+                    ? "bg-white text-black hover:bg-gray-200"
+                    : "bg-black text-white hover:bg-gray-800"
+                }`}
               >
-                <FiCheck className="mr-2 text-white" />
+                <FiCheck className="mr-2" />
                 {confirmText}
               </motion.button>
 
@@ -154,10 +150,10 @@ const ConfirmationModal = ({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={onCancel}
-                  className={`inline-flex items-center justify-center px-6 py-3 text-sm font-medium border rounded-[8px] shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  className={`inline-flex items-center justify-center px-6 py-3 text-sm font-medium border rounded-[8px] shadow-sm transition focus:outline-none ${
                     darkMode
-                      ? "text-gray-200 bg-gray-700 hover:bg-gray-600 border-gray-600 focus:ring-sky-300"
-                      : "text-gray-700 bg-white hover:bg-gray-50 border-gray-300 focus:ring-sky-300"
+                      ? "text-white bg-gray-800 hover:bg-gray-700 border-gray-600"
+                      : "text-black bg-white hover:bg-gray-50 border-gray-300"
                   }`}
                 >
                   {cancelText}

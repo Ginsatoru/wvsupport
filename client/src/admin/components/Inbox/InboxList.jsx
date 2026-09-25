@@ -81,7 +81,7 @@ const InboxList = ({
             onClick={() => setView("open")}
             className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors flex-shrink-0 ${
               view === "open"
-                ? "bg-sky-500 text-white"
+                ? "bg-[#0f8abe] text-white"
                 : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
@@ -91,7 +91,7 @@ const InboxList = ({
             onClick={() => setView("closed")}
             className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors flex-shrink-0 ${
               view === "closed"
-                ? "bg-sky-500 text-white"
+                ? "bg-[#0f8abe] text-white"
                 : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
@@ -107,7 +107,7 @@ const InboxList = ({
               placeholder="Search..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="inbox-search-input w-full pl-8 pr-2.5 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full text-xs placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-transparent"
+              className="inbox-search-input w-full pl-8 pr-2.5 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full text-xs placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0f8abe] focus:border-transparent"
             />
           </div>
         </div>
@@ -143,7 +143,7 @@ const InboxList = ({
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="h-full flex items-center justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-sky-500" />
+            <Loader2 className="w-6 h-6 animate-spin text-[#0f8abe]" />
           </div>
         ) : error ? (
           <div className="h-full flex items-center justify-center text-center p-6">

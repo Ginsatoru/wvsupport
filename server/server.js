@@ -12,6 +12,8 @@ const jwt = require("jsonwebtoken");
 
 const { initGeoIP } = require("./utils/geoIP");
 const SocketServer = require("./utils/socket");
+const { startEmailInbox } = require("./services/emailInbox");
+const verifyAdmin = require("./middleware/verifyAdmin");
 const User = require("./models/User");
 
 console.log("Environment:", {
@@ -147,6 +149,7 @@ app.use("/api/team", require("./routes/teamRoute"));
 app.use("/api/newsletter", require("./routes/newsletterRoutes"));
 app.use("/api/contact", require("./routes/contactRoutes"));
 app.use("/api/content", require("./routes/contentRoutes"));
+app.use("/api/users", require("./routes/users"));
 
 // Admin login
 app.post("/api/admin/login", async (req, res) => {
@@ -162,13 +165,25 @@ app.post("/api/admin/login", async (req, res) => {
 
     // Same as WordPress: 2 days by default, 14 days with "Keep me logged in"
     const token = jwt.sign(
-      { id: user._id, email: user.email, isAdmin: user.isAdmin },
+      { id: user._id, email: user.email, name: user.name, role: user.role, isAdmin: user.isAdmin },
       process.env.JWT_SECRET,
       { expiresIn: rememberMe ? "14d" : "2d" }
     );
     res.json({ token, user: { email: user.email, isAdmin: user.isAdmin } });
   } catch (err) {
     console.error("Login error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Current admin (for the dashboard top bar)
+app.get("/api/admin/me", verifyAdmin, async (req, res) => {
+  try {
+    const user = await User.findById(req.admin.id).select("name email role isAdmin createdAt").lean();
+    if (!user) return res.status(401).json({ message: "Account not found" });
+    res.json({ user });
+  } catch (err) {
+    console.error("Fetch admin error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -204,6 +219,9 @@ const startServer = async () => {
     console.log(`Health check: http://localhost:${PORT}/api/health`);
     console.log(`GeoIP: ${geoIPReady ? "✅ Ready" : "⚠️ Limited"}`);
   });
+
+  // Pull customer email replies into their contact thread
+  startEmailInbox(socketServer);
 };
 
 process.on("SIGTERM", () => {

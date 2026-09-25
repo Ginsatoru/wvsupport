@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Mail } from "lucide-react";
 import { FiCheck, FiRotateCcw } from "react-icons/fi";
-import io from "socket.io-client";
+import { useLocation, useNavigate } from "react-router-dom";
+import socket from "../../services/adminSocket";
 import {
   getContactMessages,
   markMessageAsRead,
@@ -13,16 +14,13 @@ import ConfirmationModal from "../Modals/ConfirmationModal";
 import MessageField from "./MessageField";
 import EmailReplyPanel from "./EmailReplyPanel";
 import InboxList from "./InboxList";
-import { normalizeEmail, normalizeThread } from "./inboxUtils";
+import { normalizeEmail, normalizeThread, toEmailThread } from "./inboxUtils";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
-const socket = io(API_BASE_URL, {
-  transports: ["websocket"],
-  withCredentials: true,
-});
-
 const UnifiedInbox = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [emailMessages, setEmailMessages] = useState([]);
   const [chatThreads, setChatThreads] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +41,22 @@ const UnifiedInbox = () => {
   };
 
   const getToken = () => localStorage.getItem("adminToken");
+
+  // Chat session / email id currently open in the detail panel (read inside socket handlers)
+  const openChatRef = useRef(null);
+  const openEmailRef = useRef(null);
+  useEffect(() => {
+    openChatRef.current = selectedThread?.type === "chat" ? selectedThread.sessionId : null;
+    openEmailRef.current = selectedThread?.type === "email" ? selectedThread._id : null;
+  }, [selectedThread]);
+
+  // Insert or replace a contact conversation in the list
+  const upsertEmail = (doc) =>
+    setEmailMessages((prev) =>
+      prev.some((m) => m._id === doc._id)
+        ? prev.map((m) => (m._id === doc._id ? doc : m))
+        : [doc, ...prev]
+    );
 
   const fetchThreadsByStatus = async (status) => {
     try {
@@ -80,11 +94,10 @@ const UnifiedInbox = () => {
   useEffect(() => {
     fetchAll();
 
-    // Join the admin room so the server pushes live chat updates here
-    const joinAdminRoom = () => socket.emit("admin_connect", getToken());
-    joinAdminRoom();
-
     const handleNewThread = (newThread) => {
+      // Visitor wrote into the chat that's already open — it's been seen, so keep it read
+      if (openChatRef.current === newThread.sessionId) markChatRead(newThread.sessionId);
+
       setChatThreads((prev) => {
         const idx = prev.findIndex((t) => t.sessionId === newThread.sessionId);
         if (idx >= 0) {
@@ -112,13 +125,23 @@ const UnifiedInbox = () => {
       );
     };
 
-    socket.on("connect", joinAdminRoom);
+    // New contact form, admin reply, or a customer's email reply
+    const handleContactUpdate = (doc) => {
+      const isOpen = openEmailRef.current === doc._id;
+      upsertEmail(isOpen ? { ...doc, read: true } : doc);
+      if (isOpen) {
+        setSelectedThread(toEmailThread(doc));
+        if (!doc.read) markMessageAsRead(doc._id).catch(() => {});
+      }
+    };
+
     socket.on("new_message", handleNewThread);
     socket.on("message_updated", handleThreadUpdate);
+    socket.on("contact_updated", handleContactUpdate);
     return () => {
-      socket.off("connect", joinAdminRoom);
       socket.off("new_message", handleNewThread);
       socket.off("message_updated", handleThreadUpdate);
+      socket.off("contact_updated", handleContactUpdate);
     };
   }, []);
 
@@ -149,35 +172,54 @@ const UnifiedInbox = () => {
   // ── Row actions ──
   const handleRowClick = (item) => {
     if (item.type === "email") {
-      const raw = item.raw;
-      const messages = [
-        { _id: `${raw._id}-orig`, sender: "user", content: raw.message, timestamp: raw.createdAt },
-      ];
-      if (raw.replied && raw.replyMessage) {
-        messages.push({
-          _id: `${raw._id}-reply`,
-          sender: "admin",
-          content: raw.replyMessage,
-          timestamp: raw.lastReplyAt || raw.createdAt,
-        });
-      }
-      setSelectedThread({
-        type: "email",
-        _id: raw._id,
-        user: { name: raw.name, email: raw.email },
-        status: raw.status,
-        subject: raw.subject,
-        createdAt: raw.createdAt,
-        messages,
-      });
+      setSelectedThread(toEmailThread(item.raw));
       if (!item.read) handleMarkAsRead(item);
     } else {
       setSelectedThread({ type: "chat", ...item.raw });
+      if (!item.read) handleMarkAsRead(item);
+    }
+  };
+
+  // Opened from a notification: switch to the right tab and open that conversation once it's loaded
+  useEffect(() => {
+    const uid = location.state?.openUid;
+    if (!uid || loading) return;
+    const item = combined.find((i) => i.uid === uid);
+    if (item) {
+      setView(item.status);
+      handleRowClick(item);
+    }
+    navigate(location.pathname, { replace: true, state: {} });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state, loading, combined]);
+
+  // Marks every visitor line in a chat as read (server also pushes the update to other admin tabs)
+  const markChatRead = async (sessionId) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/messages/${sessionId}/read`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
+      });
+      setChatThreads((prev) =>
+        prev.map((t) =>
+          t.sessionId === sessionId
+            ? {
+                ...t,
+                messages: t.messages.map((m) =>
+                  m.sender === "user" ? { ...m, status: "read" } : m
+                ),
+              }
+            : t
+        )
+      );
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const handleMarkAsRead = async (item) => {
-    if (item.type !== "email") return;
+    if (item.type === "chat") return markChatRead(item.id);
     try {
       await markMessageAsRead(item.id);
       setEmailMessages((prev) =>
@@ -335,39 +377,10 @@ const UnifiedInbox = () => {
   };
 
   // ── Reply handling ──
-  const handleEmailReplySent = (updatedMessage) => {
-    const emailId = selectedThread?._id;
-    if (!emailId) return;
-    setEmailMessages((prev) =>
-      prev.map((m) =>
-        m._id === emailId
-          ? {
-              ...m,
-              replied: true,
-              replyMessage: updatedMessage.replyMessage,
-              replyAttachments: updatedMessage.replyAttachments || [],
-              read: true,
-              lastReplyAt: updatedMessage.lastReplyAt || new Date().toISOString(),
-            }
-          : m
-      )
-    );
-    setSelectedThread((prev) =>
-      prev && prev.type === "email"
-        ? {
-            ...prev,
-            messages: [
-              ...prev.messages,
-              {
-                _id: `${emailId}-reply-${Date.now()}`,
-                sender: "admin",
-                content: updatedMessage.replyMessage,
-                timestamp: updatedMessage.lastReplyAt || new Date(),
-              },
-            ],
-          }
-        : prev
-    );
+  // Server returns the whole updated conversation
+  const handleEmailReplySent = (updatedDoc) => {
+    upsertEmail(updatedDoc);
+    setSelectedThread(toEmailThread(updatedDoc));
     showAlert("Reply sent successfully");
   };
 

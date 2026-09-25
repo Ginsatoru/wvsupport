@@ -29,12 +29,15 @@ const InboxListItem = ({
     (item.type === "email" &&
       selectedThread?.type === "email" &&
       selectedThread?._id === item.id);
+  const unread = !item.read;
+  const unreadWeight = unread ? { fontWeight: 600 } : undefined;
+
   return (
     <div
       onClick={() => handleRowClick(item)}
       className={`group px-4 py-3 cursor-pointer transition-colors ${
         isSelected
-          ? "bg-white dark:bg-gray-800"
+          ? "bg-gray-50 dark:bg-gray-700/50" /* same as hover, so the open conversation stands out */
           : !item.read
           ? "bg-sky-50/40 dark:bg-sky-900/10 hover:bg-sky-50 dark:hover:bg-sky-900/20"
           : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
@@ -78,29 +81,34 @@ const InboxListItem = ({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
+            {unread && (
+              <span className="w-2 h-2 rounded-full bg-sky-500 flex-shrink-0" title="Unread" />
+            )}
             <span
-              className="inbox-name text-[15px] font-medium truncate"
+              className={`inbox-name text-[15px] truncate ${unread ? "font-bold" : "font-medium"}`}
             >
               {item.name}
             </span>
           </div>
-          <p className="inbox-subject text-sm truncate">
+          <p className="inbox-subject text-sm truncate" style={unreadWeight}>
             {item.type === "email" ? item.subject : item.preview || "No messages yet"}
           </p>
           {item.type === "email" && (
-            <p className="inbox-preview text-sm truncate mt-0.5">
+            <p className="inbox-preview text-sm truncate mt-0.5" style={unreadWeight}>
               {item.preview}
             </p>
           )}
         </div>
 
         {/* Age sits at the far right; swapped for the actions on hover */}
-        <span className="inbox-date text-xs flex-shrink-0 group-hover:hidden">
+        <span
+          className={`inbox-date text-xs flex-shrink-0 group-hover:hidden ${unread ? "font-semibold" : ""}`}
+        >
           {formatDate(item.updatedAt)}
         </span>
 
         <div className="hidden group-hover:flex items-center gap-0.5 flex-shrink-0">
-          {item.type === "email" && !item.read && (
+          {unread && (
             <button
               onClick={(e) => {
                 e.stopPropagation();

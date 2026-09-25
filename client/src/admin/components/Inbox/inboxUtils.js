@@ -1,3 +1,20 @@
+// Preview text for the newest line in a conversation
+const lastLinePreview = (lines = []) => {
+  const last = lines[lines.length - 1];
+  return last?.content || (last?.attachments?.length ? "📎 Attachment" : "");
+};
+
+// ── Build the email detail-panel object from a contact conversation ──
+export const toEmailThread = (m) => ({
+  type: "email",
+  _id: m._id,
+  user: { name: m.name, email: m.email },
+  status: m.status,
+  subject: m.subject,
+  createdAt: m.createdAt,
+  messages: m.messages || [],
+});
+
 // ── Normalize an email (contact-form) message into the shared row shape ──
 export const normalizeEmail = (m) => ({
   uid: `email-${m._id}`,
@@ -6,7 +23,7 @@ export const normalizeEmail = (m) => ({
   name: m.name || "Anonymous",
   email: m.email || "No email",
   subject: m.subject || "(no subject)",
-  preview: m.message || "",
+  preview: lastLinePreview(m.messages) || m.message || "",
   status: m.status || "open",
   read: !!m.read,
   replied: !!m.replied,

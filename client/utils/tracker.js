@@ -1,199 +1,94 @@
 // client/utils/tracker.js
+// Page views + engagement for the public site. Admin/login pages and logged-in admins are never tracked.
+//   • one view per route change (SPA navigation included)
+//   • time / clicks / scroll are sent when the visitor leaves or hides the page,
+//     and only update that view — they never count as a new one
+
+const TRACK_URL = "/api/analytics/track";
+const ENGAGEMENT_URL = "/api/analytics/engagement";
+
+const isPrivatePath = (path) => path.startsWith("/admin") || path.startsWith("/login");
+// Logged-in admin (valid, unexpired token) browsing the public site — don't count them
+const isAdminBrowser = () => {
+  try {
+    const payload = localStorage.getItem("adminToken").split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const { exp } = JSON.parse(atob(payload));
+    return !exp || exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+};
+
+const newId = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+
+const getVisitorId = () => {
+  let id = localStorage.getItem("analyticsVisitorId");
+  if (!id) {
+    id = newId("visitor");
+    localStorage.setItem("analyticsVisitorId", id);
+  }
+  return id;
+};
+
+const postJson = (url, data) => {
+  const body = JSON.stringify(data);
+  // sendBeacon survives page unload; fall back to a keepalive fetch
+  if (navigator.sendBeacon?.(url, new Blob([body], { type: "application/json" }))) return;
+  fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
+};
 
 class AnalyticsTracker {
   constructor() {
-    // Don't track admin panel visits
-    if (window.location.pathname.startsWith('/admin-panel') || 
-        window.location.pathname.startsWith('/admin')) {
+    this.visitorId = getVisitorId();
+    this.view = null;
+
+    document.addEventListener("click", () => this.view && this.view.clicks++);
+    window.addEventListener("scroll", () => this.updateScroll(), { passive: true });
+    document.addEventListener("visibilitychange", () => document.hidden && this.flush());
+    window.addEventListener("pagehide", () => this.flush());
+  }
+
+  updateScroll() {
+    if (!this.view) return;
+    const docHeight = Math.max(document.documentElement.scrollHeight, 1);
+    const depth = Math.min((window.scrollY + window.innerHeight) / docHeight, 1);
+    this.view.scrollDepth = Math.max(this.view.scrollDepth, depth);
+  }
+
+  trackPageView(path) {
+    if (isPrivatePath(path) || isAdminBrowser()) {
+      this.flush();
+      this.view = null;
       return;
     }
+    // Same path again within 1s (React StrictMode / double render) counts once
+    if (this.view?.path === path && Date.now() - this.view.startedAt < 1000) return;
 
-    this.visitorId = this.getOrCreateVisitorId();
-    this.pageLoadTime = new Date();
-    this.maxScrollDepth = 0;
-    this.clickCount = 0;
-    this.hasTrackedPageView = false;
-
-    this.setupListeners();
-    this.trackPageView();
+    this.flush(); // close out the previous page
+    this.view = { id: newId("view"), path, startedAt: Date.now(), clicks: 0, scrollDepth: 0 };
+    postJson(TRACK_URL, { viewId: this.view.id, path, visitorId: this.visitorId });
   }
 
-  // Generate or retrieve persistent visitor ID
-  getOrCreateVisitorId() {
-    let visitorId = localStorage.getItem('analyticsVisitorId');
-    
-    if (!visitorId) {
-      // Generate a unique visitor ID
-      visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('analyticsVisitorId', visitorId);
-    }
-    
-    return visitorId;
-  }
-
-  setupListeners() {
-    // Track clicks
-    document.addEventListener('click', (e) => {
-      this.clickCount++;
-    });
-
-    // Track scroll depth
-    const throttledScroll = this.throttle(() => {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const docHeight = Math.max(
-        document.body.scrollHeight,
-        document.body.offsetHeight,
-        document.documentElement.clientHeight,
-        document.documentElement.scrollHeight,
-        document.documentElement.offsetHeight
-      );
-      const winHeight = window.innerHeight;
-      const scrollPercent = Math.min((scrollTop + winHeight) / docHeight, 1);
-      
-      this.maxScrollDepth = Math.max(this.maxScrollDepth, scrollPercent);
-    }, 100);
-
-    window.addEventListener('scroll', throttledScroll);
-
-    // Send data when user leaves the page
-    window.addEventListener('beforeunload', () => {
-      this.sendFinalEngagementData();
-    });
-
-    // Also send data on visibility change (when tab becomes hidden)
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        this.sendFinalEngagementData();
-      }
-    });
-  }
-
-  // Throttle function to limit scroll event frequency
-  throttle(func, delay) {
-    let timeoutId;
-    let lastExecTime = 0;
-    return function (...args) {
-      const currentTime = Date.now();
-      
-      if (currentTime - lastExecTime > delay) {
-        func.apply(this, args);
-        lastExecTime = currentTime;
-      } else {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          func.apply(this, args);
-          lastExecTime = Date.now();
-        }, delay - (currentTime - lastExecTime));
-      }
-    };
-  }
-
-  // Track initial page view
-  async trackPageView() {
-    if (this.hasTrackedPageView) return;
-    
-    const path = window.location.pathname;
-    
-    try {
-      const response = await fetch('/api/analytics/track', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          path,
-          visitorId: this.visitorId
-        })
-      });
-
-      if (response.ok) {
-        this.hasTrackedPageView = true;
-      } else {
-      }
-    } catch (error) {
-    }
-  }
-
-  // Send final engagement data when user leaves
-  sendFinalEngagementData() {
-    const timeSpent = Math.round((new Date() - this.pageLoadTime) / 1000); // in seconds
-    const path = window.location.pathname;
-
-    const data = {
-      path,
-      visitorId: this.visitorId,
+  flush() {
+    if (!this.view) return;
+    postJson(ENGAGEMENT_URL, {
+      viewId: this.view.id,
       engagement: {
-        clicks: this.clickCount,
-        scrollDepth: this.maxScrollDepth,
-        timeSpent: timeSpent
-      }
-    };
-
-    // Use sendBeacon with Blob to ensure proper Content-Type
-    if (navigator.sendBeacon) {
-      const blob = new Blob([JSON.stringify(data)], {
-        type: 'application/json'
-      });
-      navigator.sendBeacon('/api/analytics/track', blob);
-    } else {
-      // Fallback for browsers that don't support sendBeacon
-      try {
-        fetch('/api/analytics/track', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-          keepalive: true
-        });
-      } catch (error) {
-        console.error('Error sending final engagement data:', error);
-      }
-    }
-  }
-
-  // Method to manually track events if needed
-  trackEvent(eventName, eventData = {}) {
-    try {
-      fetch('/api/analytics/track', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          path: window.location.pathname,
-          visitorId: this.visitorId,
-          event: {
-            name: eventName,
-            data: eventData,
-            timestamp: new Date().toISOString()
-          }
-        })
-      });
-    } catch (error) {
-      console.error('Error tracking event:', error);
-    }
+        clicks: this.view.clicks,
+        scrollDepth: this.view.scrollDepth,
+        timeSpent: Math.round((Date.now() - this.view.startedAt) / 1000),
+      },
+    });
   }
 }
 
-// Auto-initialize when DOM is ready
 let tracker = null;
 
-function initTracker() {
-  if (!tracker && typeof window !== 'undefined') {
-    tracker = new AnalyticsTracker();
-  }
-  return tracker;
-}
+// Call on every route change with the new pathname
+const trackPageView = (path = window.location.pathname) => {
+  if (typeof window === "undefined") return;
+  tracker = tracker || new AnalyticsTracker();
+  tracker.trackPageView(path);
+};
 
-// Initialize immediately if DOM is already loaded
-if (typeof window !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initTracker);
-  } else {
-    initTracker();
-  }
-}
-
-// Export for manual initialization if needed
-export default initTracker;
+export default trackPageView;

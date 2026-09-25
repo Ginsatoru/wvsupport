@@ -5,7 +5,7 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import initTracker from "../utils/tracker";
+import trackPageView from "../utils/tracker";
 import { SettingsProvider } from "./context/SettingsContext";
 import { useEffect, useState } from "react";
 import Nav from "./Components/shared/Navbar";
@@ -25,8 +25,6 @@ import FAQ from "./pages/FAQ";
 function App() {
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-  const [trackerInitialized, setTrackerInitialized] = useState(false);
 
   // Define paths where Nav, Footer, and ChatBox should be hidden
   const hideLayoutPaths = ["/admin", "/admin/login", "/admin-panel"];
@@ -34,16 +32,10 @@ function App() {
     location.pathname.startsWith(path)
   );
 
-  // Initialize tracker only once when app starts (not on admin pages)
+  // One page view per route change (the tracker skips admin/login pages itself)
   useEffect(() => {
-    if (!trackerInitialized && !hideLayout) {
-      try {
-        initTracker();
-        setTrackerInitialized(true);
-      } catch (error) {
-      }
-    }
-  }, [hideLayout, trackerInitialized]);
+    trackPageView(location.pathname);
+  }, [location.pathname]);
 
   // Handle scroll to top on route changes
   useEffect(() => {
@@ -72,7 +64,6 @@ function App() {
               path="/login"
               element={<LoginForm onLogin={() => setIsAuthenticated(true)} />}
             />
-            {/* FIXED: Added /* to allow nested routing */}
             <Route
               path="/admin-panel/*"
               element={

@@ -16,6 +16,8 @@ import ConfirmationModal from "../components/Modals/ConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
 import WelcomeModal from "./WelcomeModal";
 import News from "../components/Managements/CMSNewsletter.jsx";
+import UserManagement from "../components/Users/UserManagement.jsx";
+import useInboxNotifications from "../hooks/useInboxNotifications";
 
 const AdminPanel = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -28,6 +30,7 @@ const AdminPanel = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { notifications, inboxUnreadCount, markRead, markAllRead } = useInboxNotifications();
 
   // Get the base path for admin routes (determine if it's /admin or /admin-panel)
   const getBasePath = () => {
@@ -53,6 +56,7 @@ const AdminPanel = () => {
     if (relativePath.startsWith("statistics")) return "statistics";
     if (relativePath.startsWith("subscribers")) return "subscribers";
     if (relativePath.startsWith("orders")) return "orders";
+    if (relativePath.startsWith("users")) return "users";
     if (relativePath.startsWith("settings")) return "settings";
     return relativePath;
   };
@@ -71,6 +75,7 @@ const AdminPanel = () => {
         statistics: `${basePath}/statistics`,
         subscribers: `${basePath}/subscribers`,
         orders: `${basePath}/orders`,
+        users: `${basePath}/users`,
         settings: `${basePath}/settings`,
       };
 
@@ -79,6 +84,19 @@ const AdminPanel = () => {
       }
     },
     [navigate, basePath]
+  );
+
+  // Notification click: subscribers → Subscribers page; chats/emails → open that conversation
+  const handleOpenNotification = useCallback(
+    (item) => {
+      if (item.type === "subscriber") {
+        markRead(item);
+        navigate(`${basePath}/subscribers`);
+      } else {
+        navigate(`${basePath}/inbox`, { state: { openUid: item.uid } });
+      }
+    },
+    [navigate, basePath, markRead]
   );
 
   // Optimized welcome message effect
@@ -140,30 +158,8 @@ const AdminPanel = () => {
     navigate("/admin/login");
   }, [navigate]);
 
-  // Sample notifications data
-  const notifications = [
-    { id: 1, title: "New user registered", time: "2 min ago", type: "user" },
-    {
-      id: 2,
-      title: "Server maintenance scheduled",
-      time: "1 hour ago",
-      type: "system",
-    },
-    { id: 3, title: "Payment received", time: "3 hours ago", type: "payment" },
-    {
-      id: 4,
-      title: "New message in inbox",
-      time: "5 hours ago",
-      type: "message",
-    },
-  ];
-
-  // Sample notification counts for sidebar
-  const sidebarNotifications = {
-    inbox: 12,
-    users: 3,
-    orders: 5,
-  };
+  // Real unread count for the sidebar inbox badge
+  const sidebarNotifications = { inbox: inboxUnreadCount };
 
   return (
     <div
@@ -183,6 +179,9 @@ const AdminPanel = () => {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         notifications={notifications}
+        onOpenNotification={handleOpenNotification}
+        onMarkNotificationRead={markRead}
+        onMarkAllNotificationsRead={markAllRead}
         onLogout={handleLogoutClick}
         darkMode={darkMode}
         setDarkMode={setDarkMode}
@@ -228,6 +227,9 @@ const AdminPanel = () => {
                 path="subscribers"
                 element={<News darkMode={darkMode} />}
               />
+
+              {/* Users */}
+              <Route path="users" element={<UserManagement darkMode={darkMode} />} />
 
               {/* Settings */}
               <Route

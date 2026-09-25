@@ -27,16 +27,20 @@ const useFontLoader = () => {
   return fontsLoaded;
 };
 
-// Name from a valid admin token (e.g. admin@wvsupport.com → "Admin"), or null if logged out / expired
+// Display name: the account's name, or the email's first part (admin@wvsupport.com → "Admin")
+const displayName = ({ name, email = "" } = {}) => {
+  const local = email.split("@")[0];
+  return name || (local ? local.charAt(0).toUpperCase() + local.slice(1) : "Admin");
+};
+
+// Name from a valid admin token, or null if logged out / expired (quick first paint)
 const getAdminName = () => {
   const token = localStorage.getItem("adminToken");
   if (!token) return null;
   try {
-    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    const { email, exp } = JSON.parse(atob(payload));
-    if (exp && exp * 1000 <= Date.now()) return null;
-    const name = (email || "").split("@")[0];
-    return name ? name.charAt(0).toUpperCase() + name.slice(1) : "Admin";
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    if (payload.exp && payload.exp * 1000 <= Date.now()) return null;
+    return displayName(payload);
   } catch {
     return null;
   }
@@ -74,7 +78,20 @@ function Nav() {
   const { settings, loading } = useSettings();
 
   const fontsLoaded = useFontLoader();
-  const adminName = getAdminName();
+  const [adminName, setAdminName] = useState(getAdminName);
+
+  // Logged in: swap in the current name from the server (the token may predate a name change)
+  useEffect(() => {
+    if (!getAdminName()) return setAdminName(null);
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/me`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.user) setAdminName(displayName(data.user));
+      })
+      .catch(() => {});
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
