@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiSearch,
   FiBell,
@@ -7,14 +8,24 @@ import {
   FiChevronDown,
   FiSun,
   FiMoon,
-  FiMaximize,
-  FiMinimize,
   FiGlobe,
 } from "react-icons/fi";
 import ProfileDropdown from "./ProfileDropdown"; // Adjust the path as needed
 import NotificationsDropdown from "./NotificationsDropdown";
 import blueLogo from "../../../Components/Images/bluelogo.png";
 import tranlogo from "../../../Components/Images/tranlogo.png";
+
+// Searchable admin sections — label + route + a few keywords to match against.
+// Mirrors the sections available in the sidebar/content management area.
+const SEARCHABLE_SECTIONS = [
+  { label: "Dashboard", route: "/admin-panel/dashboard", keywords: ["analytics", "overview", "stats"] },
+  { label: "Email", route: "/admin-panel/emails", keywords: ["inbox", "mail", "messages"] },
+  { label: "Open Messages", route: "/admin-panel/inbox/open", keywords: ["inbox", "open", "messages"] },
+  { label: "Closed Messages", route: "/admin-panel/inbox/closed", keywords: ["inbox", "closed", "archive", "messages"] },
+  { label: "Subscribers", route: "/admin-panel/subscribers", keywords: ["newsletter", "email list", "users"] },
+  { label: "Pages", route: "/admin-panel/frontend", keywords: ["content", "frontend", "hero", "team"] },
+  { label: "Settings", route: "/admin-panel/settings", keywords: ["company", "logo", "config"] },
+];
 
 const TopBar = ({
   onLogout = () => {},
@@ -33,11 +44,14 @@ const TopBar = ({
     { id: 3, title: "Payment received", time: "3 hours ago", type: "payment" },
   ],
 }) => {
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [showMobileSearch, setShowMobileSearch] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const searchWrapRef = useRef(null);
+  const mobileSearchWrapRef = useRef(null);
   const [profileData, setProfileData] = useState(() => {
     const savedProfile = localStorage.getItem("profileData");
     return savedProfile
@@ -55,19 +69,36 @@ const TopBar = ({
     localStorage.setItem("profileData", JSON.stringify(profileData));
   }, [profileData]);
 
-  // Check fullscreen status on component mount and when it changes
+  // Filter searchable sections against the current query
+  const searchResults = (() => {
+    const query = searchValue.trim().toLowerCase();
+    if (!query) return [];
+    return SEARCHABLE_SECTIONS.filter(
+      (section) =>
+        section.label.toLowerCase().includes(query) ||
+        section.keywords.some((kw) => kw.toLowerCase().includes(query))
+    );
+  })();
+
+  // Close the results dropdown when clicking outside either search box
   useEffect(() => {
-    const checkFullscreen = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+    const handleClickOutside = (e) => {
+      const inDesktop = searchWrapRef.current && searchWrapRef.current.contains(e.target);
+      const inMobile = mobileSearchWrapRef.current && mobileSearchWrapRef.current.contains(e.target);
+      if (!inDesktop && !inMobile) {
+        setShowSearchResults(false);
+      }
     };
-
-    document.addEventListener("fullscreenchange", checkFullscreen);
-    checkFullscreen(); // Check initial state
-
-    return () => {
-      document.removeEventListener("fullscreenchange", checkFullscreen);
-    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const goToSection = (route) => {
+    navigate(route);
+    setSearchValue("");
+    setShowSearchResults(false);
+    setShowMobileSearch(false);
+  };
 
   const handleSidebarToggle = () => {
     if (setSidebarOpen) {
@@ -87,38 +118,14 @@ const TopBar = ({
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    console.log("Searching for:", searchValue);
+    if (searchResults.length > 0) {
+      goToSection(searchResults[0].route);
+    }
   };
 
   const toggleDarkMode = () => {
     if (setDarkMode) {
       setDarkMode(!darkMode);
-    }
-  };
-
-  const toggleFullscreen = async () => {
-    try {
-      if (!isFullscreen) {
-        // Enter fullscreen
-        if (document.documentElement.requestFullscreen) {
-          await document.documentElement.requestFullscreen();
-        } else if (document.documentElement.webkitRequestFullscreen) {
-          await document.documentElement.webkitRequestFullscreen();
-        } else if (document.documentElement.msRequestFullscreen) {
-          await document.documentElement.msRequestFullscreen();
-        }
-      } else {
-        // Exit fullscreen
-        if (document.exitFullscreen) {
-          await document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-          await document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-          await document.msExitFullscreen();
-        }
-      }
-    } catch (error) {
-      console.error("Fullscreen toggle failed:", error);
     }
   };
 
@@ -132,6 +139,43 @@ const TopBar = ({
     WebkitBackgroundClip: "text",
     backgroundClip: "text",
     color: "transparent",
+  };
+
+  // Shared results dropdown UI
+  const renderResultsDropdown = () => {
+    if (!showSearchResults || !searchValue.trim()) return null;
+    return (
+      <div
+        className={`absolute left-0 right-0 top-full mt-2 rounded-xl shadow-lg overflow-hidden z-50 ${
+          darkMode ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-200"
+        }`}
+      >
+        {searchResults.length > 0 ? (
+          <ul className="max-h-64 overflow-y-auto py-1">
+            {searchResults.map((section) => (
+              <li key={section.route}>
+                <button
+                  type="button"
+                  onClick={() => goToSection(section.route)}
+                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors ${
+                    darkMode
+                      ? "text-gray-200 hover:bg-gray-700"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <FiSearch className="h-3.5 w-3.5 flex-shrink-0 text-sky-400" />
+                  {section.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className={`px-4 py-3 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+            No matching sections for "{searchValue}"
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -156,7 +200,7 @@ const TopBar = ({
             </div>
 
             <h1 className="text-lg sm:text-3xl font-bold bg-clip-text text-sky-400 hidden md:block">
-              Dashboard
+              Admin Dashboard
             </h1>
           </div>
 
@@ -181,7 +225,10 @@ const TopBar = ({
         <div className="flex items-center space-x-1 sm:space-x-2">
           {/* Mobile Search - Full width when active */}
           {showMobileSearch && (
-            <div className="absolute left-0 top-0 w-full px-4 py-3 bg-inherit z-50 md:hidden">
+            <div
+              ref={mobileSearchWrapRef}
+              className="absolute left-0 top-0 w-full px-4 py-3 bg-inherit z-50 md:hidden"
+            >
               <form
                 onSubmit={handleSearchSubmit}
                 className="relative w-full flex items-center"
@@ -207,7 +254,11 @@ const TopBar = ({
                 <input
                   type="text"
                   value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
+                  onChange={(e) => {
+                    setSearchValue(e.target.value);
+                    setShowSearchResults(true);
+                  }}
+                  onFocus={() => setShowSearchResults(true)}
                   className={`block w-full pl-10 pr-4 py-2 border ${
                     darkMode
                       ? "bg-gray-700 border-gray-600 placeholder-gray-400 focus:bg-gray-700"
@@ -217,31 +268,39 @@ const TopBar = ({
                   autoFocus
                 />
               </form>
+              {renderResultsDropdown()}
             </div>
           )}
 
           {/* Desktop Search Bar */}
-          <div className="relative w-full max-w-md group hidden md:block">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <FiSearch
-                className={`${
+          <div ref={searchWrapRef} className="relative w-full max-w-md group hidden md:block">
+            <form onSubmit={handleSearchSubmit}>
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <FiSearch
+                  className={`${
+                    darkMode
+                      ? "text-sky-400 group-focus-within:text-sky-400"
+                      : "text-sky-400 group-focus-within:text-sky-500"
+                  } transition-colors duration-200`}
+                />
+              </div>
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => {
+                  setSearchValue(e.target.value);
+                  setShowSearchResults(true);
+                }}
+                onFocus={() => setShowSearchResults(true)}
+                className={`block w-full pl-12 pr-4 py-2.5 border${
                   darkMode
-                    ? "text-sky-400 group-focus-within:text-sky-400"
-                    : "text-sky-400 group-focus-within:text-sky-500"
-                } transition-colors duration-200`}
+                    ? "text-sky-400 bg-gray-700 hover:bg-gray-600"
+                    : "text-sky-400 bg-gray-100 hover:bg-gray-200"
+                } rounded-xl leading-5 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-transparent transition-all duration-200 text-sm`}
+                placeholder="Search dashboard"
               />
-            </div>
-            <input
-              type="text"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              className={`block w-full pl-12 pr-4 py-2.5 border${
-                darkMode
-                  ? "text-sky-400 bg-gray-700 hover:bg-gray-600"
-                  : "text-sky-400 bg-gray-100 hover:bg-gray-200"
-              } rounded-xl leading-5 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-transparent transition-all duration-200 text-sm`}
-              placeholder="Search dashboard"
-            />
+            </form>
+            {renderResultsDropdown()}
           </div>
 
           {/* Mobile Search Button */}
@@ -283,25 +342,6 @@ const TopBar = ({
               notifications={notifications}
               showNotifications={showNotifications}
             />
-          </div>
-
-          {/* Fullscreen Toggle - Replaces Settings */}
-          <div className="relative hidden sm:block">
-            <button
-              onClick={toggleFullscreen}
-              className={`p-1.5 sm:p-2.5 rounded-xl ${
-                darkMode
-                  ? "text-sky-400 bg-gray-700 hover:bg-gray-600"
-                  : "text-sky-400 bg-gray-100 hover:bg-gray-200"
-              } transition-all duration-200`}
-              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-            >
-              {isFullscreen ? (
-                <FiMinimize className="h-5 w-5" />
-              ) : (
-                <FiMaximize className="h-5 w-5" />
-              )}
-            </button>
           </div>
 
           {/* Dark Mode Toggle */}
@@ -400,13 +440,12 @@ const TopBar = ({
         </div>
       </div>
       {/* Click outside to close dropdowns */}
-      {(showNotifications || showProfile || showMobileSearch) && (
+      {(showNotifications || showProfile) && (
         <div
           className="fixed inset-0 z-40"
           onClick={() => {
             setShowNotifications(false);
             setShowProfile(false);
-            setShowMobileSearch(false);
           }}
         />
       )}

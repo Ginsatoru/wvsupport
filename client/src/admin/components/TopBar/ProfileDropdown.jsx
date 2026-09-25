@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { FiUser, FiSettings, FiSun, FiMoon, FiLogOut } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
-import ProfileManager from "./ProfileManager";
-import SettingsManager from "./SettingsManager";
 import blueLogo from "../../../Components/Images/bluelogo.png";
 
 const ProfileDropdown = ({
@@ -13,14 +11,10 @@ const ProfileDropdown = ({
   onLogout,
 }) => {
   const [showProfileManager, setShowProfileManager] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [profileData, setProfileData] = useState({
     name: "Admin User",
     email: "admin@wvsupport.com",
-    phone: "+855 974 839 135",
-    location: "Phum Thmey, Sangkat Svay Dankum, Siem Reap Cambodia",
-    bio: "System Administrator with 5+ years of experience managing enterprise applications.",
     profileImage: blueLogo,
   });
 
@@ -135,58 +129,6 @@ const ProfileDropdown = ({
               </div>
             </div>
 
-            {/* Menu Items */}
-            <div className="py-1">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleProfileClick}
-                className={`flex items-center space-x-3 w-full px-4 py-3 text-sm ${
-                  darkMode
-                    ? "text-gray-300 hover:bg-gray-700/70"
-                    : "text-gray-700 hover:bg-gray-100/70"
-                } transition-all duration-200 ease-out text-left`}
-              >
-                <FiUser className="h-4 w-4 flex-shrink-0 text-sky-300" />
-                <span>Your Profile</span>
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  setShowSettings(true);
-                  setShowProfile(false);
-                }}
-                className={`flex items-center space-x-3 w-full px-4 py-3 text-sm ${
-                  darkMode
-                    ? "text-gray-300 hover:bg-gray-700/70"
-                    : "text-gray-700 hover:bg-gray-100/70"
-                } transition-all duration-200 ease-out text-left`}
-              >
-                <FiSettings className="h-4 w-4 flex-shrink-0 text-sky-300" />
-                <span>Settings</span>
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={toggleDarkMode}
-                className={`flex items-center space-x-3 w-full px-4 py-3 text-sm ${
-                  darkMode
-                    ? "text-gray-300 hover:bg-gray-700/70"
-                    : "text-gray-700 hover:bg-gray-100/70"
-                } transition-all duration-200 ease-out`}
-              >
-                {darkMode ? (
-                  <FiSun className="h-4 w-4 flex-shrink-0 text-sky-300" />
-                ) : (
-                  <FiMoon className="h-4 w-4 flex-shrink-0 text-sky-300" />
-                )}
-                <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
-              </motion.button>
-            </div>
-
             {/* Sign Out Section */}
             <div
               className={`border-t ${
@@ -211,29 +153,6 @@ const ProfileDropdown = ({
         )}
       </AnimatePresence>
 
-      {/* Settings manager modal */}
-      <SettingsManager
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        darkMode={darkMode}
-        onDarkModeToggle={toggleDarkMode}
-        onFullscreenToggle={toggleFullscreen}
-        isFullscreen={isFullscreen}
-        notificationsEnabled={true} // Pass your actual notifications state
-        onNotificationsToggle={() => {
-          // Implement your notifications toggle logic
-          console.log("Notifications toggled");
-        }}
-      />
-
-      {/* Profile Manager Modal */}
-      <ProfileManager
-        isOpen={showProfileManager}
-        onClose={() => setShowProfileManager(false)}
-        darkMode={darkMode}
-        onSave={handleProfileUpdate}
-        initialData={profileData}
-      />
     </>
   );
 };

@@ -9,16 +9,13 @@ import {
 import Sidebar from "../components/Sidebar/Sidebar";
 import TopBar from "../components/TopBar/TopBar";
 import Dashboard from "../components/Dashbaord/Dashboard";
-import OpenMessage from "../components/Inbox/OpenMessagesPage";
-import ClosedMessage from "../components/Inbox/ClosedMessagesPage";
+import UnifiedInbox from "../components/Inbox/UnifiedInbox.jsx";
 import CMS from "../components/FrontendPages/CMSContainer.jsx";
 import Settings from "../components/Settings/Settings";
 import ConfirmationModal from "../components/Modals/ConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
 import WelcomeModal from "./WelcomeModal";
-import Soon from "../components/Temp/AvailableSoon.jsx";
 import News from "../components/Managements/CMSNewsletter.jsx";
-import Email from "../components/Inbox/Emails/MainEmails.jsx";
 
 const AdminPanel = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -49,9 +46,7 @@ const AdminPanel = () => {
     const relativePath = pathname.replace(basePath, "").replace(/^\//, "");
 
     if (relativePath === "" || relativePath === "admin") return "dashboard";
-    if (relativePath.startsWith("inbox/open")) return "inbox-open";
-    if (relativePath.startsWith("inbox/closed")) return "inbox-closed";
-    if (relativePath.startsWith("emails")) return "email-open";
+    if (relativePath.startsWith("inbox")) return "inbox";
     if (relativePath.startsWith("frontend")) return "frontend";
     if (relativePath.startsWith("blog")) return "blog";
     if (relativePath.startsWith("reports")) return "reports";
@@ -69,9 +64,7 @@ const AdminPanel = () => {
     (tab) => {
       const routeMap = {
         dashboard: `${basePath}/dashboard`,
-        "inbox-open": `${basePath}/inbox/open`,
-        "inbox-closed": `${basePath}/inbox/closed`,
-        "email-open": `${basePath}/emails`,
+        inbox: `${basePath}/inbox`,
         frontend: `${basePath}/frontend`,
         blog: `${basePath}/blog`,
         reports: `${basePath}/reports`,
@@ -221,27 +214,14 @@ const AdminPanel = () => {
                 element={<Dashboard darkMode={darkMode} />}
               />
 
-              {/* Inbox Routes */}
+              {/* Inbox — unified Email + Live Chat view */}
               <Route
-                path="inbox/open"
-                element={<OpenMessage darkMode={darkMode} />}
+                path="inbox"
+                element={<UnifiedInbox darkMode={darkMode} />}
               />
-              <Route
-                path="inbox/closed"
-                element={<ClosedMessage darkMode={darkMode} />}
-              />
-
-              {/* Email Management */}
-              <Route path="emails" element={<Email darkMode={darkMode} />} />
 
               {/* Frontend CMS */}
               <Route path="frontend/*" element={<CMS darkMode={darkMode} />} />
-
-              {/* Coming Soon Pages */}
-              <Route path="blog" element={<Soon darkMode={darkMode} />} />
-              <Route path="reports" element={<Soon darkMode={darkMode} />} />
-              <Route path="statistics" element={<Soon darkMode={darkMode} />} />
-              <Route path="orders" element={<Soon darkMode={darkMode} />} />
 
               {/* Newsletter Management */}
               <Route

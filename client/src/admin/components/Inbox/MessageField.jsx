@@ -13,6 +13,15 @@ import {
   FiChevronDown,
   FiChevronUp,
 } from "react-icons/fi";
+import bluelogo from "../../../Components/Images/bluelogo.png";
+
+const getInitials = (name) =>
+  (name || "")
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("") || "U";
 
 const MessageField = ({
   selectedThread,
@@ -189,156 +198,164 @@ const MessageField = ({
     }
   }, [selectedThread, expandedMessages]);
 
+  const fieldStyles = (
+    <style>{`
+      .mf-title { color: #000000; }
+      .dark .mf-title { color: #ffffff; }
+      .mf-name { color: #000000; }
+      .dark .mf-name { color: #ffffff; }
+      .mf-meta { color: #000000; }
+      .dark .mf-meta { color: #ffffff; }
+      .mf-content { color: #000000; }
+      .dark .mf-content { color: #ffffff; }
+    `}</style>
+  );
+
   if (!selectedThread) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-200 dark:bg-gray-900">
-        <div className="text-center p-6">
-          <FiInbox className="h-16 w-16 mx-auto mb-4 text-gray-500 dark:text-gray-400" />
-          <h2 className="text-xl font-medium text-gray-800 dark:text-gray-300 mb-2">
-            Select a conversation
-          </h2>
-          <p className="text-sm text-gray-700 dark:text-gray-400">
-            Choose a conversation from the list to view messages
-          </p>
+      <>
+        {fieldStyles}
+        <div className="flex-1 flex items-center justify-center bg-gray-200 dark:bg-gray-900">
+          <div className="text-center p-6">
+            <FiInbox className="h-16 w-16 mx-auto mb-4 text-gray-500 dark:text-gray-400" />
+            <h2 className="mf-title text-xl font-medium mb-2">
+              Select a conversation
+            </h2>
+            <p className="mf-meta text-sm">
+              Choose a conversation from the list to view messages
+            </p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-200 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700">
-      {/* Header */}
-      <div className="border-b border-gray-300 dark:border-gray-700 px-6 py-4 dark:bg-gray-900">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Conversation with {selectedThread.user?.name || "Anonymous"}
-                </h2>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    selectedThread.status === "open"
-                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                      : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
-                  }`}
-                >
-                  {selectedThread.status}
-                </span>
+    <>
+      {fieldStyles}
+      <div className="flex-1 min-h-0 flex flex-col bg-gray-200 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700">
+        {/* Header */}
+        <div className="flex-shrink-0 rounded-xl bg-white dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 px-6 py-4">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <h2 className="mf-title text-xl font-semibold">
+                    Conversation with {selectedThread.user?.name || "Anonymous"}
+                  </h2>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => onStatusAction(selectedThread.sessionId)}
+                    className={`inline-flex items-center px-4 py-2 rounded-3xl text-sm font-medium transition-colors ${
+                      selectedThread.status === "open"
+                        ? "bg-gray-100 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                        : "bg-gray-100 text-gray-700 hover:bg-sky-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    {actionIcon}
+                    <span className="ml-1">{actionText}</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteThread(selectedThread)}
+                    className="inline-flex items-center px-4 py-2 rounded-3xl text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                  >
+                    <FiTrash2 className="h-4 w-4 mr-1 text-red-400" />
+                    Delete
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => onStatusAction(selectedThread.sessionId)}
-                  className={`inline-flex items-center px-4 py-2 rounded-3xl text-sm font-medium transition-colors ${
-                    selectedThread.status === "open"
-                      ? "bg-gray-100 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                      : "bg-gray-100 text-gray-700 hover:bg-sky-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                  }`}
-                >
-                  {actionIcon}
-                  <span className="ml-1">{actionText}</span>
-                </button>
-
-                <button
-                  onClick={() => handleDeleteThread(selectedThread)}
-                  className="inline-flex items-center px-4 py-2 rounded-3xl text-sm font-medium bg-gray-100 text-gray-700 hover:bg-red-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                  <FiTrash2 className="h-4 w-4 mr-1 text-red-400" />
-                  Delete
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-start gap-4">
-              <div className="w-10 h-10 bg-sky-200 dark:bg-sky-900/30 rounded-full flex items-center justify-center">
-                <FiUser className="h-5 w-5 text-sky-600 dark:text-sky-400" />
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {selectedThread.user?.name || "Anonymous"}
-                    </span>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {selectedThread.user?.email}
+              <div className="mt-4 flex items-start gap-4">
+                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+                  <FiUser className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="mf-name font-medium">
+                        {selectedThread.user?.name || "Anonymous"}
+                      </span>
+                      <div className="mf-meta text-xs">
+                        {selectedThread.user?.email}
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-7 flex items-center gap-1">
-                    <FiClock className="h-3 w-3" />
-                    <span>
-                      {new Date(selectedThread.createdAt).toLocaleString()}
-                    </span>
+                    <div className="mf-meta text-xs mt-7 flex items-center gap-1">
+                      <FiClock className="h-3 w-3" />
+                      <span>
+                        {new Date(selectedThread.createdAt).toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Message content */}
-      <div
-        ref={contentRef}
-        className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800"
-      >
-        <div className="max-w-4xl mx-auto space-y-6">
-          {selectedThread.messages.map((message, index) => {
-            const isExpanded = expandedMessages[message._id] ?? true;
-            const isAdmin = message.sender === "admin";
+        {/* Message content */}
+        <div
+          ref={contentRef}
+          className="flex-1 min-h-0 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800"
+        >
+          <div className="max-w-4xl mx-auto">
+            {selectedThread.messages.map((message, index) => {
+              const isExpanded = expandedMessages[message._id] ?? true;
+              const isAdmin = message.sender === "admin";
+              const prevMessage = selectedThread.messages[index - 1];
+              const senderChanged =
+                index > 0 && prevMessage?.sender !== message.sender;
+              const senderName = isAdmin
+                ? "You"
+                : selectedThread.user?.name || "User";
 
-            return (
-              <div
-                key={message._id || index}
-                className={`mb-6 ${isAdmin ? "ml-8" : "mr-8"}`}
-              >
+              return (
                 <div
+                  key={message._id || index}
                   className={`flex ${
                     isAdmin ? "justify-end" : "justify-start"
-                  }`}
+                  } ${index === 0 ? "" : senderChanged ? "mt-6" : "mt-2"}`}
                 >
                   <div
-                    className={`max-w-3xl w-full ${
+                    className={`group w-full max-w-[85%] flex items-start gap-3 px-4 py-3 rounded-xl shadow-sm ${
                       isAdmin
-                        ? "bg-sky-100 dark:bg-sky-900/30"
+                        ? "bg-gray-100 dark:bg-gray-700"
                         : "bg-white dark:bg-gray-800"
-                    } rounded-xl p-4 shadow-sm`}
+                    }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                            isAdmin
-                              ? "bg-sky-200 dark:bg-sky-800"
-                              : "bg-gray-200 dark:bg-gray-700"
-                          }`}
-                        >
-                          <FiUser
-                            className={`h-3 w-3 ${
-                              isAdmin
-                                ? "text-sky-600 dark:text-sky-400"
-                                : "text-gray-600 dark:text-gray-400"
-                            }`}
-                          />
-                        </div>
-                        <span className="text-sm font-medium">
-                          {isAdmin
-                            ? "You"
-                            : selectedThread.user?.name || "User"}
-                        </span>
+                    {isAdmin ? (
+                      <img
+                        src={bluelogo}
+                        alt="Support"
+                        className="w-9 h-9 flex-shrink-0 rounded-full bg-white border border-gray-200 dark:border-gray-600 object-contain p-1"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 flex-shrink-0 rounded-full bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
+                        {getInitials(senderName)}
                       </div>
+                    )}
+
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
+                        <span className="mf-name text-sm font-semibold">
+                          {senderName}
+                        </span>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
                           {new Date(message.timestamp).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
                         </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Live Chat
+                        </span>
                         <button
                           onClick={() =>
                             toggleMessageExpand(message._id || index)
                           }
-                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                         >
                           {isExpanded ? (
                             <FiChevronUp size={14} />
@@ -347,118 +364,114 @@ const MessageField = ({
                           )}
                         </button>
                       </div>
-                    </div>
 
-                    {isExpanded && (
-                      <div
-                        className={`text-gray-800 dark:text-gray-200 whitespace-pre-wrap text-base ${
-                          isAdmin ? "text-left" : "text-left"
-                        }`}
-                      >
-                        {message.content}
-                      </div>
-                    )}
+                      {isExpanded && (
+                        <div className="mf-content whitespace-pre-wrap text-sm text-left mt-1">
+                          {message.content}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Reply form */}
+        <div className="flex-shrink-0 bg-white dark:bg-gray-800 rounded-t-xl">
+          <form onSubmit={handleReplySubmit}>
+            {error && (
+              <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-2">
+                <FiAlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 mt-0.5" />
+                <span className="text-sm text-red-700 dark:text-red-300">
+                  {error}
+                </span>
               </div>
-            );
-          })}
+            )}
+
+            {attachments.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {attachments.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl px-3 py-2 text-sm"
+                  >
+                    <FiPaperclip className="text-gray-500 dark:text-gray-400" />
+                    <span className="text-gray-700 dark:text-gray-300 truncate max-w-xs">
+                      {file.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(index)}
+                      className="text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+                    >
+                      <FiX size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="relative">
+              <div
+                className="flex justify-center items-center mb-1 cursor-ns-resize h-1"
+                onMouseDown={startResize}
+              >
+                <div className="w-10 h-1 bg-gray-400 dark:bg-gray-500 rounded-full" />
+              </div>
+
+              <textarea
+                ref={textareaRef}
+                className="block w-full px-4 py-2 text-sm placeholder-gray-600 dark:placeholder-gray-400 focus:outline-none dark:bg-gray-800 bg-white-100 dark:text-white resize-none rounded-xl"
+                placeholder="Type your reply here..."
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                disabled={isSubmitting}
+                style={{ minHeight: "80px", maxHeight: "400px" }}
+              />
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                multiple
+              />
+
+              <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAttachClick}
+                  className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                  title="Attach files"
+                >
+                  <FiPaperclip className="h-5 w-5" />
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={!replyContent || !replyContent.trim() || isSubmitting}
+                  className="px-4 py-2 text-sm font-medium rounded-xl text-white bg-sky-600 hover:bg-sky-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <span className="inline-flex items-center">
+                      <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Sending...
+                    </span>
+                  ) : (
+                    <>
+                      <FiSend className="h-4 w-4 mr-1 inline" />
+                      Send
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
-
-      {/* Reply form */}
-      <div className="dark:bg-gray-900 p-2">
-        <form onSubmit={handleReplySubmit}>
-          {error && (
-            <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-2">
-              <FiAlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 mt-0.5" />
-              <span className="text-sm text-red-700 dark:text-red-300">
-                {error}
-              </span>
-            </div>
-          )}
-
-          {attachments.length > 0 && (
-            <div className="mb-3 flex flex-wrap gap-2">
-              {attachments.map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl px-3 py-2 text-sm"
-                >
-                  <FiPaperclip className="text-gray-500 dark:text-gray-400" />
-                  <span className="text-gray-700 dark:text-gray-300 truncate max-w-xs">
-                    {file.name}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeAttachment(index)}
-                    className="text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400"
-                  >
-                    <FiX size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="relative">
-            <div
-              className="flex justify-center items-center mb-1 cursor-ns-resize h-1"
-              onMouseDown={startResize}
-            >
-              <div className="w-10 h-1 bg-gray-400 dark:bg-gray-500 rounded-full" />
-            </div>
-
-            <textarea
-              ref={textareaRef}
-              className="block w-full px-4 py-2 text-sm placeholder-gray-600 dark:placeholder-gray-400 focus:outline-none dark:bg-gray-800 bg-gray-100 dark:text-white resize-none rounded-xl"
-              placeholder="Type your reply here..."
-              value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-              disabled={isSubmitting}
-              style={{ minHeight: "80px", maxHeight: "400px" }}
-            />
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-              multiple
-            />
-
-            <div className="absolute bottom-3 right-3 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleAttachClick}
-                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-                title="Attach files"
-              >
-                <FiPaperclip className="h-5 w-5" />
-              </button>
-
-              <button
-                type="submit"
-                disabled={!replyContent || !replyContent.trim() || isSubmitting}
-                className="px-4 py-2 text-sm font-medium rounded-xl text-white bg-sky-600 hover:bg-sky-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <span className="inline-flex items-center">
-                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                    Sending...
-                  </span>
-                ) : (
-                  <>
-                    <FiSend className="h-4 w-4 mr-1 inline" />
-                    Send
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
+    </>
   );
 };
 
