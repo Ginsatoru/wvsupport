@@ -27,6 +27,21 @@ const useFontLoader = () => {
   return fontsLoaded;
 };
 
+// Name from a valid admin token (e.g. admin@wvsupport.com → "Admin"), or null if logged out / expired
+const getAdminName = () => {
+  const token = localStorage.getItem("adminToken");
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const { email, exp } = JSON.parse(atob(payload));
+    if (exp && exp * 1000 <= Date.now()) return null;
+    const name = (email || "").split("@")[0];
+    return name ? name.charAt(0).toUpperCase() + name.slice(1) : "Admin";
+  } catch {
+    return null;
+  }
+};
+
 const NAV_LINKS_EN = [
   { label: "Home", to: "/", icon: Home },
   { label: "Contact", to: "/Contact", icon: Mail },
@@ -59,6 +74,7 @@ function Nav() {
   const { settings, loading } = useSettings();
 
   const fontsLoaded = useFontLoader();
+  const adminName = getAdminName();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -232,13 +248,22 @@ function Nav() {
               {/* Divider */}
               <div className="w-px h-4 bg-gray-200" />
 
-              {/* Log in — opens modal */}
-              <button
-                onClick={openLogin}
-                className="px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 text-black hover:bg-[#f1f5f9]"
-              >
-                {isKm ? "ចូល" : "Log in"}
-              </button>
+              {/* Log in — opens modal, or admin name → admin panel when logged in */}
+              {adminName ? (
+                <Link
+                  to="/admin-panel"
+                  className="px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 text-black hover:bg-[#f1f5f9]"
+                >
+                  {adminName}
+                </Link>
+              ) : (
+                <button
+                  onClick={openLogin}
+                  className="px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 text-black hover:bg-[#f1f5f9]"
+                >
+                  {isKm ? "ចូល" : "Log in"}
+                </button>
+              )}
 
               {/* Get Started */}
               <Link
@@ -307,12 +332,22 @@ function Nav() {
           <div className="px-4 py-3 space-y-0.5">
             {/* Mobile CTA buttons */}
             <div className="flex gap-2">
-              <button
-                onClick={openLogin}
-                className="flex-1 py-2.5 text-center text-sm font-medium text-black border border-gray-200 rounded-full hover:bg-[#f1f5f9] transition-colors duration-150"
-              >
-                {isKm ? "ចូល" : "Log in"}
-              </button>
+              {adminName ? (
+                <Link
+                  to="/admin-panel"
+                  onClick={() => setMenuActive(false)}
+                  className="flex-1 py-2.5 text-center text-sm font-medium text-black border border-gray-200 rounded-full hover:bg-[#f1f5f9] transition-colors duration-150"
+                >
+                  {adminName}
+                </Link>
+              ) : (
+                <button
+                  onClick={openLogin}
+                  className="flex-1 py-2.5 text-center text-sm font-medium text-black border border-gray-200 rounded-full hover:bg-[#f1f5f9] transition-colors duration-150"
+                >
+                  {isKm ? "ចូល" : "Log in"}
+                </button>
+              )}
               <Link
                 to="/contact"
                 onClick={() => setMenuActive(false)}

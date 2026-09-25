@@ -80,6 +80,10 @@ const UnifiedInbox = () => {
   useEffect(() => {
     fetchAll();
 
+    // Join the admin room so the server pushes live chat updates here
+    const joinAdminRoom = () => socket.emit("admin_connect", getToken());
+    joinAdminRoom();
+
     const handleNewThread = (newThread) => {
       setChatThreads((prev) => {
         const idx = prev.findIndex((t) => t.sessionId === newThread.sessionId);
@@ -90,6 +94,11 @@ const UnifiedInbox = () => {
         }
         return [newThread, ...prev];
       });
+      setSelectedThread((prev) =>
+        prev?.type === "chat" && prev.sessionId === newThread.sessionId
+          ? { type: "chat", ...newThread }
+          : prev
+      );
     };
 
     const handleThreadUpdate = (updatedThread) => {
@@ -97,13 +106,17 @@ const UnifiedInbox = () => {
         prev.map((t) => (t.sessionId === updatedThread.sessionId ? updatedThread : t))
       );
       setSelectedThread((prev) =>
-        prev?.sessionId === updatedThread.sessionId ? updatedThread : prev
+        prev?.type === "chat" && prev.sessionId === updatedThread.sessionId
+          ? { type: "chat", ...updatedThread }
+          : prev
       );
     };
 
+    socket.on("connect", joinAdminRoom);
     socket.on("new_message", handleNewThread);
     socket.on("message_updated", handleThreadUpdate);
     return () => {
+      socket.off("connect", joinAdminRoom);
       socket.off("new_message", handleNewThread);
       socket.off("message_updated", handleThreadUpdate);
     };
@@ -380,10 +393,10 @@ const UnifiedInbox = () => {
         .inbox-name { color: #000000; }
         .dark .inbox-name { color: #ffffff; }
 
-        .inbox-subject { color: #000000; font-weight: 450; }
+        .inbox-subject { color: #000000; font-weight: 400; }
         .dark .inbox-subject { color: #ffffff; }
 
-        .inbox-preview { color: #000000; font-weight: 400; }
+        .inbox-preview { color: #000000; font-weight: 350; }
         .dark .inbox-preview { color: #d1d5db; }
 
         .inbox-search-input { color: #000000; }

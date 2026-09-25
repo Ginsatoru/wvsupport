@@ -10,9 +10,10 @@ async function finalFix() {
     await User.deleteMany({});
     
     // Create admin with new password: !@#aaapos
+    // Plain text here — the User model's pre-save hook hashes it
     await User.create({
       email: 'admin@wvsupport.com',
-      password: '$2b$12$K4nDYi8YB/NolSCG1cW0h.YyFCUsb/8.BCT1KhMlL0wQb1eTS1vaC', // Hash for !@#aaapos
+      password: '!@#aaapos',
       isAdmin: true
     });
     

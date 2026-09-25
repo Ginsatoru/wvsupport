@@ -9,6 +9,9 @@ export default defineConfig({
     }
   },
   server: {
+    allowedHosts: [
+      'tool-premium-brad-hypothetical.trycloudflare.com'
+    ],
     proxy: {
       '/api': {
         target: 'http://localhost:5000',

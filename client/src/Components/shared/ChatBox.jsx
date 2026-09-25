@@ -1,156 +1,186 @@
 import React, { useState, useRef, useEffect } from "react";
-import { RiSendPlaneFill, RiCloseLine, RiMessage2Line } from "react-icons/ri";
+import {
+  RiSendPlaneFill,
+  RiCloseLine,
+  RiMessage2Line,
+  RiAttachment2,
+  RiFileTextLine,
+} from "react-icons/ri";
 import logo from "../Images/logo.png";
 import io from "socket.io-client";
 
-const socket = io(import.meta.env.VITE_BACKEND_URL, {
+const API_URL = import.meta.env.VITE_BACKEND_URL;
+
+const socket = io(API_URL, {
   transports: ["websocket"],
   withCredentials: true,
 });
 
+const ACCEPTED_FILES = "image/jpeg,image/png,image/gif,image/webp,application/pdf";
+const MAX_FILES = 5;
+
+const GREETING = "Thank you for reaching out to us. Our team will respond to your message shortly.";
+
+const formatTimestamp = (timestamp) => {
+  const date = new Date(timestamp);
+  return (isNaN(date.getTime()) ? new Date() : date).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const getSessionId = () => {
+  let session = localStorage.getItem("chatSessionId");
+  if (!session) {
+    session = `user_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+    localStorage.setItem("chatSessionId", session);
+  }
+  return session;
+};
+
+// Images show as thumbnails, PDFs as a file link — both open in a new tab
+const Attachments = ({ items }) => (
+  <div className="cb-attachments">
+    {items.map((a, i) => {
+      const href = `${API_URL}${a.url}`;
+      return a.type?.startsWith("image/") ? (
+        <a key={i} href={href} target="_blank" rel="noopener noreferrer">
+          <img src={href} alt={a.name} className="cb-att-img" />
+        </a>
+      ) : (
+        <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="cb-att-file">
+          <RiFileTextLine size={14} />
+          <span>{a.name}</span>
+        </a>
+      );
+    })}
+  </div>
+);
+
 const ChatBox = () => {
   const [messages, setMessages] = useState([]);
-  const [name, setName] = useState("");
   const [message, setMessage] = useState("");
-  const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [sessionId, setSessionId] = useState("");
-  const [isConnected, setIsConnected] = useState(false);
-  const [hasSentFirstMessage, setHasSentFirstMessage] = useState(false);
+  const [files, setFiles] = useState([]);
 
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  const formatTimestamp = (timestamp) => {
-    try {
-      const date = new Date(timestamp);
-      if (isNaN(date.getTime())) {
-        return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      }
-      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    } catch {
-      return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    }
-  };
+  const addMessage = (msg) => setMessages((prev) => [...prev, msg]);
 
   useEffect(() => {
-    let session = localStorage.getItem("chatSessionId");
-    if (!session) {
-      session = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem("chatSessionId", session);
-    }
+    const session = getSessionId();
     setSessionId(session);
-    socket.emit("join_session", session);
 
-    const loadMessages = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/messages/${session}`);
-        if (response.ok) {
-          const data = await response.json();
-          setMessages(data.messages || []);
-        }
-      } catch (err) {
-        console.error("Failed to load messages:", err);
-      }
-    };
-    loadMessages();
+    // Join own room now and again after any reconnect
+    const joinSession = () => socket.emit("join_session", session);
+    joinSession();
 
-    const handleConnect = () => {
-      setIsConnected(true);
-      if (sessionId) socket.emit("join_session", sessionId);
-    };
+    fetch(`${API_URL}/api/messages/${session}`)
+      .then((res) => (res.ok ? res.json() : { messages: [] }))
+      .then((data) =>
+        setMessages(
+          (data.messages || []).map((m) => ({
+            content: m.content,
+            attachments: m.attachments || [],
+            isAdmin: m.isAdmin,
+            time: formatTimestamp(m.timestamp),
+          }))
+        )
+      )
+      .catch((err) => console.error("Failed to load messages:", err));
 
-    const handleAdminReply = (reply) => {
-      addMessageToState({
-        name: "Support",
+    const handleAdminReply = (reply) =>
+      addMessage({
         content: reply.content,
-        time: formatTimestamp(reply.timestamp || new Date()),
+        attachments: reply.attachments || [],
         isAdmin: true,
+        time: formatTimestamp(reply.timestamp),
       });
-    };
 
-    socket.on("connect", handleConnect);
-    socket.on("disconnect", () => setIsConnected(false));
+    socket.on("connect", joinSession);
     socket.on("admin_reply", handleAdminReply);
 
     return () => {
-      socket.off("connect", handleConnect);
-      socket.off("disconnect");
+      socket.off("connect", joinSession);
       socket.off("admin_reply", handleAdminReply);
     };
   }, []);
 
-  const addMessageToState = (msg) => {
-    setMessages((prev) => [...prev, msg]);
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isOpen]);
+
+  const handleFileChange = (e) => {
+    const picked = Array.from(e.target.files || []);
+    setFiles((prev) => [...prev, ...picked].slice(0, MAX_FILES));
+    e.target.value = "";
   };
+
+  const removeFile = (index) => setFiles((prev) => prev.filter((_, i) => i !== index));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    const content = message.trim();
+    if ((!content && !files.length) || status === "sending") return;
+
+    const isFirstMessage = !messages.some((m) => !m.isAdmin);
     setStatus("sending");
+    setError("");
 
     try {
-      const now = new Date();
-      const time = formatTimestamp(now);
-
-      const newMessage = {
-        sessionId,
-        name: name.trim() || email.trim() || "Guest",
-        email: email.trim(),
-        content: message.trim(),
-        timestamp: now,
-        time,
-        isAdmin: false,
-      };
-
-      socket.emit("client_message", newMessage);
-      addMessageToState(newMessage);
-
-      if (!hasSentFirstMessage) {
-        setTimeout(() => {
-          addMessageToState({
-            name: "Support",
-            content: "Thank you for reaching out to us. Our team will respond to your message shortly.",
-            time: formatTimestamp(new Date()),
-            isAdmin: true,
-          });
-        }, 1500);
-        setHasSentFirstMessage(true);
+      // Multipart when there are files, plain JSON otherwise
+      let request;
+      if (files.length) {
+        const formData = new FormData();
+        formData.append("sessionId", sessionId);
+        formData.append("content", content);
+        files.forEach((file) => formData.append("attachments", file));
+        request = { method: "POST", body: formData };
+      } else {
+        request = {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, content }),
+        };
       }
 
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newMessage),
+      const response = await fetch(`${API_URL}/api/messages`, request);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || "Failed to send message");
+
+      addMessage({
+        content,
+        attachments: data.message?.attachments || [],
+        isAdmin: false,
+        time: formatTimestamp(new Date()),
       });
-
-      if (!response.ok) throw new Error((await response.text()) || "Failed to send message");
-
       setMessage("");
-      setStatus("success");
+      setFiles([]);
+      setStatus("idle");
+
+      if (isFirstMessage) {
+        setTimeout(
+          () => addMessage({ content: GREETING, isAdmin: true, time: formatTimestamp(new Date()) }),
+          1500
+        );
+      }
     } catch (err) {
       setStatus("error");
       setError(err.message);
-      setTimeout(() => setError(""), 3000);
-    } finally {
-      setTimeout(() => setStatus("idle"), 3000);
+      setTimeout(() => {
+        setStatus("idle");
+        setError("");
+      }, 3000);
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (message.trim() && status !== "sending") handleSubmit(e);
-    }
+    if (e.key === "Enter" && !e.shiftKey) handleSubmit(e);
   };
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   return (
     <>
@@ -185,7 +215,7 @@ const ChatBox = () => {
           .cb-toggle { bottom: 92px; right: 16px; }
         }
 
-        /* ── Panel — sized to match screenshot ── */
+        /* ── Panel ── */
         .cb-panel {
           position: fixed;
           bottom: 82px;
@@ -232,7 +262,7 @@ const ChatBox = () => {
           to   { opacity: 1; }
         }
 
-        /* ── Header — matches screenshot blue ── */
+        /* ── Header ── */
         .cb-header {
           display: flex;
           align-items: center;
@@ -248,7 +278,6 @@ const ChatBox = () => {
           gap: 10px;
         }
 
-        /* Blue circle avatar matching screenshot */
         .cb-avatar {
           width: 38px;
           height: 38px;
@@ -300,7 +329,7 @@ const ChatBox = () => {
         }
         .cb-close:hover { background: rgba(255,255,255,0.2); }
 
-        /* ── Messages area — pure white bg matching screenshot ── */
+        /* ── Messages area ── */
         .cb-messages {
           flex: 1;
           overflow-y: auto;
@@ -316,7 +345,7 @@ const ChatBox = () => {
         .cb-messages::-webkit-scrollbar-track { background: transparent; }
         .cb-messages::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
 
-        /* ── Empty state intro bubble — matches screenshot layout ── */
+        /* ── Empty state intro bubble ── */
         .cb-empty {
           display: flex;
           align-items: flex-start;
@@ -324,7 +353,6 @@ const ChatBox = () => {
           animation: cb-msg-in 0.3s ease forwards;
         }
 
-        /* Small blue circle avatar next to intro bubble */
         .cb-support-avatar {
           width: 32px;
           height: 32px;
@@ -344,7 +372,6 @@ const ChatBox = () => {
           padding: 5px;
         }
 
-        /* Intro bubble — light grey/white with rounded corners matching screenshot */
         .cb-empty-bubble {
           background: #f0f0f0;
           border-radius: 4px 16px 16px 16px;
@@ -382,19 +409,85 @@ const ChatBox = () => {
           line-height: 1.5;
           font-weight: 400;
           word-break: break-word;
+          white-space: pre-wrap;
         }
-        /* User bubble — same blue as header */
         .cb-bubble.user {
           background: #0f8abe;
           color: #ffffff;
           border-radius: 16px 16px 4px 16px;
         }
-        /* Admin bubble — light grey matching screenshot */
         .cb-bubble.admin {
           background: #f0f0f0;
           color: #1f2937;
           border-radius: 4px 16px 16px 16px;
         }
+        /* ── Attachments ── */
+        .cb-attachments { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; max-width: 230px; }
+        .cb-bubble-col.user .cb-attachments { align-items: flex-end; }
+        .cb-att-img {
+          display: block;
+          max-width: 200px;
+          max-height: 160px;
+          border-radius: 10px;
+          border: 1px solid #e5e7eb;
+          object-fit: cover;
+        }
+        .cb-att-file {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 10px;
+          background: #f0f0f0;
+          border-radius: 10px;
+          font-size: 12px;
+          color: #0f8abe;
+          text-decoration: none;
+          max-width: 200px;
+        }
+        .cb-att-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* ── Picked files (before sending) ── */
+        .cb-files { display: flex; flex-wrap: wrap; gap: 6px; }
+        .cb-file-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          max-width: 180px;
+          padding: 3px 6px 3px 10px;
+          background: #f0f7fb;
+          border: 1px solid #cfe6f2;
+          border-radius: 999px;
+          font-size: 11.5px;
+          color: #0f8abe;
+        }
+        .cb-file-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cb-file-chip button {
+          display: flex;
+          background: none;
+          border: none;
+          color: #6b7280;
+          cursor: pointer;
+          padding: 0;
+        }
+
+        .cb-attach-btn {
+          position: absolute;
+          left: 7px;
+          bottom: 6px;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: transparent;
+          color: #9ca3af;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: color 0.15s, background 0.15s;
+        }
+        .cb-attach-btn:hover { color: #0f8abe; background: #eef6fa; }
+
         .cb-time {
           font-size: 10px;
           color: #b0b7c3;
@@ -402,9 +495,9 @@ const ChatBox = () => {
           padding: 0 2px;
         }
 
-        /* ── Form / footer — white, thin top border ── */
+        /* ── Form / footer ── */
         .cb-form {
-          padding: 8px 12px 12px;
+          padding: 10px 12px 12px;
           background: #ffffff;
           border-top: 1px solid #ebebeb;
           display: flex;
@@ -413,32 +506,7 @@ const ChatBox = () => {
           flex-shrink: 0;
         }
 
-        /* Name + Email row */
-        .cb-inputs-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 6px;
-          width: 100%;
-        }
-
-        .cb-input {
-          width: 100%;
-          background: #f7f7f7;
-          border: 1.5px solid #e8e8e8;
-          border-radius: 8px;
-          padding: 0 10px;
-          font-size: 12.5px;
-          color: #111827;
-          outline: none;
-          transition: border-color 0.15s, background 0.15s;
-          font-family: 'Inter', sans-serif;
-          height: 34px;
-          display: block;
-        }
-        .cb-input::placeholder { color: #b0b7c3; font-size: 12px; }
-        .cb-input:focus { border-color: #0f8abe; background: #ffffff; }
-
-        /* ── Message input — pill shape matching screenshot ── */
+        /* ── Message input — pill shape ── */
         .cb-textarea-wrap {
           position: relative;
           display: flex;
@@ -450,21 +518,20 @@ const ChatBox = () => {
           background: #f7f7f7;
           border: 1.5px solid #e8e8e8;
           border-radius: 22px;
-          padding: 9px 44px 9px 16px;
+          padding: 8px 44px 8px 40px;
           font-size: 13px;
           color: #111827;
           outline: none;
           resize: none;
           min-height: 40px;
           max-height: 100px;
-          line-height: 1.45;
+          line-height: 21px; /* 8 + 21 + 8 + 3 (border) = 40px → text sits dead centre */
           transition: border-color 0.15s, background 0.15s;
           font-family: 'Inter', sans-serif;
         }
-        .cb-textarea::placeholder { color: #b0b7c3; font-size: 12.5px; }
+        .cb-textarea::placeholder { color: #b0b7c3; font-size: 13px; }
         .cb-textarea:focus { border-color: #0f8abe; background: #ffffff; }
 
-        /* Send button inside pill */
         .cb-send-btn {
           position: absolute;
           right: 7px;
@@ -507,14 +574,17 @@ const ChatBox = () => {
 
       <div className="cb-root">
         {/* Toggle */}
-        <button className={`cb-toggle${isOpen ? " is-open" : ""}`} onClick={() => setIsOpen(!isOpen)} aria-label="Open chat">
+        <button
+          className={`cb-toggle${isOpen ? " is-open" : ""}`}
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Open chat"
+        >
           {isOpen ? <RiCloseLine size={22} /> : <RiMessage2Line size={22} />}
         </button>
 
         {/* Panel */}
         {isOpen && (
           <div className="cb-panel">
-
             {/* Header */}
             <div className="cb-header">
               <div className="cb-header-left">
@@ -523,9 +593,7 @@ const ChatBox = () => {
                 </div>
                 <div>
                   <div className="cb-header-title">WV Support</div>
-                  <div className="cb-header-status">
-                    We typically reply in a few minutes
-                  </div>
+                  <div className="cb-header-status">We typically reply in a few minutes</div>
                 </div>
               </div>
               <button className="cb-close" onClick={() => setIsOpen(false)} aria-label="Close chat">
@@ -540,76 +608,83 @@ const ChatBox = () => {
                   <div className="cb-support-avatar">
                     <img src={logo} alt="Support" />
                   </div>
-                  <div className="cb-empty-bubble">
-                    Got any questions? We are here to help.
-                  </div>
+                  <div className="cb-empty-bubble">Got any questions? We are here to help.</div>
                 </div>
               ) : (
-                messages.map((msg, i) => (
-                  <div key={i} className={`cb-bubble-wrap ${msg.isAdmin ? "admin" : "user"}`}>
-                    {msg.isAdmin && (
-                      <div className="cb-support-avatar">
-                        <img src={logo} alt="Support" />
+                messages.map((msg, i) => {
+                  const side = msg.isAdmin ? "admin" : "user";
+                  return (
+                    <div key={i} className={`cb-bubble-wrap ${side}`}>
+                      {msg.isAdmin && (
+                        <div className="cb-support-avatar">
+                          <img src={logo} alt="Support" />
+                        </div>
+                      )}
+                      <div className={`cb-bubble-col ${side}`}>
+                        {msg.content && <div className={`cb-bubble ${side}`}>{msg.content}</div>}
+                        {msg.attachments?.length > 0 && <Attachments items={msg.attachments} />}
+                        <div className="cb-time">{msg.time}</div>
                       </div>
-                    )}
-                    <div className={`cb-bubble-col ${msg.isAdmin ? "admin" : "user"}`}>
-                      <div className={`cb-bubble ${msg.isAdmin ? "admin" : "user"}`}>
-                        {msg.content}
-                      </div>
-                      <div className="cb-time">{msg.time}</div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
               <div ref={messagesEndRef} />
             </div>
 
             {/* Form */}
             <form className="cb-form" onSubmit={handleSubmit}>
-              <div className="cb-inputs-row">
-                <input
-                  className="cb-input"
-                  type="text"
-                  placeholder="Your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                <input
-                  className="cb-input"
-                  type="email"
-                  placeholder="Your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
+              {files.length > 0 && (
+                <div className="cb-files">
+                  {files.map((file, i) => (
+                    <div key={i} className="cb-file-chip">
+                      <span>{file.name}</span>
+                      <button type="button" onClick={() => removeFile(i)} aria-label="Remove file">
+                        <RiCloseLine size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="cb-textarea-wrap">
+                <button
+                  type="button"
+                  className="cb-attach-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={files.length >= MAX_FILES}
+                  aria-label="Attach files"
+                >
+                  <RiAttachment2 size={15} />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={ACCEPTED_FILES}
+                  multiple
+                  hidden
+                  onChange={handleFileChange}
+                />
                 <textarea
                   className="cb-textarea"
                   placeholder="Ask me anything..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  required
                   rows={1}
                 />
                 <button
                   type="submit"
                   className="cb-send-btn"
-                  disabled={status === "sending" || !message.trim()}
+                  disabled={status === "sending" || (!message.trim() && !files.length)}
                   aria-label="Send message"
                 >
-                  {status === "sending" ? (
-                    <div className="cb-spinner" />
-                  ) : (
-                    <RiSendPlaneFill size={12} />
-                  )}
+                  {status === "sending" ? <div className="cb-spinner" /> : <RiSendPlaneFill size={12} />}
                 </button>
               </div>
 
               {status === "error" && <div className="cb-error">{error}</div>}
             </form>
-
           </div>
         )}
       </div>

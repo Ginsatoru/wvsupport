@@ -92,7 +92,7 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
         const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim(), password: password.trim() }),
+          body: JSON.stringify({ email: email.trim(), password: password.trim(), rememberMe }),
         });
         if (!res.ok) {
           const d = await res.json().catch(() => ({}));
@@ -121,8 +121,8 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
       try {
         const result = await apiPromise;
         if (result.ok) {
-          if (rememberMe) localStorage.setItem("adminToken", result.token);
-          else sessionStorage.setItem("adminToken", result.token);
+          // Always localStorage — the admin reads it from there; the token's own expiry (2d / 14d) controls how long it lasts
+          localStorage.setItem("adminToken", result.token);
           sessionStorage.setItem("LoginTime", Date.now());
           onLogin();
           onClose();

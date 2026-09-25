@@ -1,203 +1,188 @@
 const express = require("express");
-const router = express.Router();
-const Message = require("../models/Message");
+const fs = require("fs");
+const path = require("path");
 const jwt = require("jsonwebtoken");
+const Message = require("../models/Message");
+const { setupChatUpload } = require("../config/multer");
 
-// Middleware to verify admin
+const router = express.Router();
+const chatUpload = setupChatUpload();
+
+// ── Helpers ──
 const verifyAdmin = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) return res.status(401).json({ message: "No token provided" });
-
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded.isAdmin)
-      return res.status(403).json({ message: "Admin access required" });
-    req.adminId = decoded.userId;
+    if (!decoded.isAdmin) return res.status(403).json({ message: "Admin access required" });
     next();
-  } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
+  } catch {
+    res.status(401).json({ message: "Invalid token" });
   }
 };
 
-// Create new message thread (user)
-router.post("/", async (req, res) => {
-  try {
-    const { sessionId, name, email, content } = req.body;
-    if (!content)
-      return res.status(400).json({ message: "Content is required" });
+// Accepts up to 5 files in the "attachments" field (JSON requests pass straight through)
+const withAttachments = (req, res, next) =>
+  chatUpload.array("attachments", 5)(req, res, (err) =>
+    err ? res.status(400).json({ message: err.message }) : next()
+  );
 
-    const newMessage = await Message.findOneAndUpdate(
+const toAttachments = (files = []) =>
+  files.map((f) => ({
+    url: `/uploads/chat/${f.filename}`,
+    name: f.originalname,
+    type: f.mimetype,
+    size: f.size,
+  }));
+
+const removeUploadedFiles = (files = []) => files.forEach((f) => fs.unlink(f.path, () => {}));
+
+const removeAttachmentFiles = (threads = []) =>
+  threads
+    .flatMap((t) => t.messages || [])
+    .flatMap((m) => m.attachments || [])
+    .filter((a) => a.url?.startsWith("/uploads/chat/"))
+    .forEach((a) => fs.unlink(path.join(__dirname, "..", a.url), () => {}));
+
+const handle = (fn) => async (req, res) => {
+  try {
+    await fn(req, res);
+  } catch (err) {
+    console.error(err);
+    removeUploadedFiles(req.files);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const cleanText = (value) => (typeof value === "string" ? value.trim() : "");
+const lastLine = (thread) => thread.messages[thread.messages.length - 1];
+const socket = (req) => req.app.get("socket");
+const STATUSES = ["open", "closed"];
+
+// ── Visitor: send a message (creates the thread on first message, reopens if closed) ──
+router.post(
+  "/",
+  withAttachments,
+  handle(async (req, res) => {
+    const sessionId = cleanText(req.body.sessionId);
+    const content = cleanText(req.body.content);
+    const attachments = toAttachments(req.files);
+    if (!sessionId || (!content && !attachments.length)) {
+      removeUploadedFiles(req.files);
+      return res.status(400).json({ message: "A message or attachment is required" });
+    }
+
+    const thread = await Message.findOneAndUpdate(
       { sessionId },
       {
-        $push: {
-          messages: {
-            sender: "user",
-            content,
-            name,
-            email,
-          },
-        },
-        $setOnInsert: {
-          sessionId,
-          user: {
-            id: email || `guest_${Date.now()}`,
-            name,
-            email,
-          },
-          status: "open",
-        },
+        $push: { messages: { sender: "user", content, attachments } },
+        $set: { status: "open" },
       },
       { upsert: true, new: true }
     );
 
-    // Notify all admins
-    req.app.get("socket").broadcastToAdmins("new_message", newMessage);
+    socket(req).broadcastToAdmins("new_message", thread);
 
-    res.status(201).json(newMessage);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+    const line = lastLine(thread);
+    res.status(201).json({
+      success: true,
+      message: { content: line.content, attachments: line.attachments, timestamp: line.timestamp },
+    });
+  })
+);
 
-
-// Get all message threads (admin only)
-router.get("/", verifyAdmin, async (req, res) => {
-  try {
-    const { status } = req.query;
-    const filter = status ? { status } : {};
-
-    const messages = await Message.find(filter).sort({ updatedAt: -1 }).lean();
-
-    res.json(messages);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to fetch messages" });
-  }
-});
-
-// Get single message thread by sessionId (PUBLIC - for chat widget)
-router.get("/:sessionId", async (req, res) => {
-  try {
-    const message = await Message.findOne({ sessionId: req.params.sessionId });
-
-    if (!message) {
-      // Return empty messages array for new sessions
-      return res.json({ messages: [] });
-    }
-
-    // Return messages in the format expected by ChatBox component
+// ── Visitor: load chat history for the widget ──
+router.get(
+  "/:sessionId",
+  handle(async (req, res) => {
+    const thread = await Message.findOne({ sessionId: req.params.sessionId }).lean();
     res.json({
-      messages: message.messages.map((msg) => ({
-        name: msg.sender === "admin" ? "Admin" : msg.name || "Guest",
-        content: msg.content,
-        time: new Date(msg.createdAt).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        isAdmin: msg.sender === "admin",
+      messages: (thread?.messages || []).map((m) => ({
+        content: m.content,
+        attachments: m.attachments || [],
+        timestamp: m.timestamp,
+        isAdmin: m.sender === "admin",
       })),
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  })
+);
 
-// Admin-specific route to get full thread details
-router.get("/admin/:sessionId", verifyAdmin, async (req, res) => {
-  try {
-    const message = await Message.findOne({ sessionId: req.params.sessionId });
-    if (!message) return res.status(404).json({ message: "Thread not found" });
+// ── Admin: list threads (optional ?status=open|closed) ──
+router.get(
+  "/",
+  verifyAdmin,
+  handle(async (req, res) => {
+    const { status } = req.query;
+    const filter = STATUSES.includes(status) ? { status } : {};
+    const threads = await Message.find(filter).sort({ updatedAt: -1 }).lean();
+    res.json(threads);
+  })
+);
 
-    res.json(message);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+// ── Admin: reply to a thread (text, attachments, or both) ──
+router.post(
+  "/:sessionId/reply",
+  verifyAdmin,
+  withAttachments,
+  handle(async (req, res) => {
+    const content = cleanText(req.body.content);
+    const attachments = toAttachments(req.files);
+    if (!content && !attachments.length) {
+      return res.status(400).json({ message: "A reply or attachment is required" });
+    }
 
-// Admin reply to thread
-router.post("/:sessionId/reply", verifyAdmin, async (req, res) => {
-  try {
-    const { content } = req.body;
-    if (!content)
-      return res.status(400).json({ message: "Reply content is required" });
-
-    const reply = {
-      sender: "admin",
-      content,
-      adminId: req.adminId,
-      status: "delivered",
-    };
-
-    const updatedThread = await Message.findOneAndUpdate(
+    const thread = await Message.findOneAndUpdate(
       { sessionId: req.params.sessionId },
-      {
-        $push: { messages: reply },
-        $set: {
-          status: "replied",
-          assignedTo: req.adminId,
-          updatedAt: new Date(),
-        },
-      },
+      { $push: { messages: { sender: "admin", content, attachments, status: "delivered" } } },
       { new: true }
     );
-
-    if (!updatedThread) {
+    if (!thread) {
+      removeUploadedFiles(req.files);
       return res.status(404).json({ message: "Thread not found" });
     }
 
-    // Send reply to specific user session
-    req.app
-      .get("socket")
-      .sendToUser(req.params.sessionId, "admin_reply", reply);
-
-    res.json(updatedThread);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Update thread status
-router.patch("/:sessionId/status", verifyAdmin, async (req, res) => {
-  try {
-    const { status } = req.body;
-    if (!["open", "replied", "closed"].includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
-    }
-
-    const updatedThread = await Message.findOneAndUpdate(
-      { sessionId: req.params.sessionId },
-      { $set: { status, updatedAt: new Date() } },
-      { new: true }
-    );
-
-    if (!updatedThread) {
-      return res.status(404).json({ message: "Thread not found" });
-    }
-
-    res.json(updatedThread);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Delete thread (admin)
-router.delete("/:sessionId", verifyAdmin, async (req, res) => {
-  try {
-    const deleted = await Message.findOneAndDelete({
-      sessionId: req.params.sessionId,
+    const reply = lastLine(thread);
+    socket(req).sendToSession(req.params.sessionId, "admin_reply", {
+      content: reply.content,
+      attachments: reply.attachments,
+      timestamp: reply.timestamp,
     });
+    socket(req).broadcastToAdmins("message_updated", thread);
+
+    res.json(thread);
+  })
+);
+
+// ── Admin: open / close a thread ──
+router.patch(
+  "/:sessionId/status",
+  verifyAdmin,
+  handle(async (req, res) => {
+    const { status } = req.body;
+    if (!STATUSES.includes(status)) return res.status(400).json({ message: "Invalid status" });
+
+    const thread = await Message.findOneAndUpdate(
+      { sessionId: req.params.sessionId },
+      { $set: { status } },
+      { new: true }
+    );
+    if (!thread) return res.status(404).json({ message: "Thread not found" });
+
+    res.json(thread);
+  })
+);
+
+// ── Admin: delete a thread (and its attachment files) ──
+router.delete(
+  "/:sessionId",
+  verifyAdmin,
+  handle(async (req, res) => {
+    const deleted = await Message.findOneAndDelete({ sessionId: req.params.sessionId });
     if (!deleted) return res.status(404).json({ message: "Thread not found" });
 
+    removeAttachmentFiles([deleted]);
     res.json({ message: "Thread deleted" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+  })
+);
 
 module.exports = router;

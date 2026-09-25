@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Mail,
   Search,
@@ -34,6 +34,13 @@ const InboxList = ({
   requestDelete,
 }) => {
   const [hoveredIconUid, setHoveredIconUid] = useState(null);
+  const [, setTick] = useState(0);
+
+  // Re-render every minute so the "5m ago" labels stay current
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div

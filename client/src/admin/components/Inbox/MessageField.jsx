@@ -12,6 +12,7 @@ import {
   FiAlertCircle,
   FiChevronDown,
   FiChevronUp,
+  FiFileText,
 } from "react-icons/fi";
 import bluelogo from "../../../Components/Images/bluelogo.png";
 
@@ -22,6 +23,39 @@ const getInitials = (name) =>
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() || "")
     .join("") || "U";
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const ACCEPTED_FILES = "image/jpeg,image/png,image/gif,image/webp,application/pdf";
+const MAX_FILES = 5;
+
+// Images show as thumbnails, PDFs as a file link — both open in a new tab
+const MessageAttachments = ({ items }) => (
+  <div className="flex flex-wrap gap-2 mt-2">
+    {items.map((a, i) => {
+      const href = `${BACKEND_URL}${a.url}`;
+      return a.type?.startsWith("image/") ? (
+        <a key={i} href={href} target="_blank" rel="noopener noreferrer">
+          <img
+            src={href}
+            alt={a.name}
+            className="max-w-[220px] max-h-[160px] rounded-lg border border-gray-200 dark:border-gray-600 object-cover"
+          />
+        </a>
+      ) : (
+        <a
+          key={i}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-sm text-sky-600 dark:text-sky-400 max-w-[240px]"
+        >
+          <FiFileText className="flex-shrink-0" />
+          <span className="truncate">{a.name}</span>
+        </a>
+      );
+    })}
+  </div>
+);
 
 const MessageField = ({
   selectedThread,
@@ -53,8 +87,8 @@ const MessageField = ({
   const handleReplySubmit = async (e) => {
     e.preventDefault();
 
-    // Check if content exists and is not just whitespace
-    if (!replyContent || !replyContent.trim()) {
+    // Need text, attachments, or both
+    if ((!replyContent || !replyContent.trim()) && attachments.length === 0) {
       setError("Reply content is required");
       return;
     }
@@ -85,9 +119,21 @@ const MessageField = ({
         status: "sent",
       };
 
-      // Optimistic update
-      if (onReplySuccess) {
+      // Optimistic update (text-only — replies with files show once the server confirms them)
+      if (onReplySuccess && attachments.length === 0) {
         onReplySuccess(reply);
+      }
+
+      // Multipart when there are files, plain JSON otherwise
+      let headers = { Authorization: `Bearer ${token}` };
+      let body;
+      if (attachments.length > 0) {
+        body = new FormData();
+        body.append("content", replyContent.trim());
+        attachments.forEach((file) => body.append("attachments", file));
+      } else {
+        headers["Content-Type"] = "application/json";
+        body = JSON.stringify({ content: replyContent.trim() });
       }
 
       // Save to database
@@ -97,13 +143,8 @@ const MessageField = ({
         }/reply`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            content: replyContent.trim(),
-          }),
+          headers,
+          body,
         }
       );
 
@@ -136,7 +177,7 @@ const MessageField = ({
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    setAttachments([...attachments, ...files]);
+    setAttachments([...attachments, ...files].slice(0, MAX_FILES));
     e.target.value = "";
   };
 
@@ -285,7 +326,13 @@ const MessageField = ({
                     <div className="mf-meta text-xs mt-7 flex items-center gap-1">
                       <FiClock className="h-3 w-3" />
                       <span>
-                        {new Date(selectedThread.createdAt).toLocaleString()}
+                        {new Date(selectedThread.createdAt).toLocaleString([], {
+                          year: "numeric",
+                          month: "numeric",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
                       </span>
                     </div>
                   </div>
@@ -365,10 +412,13 @@ const MessageField = ({
                         </button>
                       </div>
 
-                      {isExpanded && (
+                      {isExpanded && message.content && (
                         <div className="mf-content whitespace-pre-wrap text-sm text-left mt-1">
                           {message.content}
                         </div>
+                      )}
+                      {isExpanded && message.attachments?.length > 0 && (
+                        <MessageAttachments items={message.attachments} />
                       )}
                     </div>
                   </div>
@@ -435,6 +485,7 @@ const MessageField = ({
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
+                accept={ACCEPTED_FILES}
                 className="hidden"
                 multiple
               />
@@ -451,7 +502,7 @@ const MessageField = ({
 
                 <button
                   type="submit"
-                  disabled={!replyContent || !replyContent.trim() || isSubmitting}
+                  disabled={((!replyContent || !replyContent.trim()) && attachments.length === 0) || isSubmitting}
                   className="px-4 py-2 text-sm font-medium rounded-xl text-white bg-sky-600 hover:bg-sky-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
                 >
                   {isSubmitting ? (

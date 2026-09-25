@@ -77,16 +77,11 @@ const InboxListItem = ({
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span
-                className="inbox-name text-[15px] font-semibold truncate"
-              >
-                {item.name}
-              </span>
-            </div>
-            <span className="inbox-date text-xs flex-shrink-0">
-              {formatDate(item.updatedAt)}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span
+              className="inbox-name text-[15px] font-medium truncate"
+            >
+              {item.name}
             </span>
           </div>
           <p className="inbox-subject text-sm truncate">
@@ -99,7 +94,12 @@ const InboxListItem = ({
           )}
         </div>
 
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+        {/* Age sits at the far right; swapped for the actions on hover */}
+        <span className="inbox-date text-xs flex-shrink-0 group-hover:hidden">
+          {formatDate(item.updatedAt)}
+        </span>
+
+        <div className="hidden group-hover:flex items-center gap-0.5 flex-shrink-0">
           {item.type === "email" && !item.read && (
             <button
               onClick={(e) => {

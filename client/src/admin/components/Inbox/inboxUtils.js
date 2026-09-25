@@ -29,7 +29,7 @@ export const normalizeThread = (t) => {
     name: t.user?.name || "Anonymous",
     email: t.user?.email || "No email",
     subject: "Live Chat",
-    preview: last?.content || "",
+    preview: last?.content || (last?.attachments?.length ? "📎 Attachment" : ""),
     status: t.status || "open",
     read: unread === 0,
     replied: msgs.some((msg) => msg.sender === "admin"),
@@ -47,14 +47,24 @@ export const getInitials = (name) =>
     .map((part) => part[0]?.toUpperCase() || "")
     .join("") || "U";
 
-// ── Relative date label for list rows ──
+// ── Compact relative time for list rows, HubSpot style: "Just now", "5m", "3h", "2d", "4mo", "1y" ──
 export const formatDate = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  const now = new Date();
-  const diffDays = Math.ceil(Math.abs(now - date) / (1000 * 60 * 60 * 24));
-  if (diffDays === 1) return "Today";
-  if (diffDays === 2) return "Yesterday";
-  if (diffDays <= 7) return `${diffDays - 1}d ago`;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (isNaN(date.getTime())) return "";
+
+  const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d`;
+
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo`;
+
+  return `${Math.floor(days / 365)}y`;
 };
