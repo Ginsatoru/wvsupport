@@ -14,4 +14,4 @@ const request = async (path, options = {}) => {
 // Admin — formData: title, message, isActive, expiresAt, image (file)
 export const getNewsPopups = () => request("/admin/all");
 export const saveNewsPopup = (id, formData) =>
-  request(id ? `/admin/${id}` : "/admin", { method: id ? "PUT" : "POST", body: formData });
+  request(id ? `/admin/${id}` : "/admin", { method: id ? "PUT" : "POST", body: formData }); 
