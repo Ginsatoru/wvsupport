@@ -145,7 +145,6 @@ app.use("/api/messages", require("./routes/messageRoutes"));
 app.use("/api/settings", require("./routes/settings"));
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/analytics", require("./routes/analytics"));
-app.use("/api/team", require("./routes/teamRoute"));
 app.use("/api/newsletter", require("./routes/newsletterRoutes"));
 app.use("/api/contact", require("./routes/contactRoutes"));
 app.use("/api/content", require("./routes/contentRoutes"));

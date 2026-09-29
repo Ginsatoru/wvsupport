@@ -8,6 +8,8 @@ import {
 } from "react-icons/ri";
 import logo from "../Images/logo.png";
 import io from "socket.io-client";
+import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -19,7 +21,14 @@ const socket = io(API_URL, {
 const ACCEPTED_FILES = "image/jpeg,image/png,image/gif,image/webp,application/pdf";
 const MAX_FILES = 5;
 
+// Teaser bubble text (follows the site language)
+const TEASER_TEXT = {
+  en: { title: "Got any questions?", text: "Use live chat to talk to us. We are here to help." },
+  km: { title: "មានសំណួរមែនទេ?", text: "ប្រើការជជែកផ្ទាល់ដើម្បីនិយាយជាមួយយើង។ យើងនៅទីនេះដើម្បីជួយ។" },
+};
+
 const GREETING = "Thank you for reaching out to us. Our team will respond to your message shortly.";
+const NAME_QUESTION = "While you wait, may I have your name?";
 
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
@@ -64,7 +73,49 @@ const ChatBox = () => {
   const [error, setError] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [sessionId, setSessionId] = useState("");
+  // Visitor's name: asked once after their first message, then remembered
+  const [visitorName, setVisitorName] = useState(() => localStorage.getItem("chatVisitorName") || "");
+  const [askName, setAskName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [savingName, setSavingName] = useState(false);
+  const [adminTyping, setAdminTyping] = useState(false);
+  const typingRef = useRef({ active: false, timer: null });
   const [files, setFiles] = useState([]);
+
+  // ── "Got any questions?" teaser next to the chat button ──
+  // Hidden on the home hero (it has its own floating card there), while the chat is open,
+  // and for the rest of the visit once dismissed.
+  const { pathname } = useLocation();
+  const { i18n } = useTranslation();
+  const teaserText = TEASER_TEXT[i18n.language === "km" ? "km" : "en"];
+  const [onHero, setOnHero] = useState(false);
+  const [teaserReady, setTeaserReady] = useState(false);
+  const [teaserDismissed, setTeaserDismissed] = useState(
+    () => sessionStorage.getItem("chatTeaserDismissed") === "1"
+  );
+
+  useEffect(() => {
+    const checkHero = () => setOnHero(pathname === "/" && window.scrollY < window.innerHeight * 0.8);
+    checkHero();
+    window.addEventListener("scroll", checkHero, { passive: true });
+    window.addEventListener("resize", checkHero);
+    return () => {
+      window.removeEventListener("scroll", checkHero);
+      window.removeEventListener("resize", checkHero);
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setTeaserReady(true), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const dismissTeaser = () => {
+    setTeaserDismissed(true);
+    sessionStorage.setItem("chatTeaserDismissed", "1");
+  };
+
+  const showTeaser = teaserReady && !teaserDismissed && !isOpen && !onHero;
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -81,38 +132,58 @@ const ChatBox = () => {
 
     fetch(`${API_URL}/api/messages/${session}`)
       .then((res) => (res.ok ? res.json() : { messages: [] }))
-      .then((data) =>
-        setMessages(
-          (data.messages || []).map((m) => ({
-            content: m.content,
-            attachments: m.attachments || [],
-            isAdmin: m.isAdmin,
-            time: formatTimestamp(m.timestamp),
-          }))
-        )
-      )
+      .then((data) => {
+        const history = (data.messages || []).map((m) => ({
+          content: m.content,
+          attachments: m.attachments || [],
+          isAdmin: m.isAdmin,
+          time: formatTimestamp(m.timestamp),
+        }));
+        setMessages(history);
+        // Name saved on the thread wins; returning visitor who never gave one gets asked
+        if (data.name) {
+          setVisitorName(data.name);
+          localStorage.setItem("chatVisitorName", data.name);
+        } else if (history.some((m) => !m.isAdmin)) {
+          setAskName(true);
+        }
+      })
       .catch((err) => console.error("Failed to load messages:", err));
 
-    const handleAdminReply = (reply) =>
+    // Support is typing — auto-clears if the "stopped" signal never arrives
+    let adminTypingTimer;
+    const handleAdminTyping = ({ isTyping }) => {
+      clearTimeout(adminTypingTimer);
+      setAdminTyping(!!isTyping);
+      if (isTyping) adminTypingTimer = setTimeout(() => setAdminTyping(false), 6000);
+    };
+
+    const handleAdminReply = (reply) => {
+      clearTimeout(adminTypingTimer);
+      setAdminTyping(false);
       addMessage({
         content: reply.content,
         attachments: reply.attachments || [],
         isAdmin: true,
         time: formatTimestamp(reply.timestamp),
       });
+    };
 
     socket.on("connect", joinSession);
     socket.on("admin_reply", handleAdminReply);
+    socket.on("admin_typing", handleAdminTyping);
 
     return () => {
       socket.off("connect", joinSession);
       socket.off("admin_reply", handleAdminReply);
+      socket.off("admin_typing", handleAdminTyping);
+      clearTimeout(adminTypingTimer);
     };
   }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isOpen]);
+  }, [messages, isOpen, adminTyping]);
 
   const handleFileChange = (e) => {
     const picked = Array.from(e.target.files || []);
@@ -128,6 +199,7 @@ const ChatBox = () => {
     if ((!content && !files.length) || status === "sending") return;
 
     const isFirstMessage = !messages.some((m) => !m.isAdmin);
+    setTyping(false);
     setStatus("sending");
     setError("");
 
@@ -167,6 +239,7 @@ const ChatBox = () => {
           () => addMessage({ content: GREETING, isAdmin: true, time: formatTimestamp(new Date()) }),
           1500
         );
+        if (!visitorName) setTimeout(() => setAskName(true), 2500);
       }
     } catch (err) {
       setStatus("error");
@@ -175,6 +248,44 @@ const ChatBox = () => {
         setStatus("idle");
         setError("");
       }, 3000);
+    }
+  };
+
+  // Tell support the visitor is typing: "started" once, "stopped" after 2s idle or on send
+  const setTyping = (isTyping) => {
+    const t = typingRef.current;
+    clearTimeout(t.timer);
+    if (isTyping) t.timer = setTimeout(() => setTyping(false), 2000);
+    if (t.active === isTyping || !sessionId) return;
+    t.active = isTyping;
+    socket.emit("visitor_typing", { sessionId, isTyping });
+  };
+
+  const handleSaveName = async (e) => {
+    e.preventDefault();
+    const name = nameInput.trim();
+    if (!name || savingName) return;
+    setSavingName(true);
+    try {
+      const res = await fetch(`${API_URL}/api/messages/${sessionId}/name`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error();
+      setVisitorName(name);
+      localStorage.setItem("chatVisitorName", name);
+      setAskName(false);
+      addMessage({
+        content: `Thanks, ${name}! Our team will be with you shortly.`,
+        isAdmin: true,
+        time: formatTimestamp(new Date()),
+      });
+    } catch {
+      setError("Couldn't save your name. Please try again.");
+      setTimeout(() => setError(""), 3000);
+    } finally {
+      setSavingName(false);
     }
   };
 
@@ -213,6 +324,61 @@ const ChatBox = () => {
            roughly the bottom ~90px of the viewport, so lift the toggle above it. */
         @media (max-width: 1024px) {
           .cb-toggle { bottom: 92px; right: 16px; }
+        }
+
+        /* ── Teaser bubble (above the toggle) ── */
+        .cb-teaser {
+          position: fixed;
+          bottom: 84px;
+          right: 20px;
+          width: 250px;
+          padding: 14px 34px 14px 16px;
+          background: #ffffff;
+          border-radius: 14px;
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.08);
+          cursor: pointer;
+          z-index: 1001;
+          animation: cb-teaser-in 0.35s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+        }
+        .cb-teaser::after {
+          content: "";
+          position: absolute;
+          bottom: -6px;
+          right: 20px;
+          width: 12px;
+          height: 12px;
+          background: #ffffff;
+          transform: rotate(45deg);
+          box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.05);
+        }
+        .cb-teaser-title { font-size: 13.5px; font-weight: 600; color: #000000; margin-bottom: 3px; }
+        .cb-teaser-text { font-size: 12.5px; color: #000000; line-height: 1.45; }
+        .cb-teaser-close {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          border: none;
+          background: transparent;
+          color: #9ca3af;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+        }
+        .cb-teaser-close:hover { background: #f3f4f6; color: #374151; }
+        @keyframes cb-teaser-in {
+          from { opacity: 0; transform: translateY(10px) scale(0.96); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        /* Toggle sits higher below lg (mobile bottom nav) */
+        @media (max-width: 1024px) {
+          .cb-teaser { bottom: 156px; right: 16px; }
+        }
+        @media (max-width: 480px) {
+          .cb-teaser { width: calc(100vw - 32px); max-width: 280px; }
         }
 
         /* ── Panel ── */
@@ -377,7 +543,7 @@ const ChatBox = () => {
           border-radius: 4px 16px 16px 16px;
           padding: 10px 14px;
           font-size: 13px;
-          color: #1f2937;
+          color: #000000;
           line-height: 1.5;
           max-width: 240px;
         }
@@ -418,7 +584,7 @@ const ChatBox = () => {
         }
         .cb-bubble.admin {
           background: #f0f0f0;
-          color: #1f2937;
+          color: #000000;
           border-radius: 4px 16px 16px 16px;
         }
         /* ── Attachments ── */
@@ -490,7 +656,7 @@ const ChatBox = () => {
 
         .cb-time {
           font-size: 10px;
-          color: #b0b7c3;
+          color: #000000;
           margin-top: 3px;
           padding: 0 2px;
         }
@@ -515,12 +681,12 @@ const ChatBox = () => {
         }
         .cb-textarea {
           width: 100%;
-          background: #f7f7f7;
-          border: 1.5px solid #e8e8e8;
+          background: #ffffff;
+          border: 1.5px solid #0f8abe;
           border-radius: 22px;
           padding: 8px 44px 8px 40px;
           font-size: 13px;
-          color: #111827;
+          color: #000000;
           outline: none;
           resize: none;
           min-height: 40px;
@@ -531,6 +697,8 @@ const ChatBox = () => {
         }
         .cb-textarea::placeholder { color: #b0b7c3; font-size: 13px; }
         .cb-textarea:focus { border-color: #0f8abe; background: #ffffff; }
+        /* Keep typed text the same size as the placeholder, even if global styles set a bigger textarea font */
+        .cb-root .cb-textarea { font-size: 13px !important; }
 
         .cb-send-btn {
           position: absolute;
@@ -561,6 +729,61 @@ const ChatBox = () => {
         }
         @keyframes cb-spin { to { transform: rotate(360deg); } }
 
+        /* ── Typing dots ── */
+        .cb-typing {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 12px 14px;
+          background: #f0f0f0;
+          border-radius: 4px 16px 16px 16px;
+          animation: cb-msg-in 0.2s ease forwards;
+        }
+        .cb-typing span {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #6b7280;
+          animation: cb-typing-dot 1.2s infinite ease-in-out;
+        }
+        .cb-typing span:nth-child(2) { animation-delay: 0.15s; }
+        .cb-typing span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes cb-typing-dot {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+          30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        /* ── Inline name question ── */
+        .cb-name-form { display: flex; gap: 6px; margin-top: 6px; width: 230px; }
+        .cb-root .cb-name-input {
+          flex: 1;
+          min-width: 0;
+          height: 34px;
+          padding: 0 12px;
+          border: 1.5px solid #0f8abe;
+          border-radius: 999px;
+          background: #ffffff;
+          font-size: 13px !important;
+          color: #000000;
+          outline: none;
+        }
+        .cb-name-input::placeholder { color: #b0b7c3; }
+        .cb-name-btn {
+          height: 34px;
+          padding: 0 14px;
+          border: none;
+          border-radius: 999px;
+          background: #0f8abe;
+          color: #ffffff;
+          font-size: 12.5px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .cb-name-btn:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }
+
         .cb-error {
           font-size: 11px;
           color: #dc2626;
@@ -573,6 +796,24 @@ const ChatBox = () => {
       `}</style>
 
       <div className="cb-root">
+        {/* Teaser */}
+        {showTeaser && (
+          <div className="cb-teaser" onClick={() => setIsOpen(true)} role="button" aria-label="Open live chat">
+            <button
+              className="cb-teaser-close"
+              onClick={(e) => {
+                e.stopPropagation();
+                dismissTeaser();
+              }}
+              aria-label="Dismiss"
+            >
+              <RiCloseLine size={14} />
+            </button>
+            <div className="cb-teaser-title">{teaserText.title}</div>
+            <div className="cb-teaser-text">{teaserText.text}</div>
+          </div>
+        )}
+
         {/* Toggle */}
         <button
           className={`cb-toggle${isOpen ? " is-open" : ""}`}
@@ -629,6 +870,45 @@ const ChatBox = () => {
                   );
                 })
               )}
+
+              {/* Support typing */}
+              {adminTyping && (
+                <div className="cb-bubble-wrap admin">
+                  <div className="cb-support-avatar">
+                    <img src={logo} alt="Support" />
+                  </div>
+                  <div className="cb-typing" aria-label="Support is typing">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                </div>
+              )}
+
+              {/* Name question — answered inline, then the admin inbox shows it instantly */}
+              {askName && !visitorName && (
+                <div className="cb-bubble-wrap admin">
+                  <div className="cb-support-avatar">
+                    <img src={logo} alt="Support" />
+                  </div>
+                  <div className="cb-bubble-col admin">
+                    <div className="cb-bubble admin">{NAME_QUESTION}</div>
+                    <form className="cb-name-form" onSubmit={handleSaveName}>
+                      <input
+                        className="cb-name-input"
+                        value={nameInput}
+                        onChange={(e) => setNameInput(e.target.value)}
+                        placeholder="Your name"
+                        maxLength={60}
+                        autoFocus
+                      />
+                      <button type="submit" className="cb-name-btn" disabled={!nameInput.trim() || savingName}>
+                        {savingName ? <div className="cb-spinner" /> : "Save"}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -669,7 +949,10 @@ const ChatBox = () => {
                   className="cb-textarea"
                   placeholder="Ask me anything..."
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={(e) => {
+                    setMessage(e.target.value);
+                    setTyping(!!e.target.value.trim());
+                  }}
                   onKeyDown={handleKeyDown}
                   rows={1}
                 />
@@ -683,7 +966,7 @@ const ChatBox = () => {
                 </button>
               </div>
 
-              {status === "error" && <div className="cb-error">{error}</div>}
+              {error && <div className="cb-error">{error}</div>}
             </form>
           </div>
         )}

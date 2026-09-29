@@ -126,10 +126,9 @@ const NewsModal = () => {
                     className="w-full py-3 rounded-full text-sm font-semibold text-white transition-all duration-200"
                     style={{
                       background: "#1a1a2e",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "#2d2d44"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "#1a1a2e"; e.currentTarget.style.transform = "translateY(0)"; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "#2d2d44"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "#1a1a2e"; }}
                   >
                     Got it, thanks!
                   </button>

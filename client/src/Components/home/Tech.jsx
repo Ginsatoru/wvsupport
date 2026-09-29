@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -13,6 +13,7 @@ import {
   MonitorSmartphone,
 } from "lucide-react";
 import retailGuy from "../Images/retail-guy.webp";
+import { getActiveTech } from "../../services/techApi";
 
 /* ── Word-slice text, same mechanic as Services ── */
 const SliceText = ({ text, inView, baseDelay = 0 }) => (
@@ -37,47 +38,58 @@ const Tech = () => {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.15 });
   const isKm = i18n.language === "km";
 
+  // Saved content from Content › Home › Tech (empty fields keep the built-in wording/images)
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveTech(isKm ? "km" : "en")
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [isKm]);
+  const pick = (field, fallback) => saved?.[field] || fallback;
+
   const devices = [
     {
       icon: <Smartphone size={16} strokeWidth={2.2} />,
-      label: isKm ? "iOS កម្មវិធី" : "iOS App",
+      label: saved?.devices?.[0] || (isKm ? "iOS កម្មវិធី" : "iOS App"),
     },
     {
       icon: <Smartphone size={16} strokeWidth={2.2} />,
-      label: isKm ? "Android កម្មវិធី" : "Android App",
+      label: saved?.devices?.[1] || (isKm ? "Android កម្មវិធី" : "Android App"),
     },
-    { icon: <Monitor size={16} strokeWidth={2.2} />, label: isKm ? "កុំព្យូទ័រ" : "Desktop" },
-    { icon: <Tablet size={16} strokeWidth={2.2} />, label: isKm ? "ថេប្លេត" : "Tablet" },
+    { icon: <Monitor size={16} strokeWidth={2.2} />, label: saved?.devices?.[2] || (isKm ? "កុំព្យូទ័រ" : "Desktop") },
+    { icon: <Tablet size={16} strokeWidth={2.2} />, label: saved?.devices?.[3] || (isKm ? "ថេប្លេត" : "Tablet") },
   ];
 
-  const avatars = [
+  const defaultAvatars = [
     "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=64&h=64&fit=crop&crop=face",
     "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&fit=crop&crop=face",
     "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=64&h=64&fit=crop&crop=face",
     "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=64&h=64&fit=crop&crop=face",
   ];
 
-  const eyebrow = isKm
-    ? "បច្ចេកវិទ្យាលក់រាយជំនាន់ក្រោយ"
-    : "Next-Gen Retail Technology";
-  const headLine1 = isKm
-    ? "អ្នកលក់រាយជាង 60,000+ នាក់"
-    : "Over 60,000+ Retailers";
-  const headLine2 = isKm ? "គ្រប់គ្រងឆ្លាតជាងមុន" : "Managing Smarter";
-  const body = isKm
-    ? "RetailManager កំពុងមកដល់ទូរស័ព្ទ និងថេប្លេត ធ្វើសមកាលកម្មពេញលេញជាមួយកុំព្យូទ័ររបស់អ្នកក្នុងពេលវេលាជាក់ស្តែង។ គ្រប់គ្រងស្ទុក លក់ និងបុគ្គលិកពីគ្រប់ទីកន្លែង។"
-    : "RetailManager is coming to mobile and tablet, fully synced with your desktop in real time. Manage inventory, sales, and staff from anywhere, on any device, without missing a beat.";
+  const avatars = defaultAvatars.map((src, i) => saved?.avatars?.[i] || src);
+
+  const eyebrow = pick("eyebrow", isKm ? "បច្ចេកវិទ្យាលក់រាយជំនាន់ក្រោយ" : "Next-Gen Retail Technology");
+  const headLine1 = pick("headingLine1", isKm ? "អ្នកលក់រាយជាង 60,000+ នាក់" : "Over 60,000+ Retailers");
+  const headLine2 = pick("headingLine2", isKm ? "គ្រប់គ្រងឆ្លាតជាងមុន" : "Managing Smarter");
+  const body = pick(
+    "body",
+    isKm
+      ? "RetailManager កំពុងមកដល់ទូរស័ព្ទ និងថេប្លេត ធ្វើសមកាលកម្មពេញលេញជាមួយកុំព្យូទ័ររបស់អ្នកក្នុងពេលវេលាជាក់ស្តែង។ គ្រប់គ្រងស្ទុក លក់ និងបុគ្គលិកពីគ្រប់ទីកន្លែង។"
+      : "RetailManager is coming to mobile and tablet, fully synced with your desktop in real time. Manage inventory, sales, and staff from anywhere, on any device, without missing a beat."
+  );
 
   return (
     <section
-      className="flex justify-center items-center min-h-[70vh] py-20 px-6"
+      className="flex justify-center items-center min-h-[70vh] py-20"
       style={{
         background: "#ffffff",
       }}
     >
+      {/* Global container — same breakpoints as the navbar / .fs-container (Work) */}
       <div
         ref={ref}
-        className={`flex flex-col-reverse md:flex-row items-center gap-16 w-full max-w-[1400px] mx-auto${inView ? " tech-entered" : ""}`}
+        className={`flex flex-col-reverse md:flex-row items-center gap-16 w-full mx-auto px-4 sm:px-6 lg:px-0 lg:w-[88%] xl:w-[83%] 2xl:max-w-[1400px] [@media(min-width:1700px)]:max-w-[1500px]${inView ? " tech-entered" : ""}`}
       >
         {/* ── LEFT: Image ── */}
         <motion.div
@@ -97,7 +109,7 @@ const Tech = () => {
 
           {/* Person image — bigger with bottom fade */}
           <img
-            src={retailGuy}
+            src={pick("image", retailGuy)}
             alt="RetailManager user"
             className="absolute bottom-0 left-1/2 z-20 w-auto object-contain object-bottom select-none pointer-events-none"
             style={{
@@ -158,12 +170,10 @@ const Tech = () => {
             </div>
             <div>
               <p className="text-[12px] font-bold text-[#1a1a2e] leading-none">
-                {isKm ? "សមកាលកម្មពហុឧបករណ៍" : "Multi-Device Sync"}
+                {pick("badgeTitle", isKm ? "សមកាលកម្មពហុឧបករណ៍" : "Multi-Device Sync")}
               </p>
               <p className="text-[10px] text-black mt-[3px]">
-                {isKm
-                  ? "ពេលវេលាជាក់ស្តែងគ្រប់ Platform"
-                  : "Real-time across all platforms"}
+                {pick("badgeText", isKm ? "ពេលវេលាជាក់ស្តែងគ្រប់ Platform" : "Real-time across all platforms")}
               </p>
             </div>
           </motion.div>
@@ -214,12 +224,13 @@ const Tech = () => {
               <MonitorSmartphone size={18} className="text-white" />
             </div>
             <p className="text-[13px] font-bold text-[#1a1a2e]">
-              {isKm ? "RM ម៉ូបាល" : "RM Mobile"}
+              {pick("cardTitle", isKm ? "RM ម៉ូបាល" : "RM Mobile")}
             </p>
             <p className="text-[10px] text-black mt-[5px] leading-[1.6]">
-              {isKm
-                ? "មានជា iOS & Android\nធ្វើសមកាលកម្មភ្លាមៗ"
-                : "Available on iOS & Android\nSyncs instantly with desktop"}
+              {pick(
+                "cardText",
+                isKm ? "មានជា iOS & Android\nធ្វើសមកាលកម្មភ្លាមៗ" : "Available on iOS & Android\nSyncs instantly with desktop"
+              )}
             </p>
           </motion.div>
         </motion.div>
@@ -299,8 +310,8 @@ const Tech = () => {
                 transitionDelay: `${0.9 + (avatars.length + 1) * 0.1}s`,
               }}
             >
-              <span className="font-bold text-black">60,000+</span>{" "}
-              {isKm ? "អាជីវកម្មសកម្ម" : "active businesses"}
+              <span className="font-bold text-black">{pick("statNumber", "60,000+")}</span>{" "}
+              {pick("statLabel", isKm ? "អាជីវកម្មសកម្ម" : "active businesses")}
             </span>
           </div>
 
@@ -328,10 +339,10 @@ const Tech = () => {
             style={{ transitionDelay: "1.7s" }}
           >
             <a
-              href="https://www.aaapos.com/"
+              href={pick("buttonLink", "https://www.aaapos.com/")}
               className="cta-primary-tech px-6 py-3.5 text-sm font-semibold"
             >
-              {isKm ? "ស្វែងយល់បន្ថែម" : "Learn More"}
+              {pick("buttonText", isKm ? "ស្វែងយល់បន្ថែម" : "Learn More")}
               <ArrowRight size={15} className="ml-2 inline-block" />
             </a>
           </div>

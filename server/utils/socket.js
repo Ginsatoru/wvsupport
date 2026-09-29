@@ -19,6 +19,20 @@ class SocketServer {
         if (typeof sessionId === "string" && sessionId) socket.join(sessionId);
       });
 
+      // Typing indicators — relayed only, nothing saved.
+      // Visitor → admins (only for the chat room this socket joined)
+      socket.on("visitor_typing", ({ sessionId, isTyping } = {}) => {
+        if (typeof sessionId === "string" && socket.rooms.has(sessionId)) {
+          this.io.to(ADMIN_ROOM).emit("visitor_typing", { sessionId, isTyping: !!isTyping });
+        }
+      });
+      // Admin → that visitor (only from sockets that passed the admin check)
+      socket.on("admin_typing", ({ sessionId, isTyping } = {}) => {
+        if (typeof sessionId === "string" && socket.rooms.has(ADMIN_ROOM)) {
+          this.io.to(sessionId).emit("admin_typing", { isTyping: !!isTyping });
+        }
+      });
+
       // Admin joins the admin room after a token check
       socket.on("admin_connect", (token) => {
         try {

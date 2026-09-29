@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { FaCheckCircle, FaTimes } from "react-icons/fa";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -6,6 +6,17 @@ import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { subscribeToNewsletter } from "../../services/newsletterApi";
 import mockup from "../Images/mockup.webp";
+import { getActiveNewsletterContent } from "../../services/newsletterContentApi";
+
+// Built-in translation key → field saved in Content › Home › Newsletter
+const CMS_FIELD = {
+  title: "title",
+  description: "description",
+  emailPlaceholder: "placeholder",
+  subscribe: "buttonText",
+  subscribed: "successTitle",
+  subscriptionConfirmation: "successText",
+};
 
 /* ── Word-slice — same mechanic as Tech & Work ── */
 const SliceText = ({ text, inView, baseDelay = 0 }) => (
@@ -84,6 +95,15 @@ const NewsletterSection = () => {
   const [recaptchaVerified, setRecaptchaVerified] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
   const [showModal, setShowModal] = useState(false);
+
+  // Saved content (empty fields keep the built-in wording/mockup)
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveNewsletterContent(lang)
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [lang]);
+  const ct = (key) => saved?.[CMS_FIELD[key]] || t(key, lang);
 
   const handleRecaptchaChange = (token) => {
     if (token && token.length > 0) {
@@ -323,15 +343,20 @@ const NewsletterSection = () => {
         @media (min-width: 1700px) { .nl-container { max-width: 1500px; } }
 
         /* ── Responsive ── */
+        @media (max-width: 1023px) {
+          .nl-section { padding: 32px 0 56px !important; }
+        }
         @media (max-width: 820px) {
-          .nl-inner       { flex-direction: column !important; }
+          .nl-inner       { flex-direction: column !important; min-height: 0 !important; }
           .nl-mockup-wrap { display: none !important; }
-          .nl-content     { padding: 32px 28px !important; }
+          .nl-content     { padding: 36px 24px !important; }
+          .nl-input-wrap  { max-width: none; }
         }
       `}</style>
 
       {/* ── Main Section ── */}
       <section
+        className="nl-section"
         style={{ padding: "100px 0", background: "#ffffff" }}
       >
         <div
@@ -376,7 +401,7 @@ const NewsletterSection = () => {
                 }}
               >
                 <div style={{ overflow: "hidden" }}>
-                  <SliceText text={t("title", lang)} inView={inView} baseDelay={0.1} />
+                  <SliceText key={ct("title")} text={ct("title")} inView={inView} baseDelay={0.1} />
                 </div>
               </h2>
 
@@ -392,7 +417,7 @@ const NewsletterSection = () => {
                   transitionDelay: "0.5s",
                 }}
               >
-                {t("description", lang)}
+                {ct("description")}
               </p>
 
               {/* Input row */}
@@ -408,7 +433,7 @@ const NewsletterSection = () => {
                   <input
                     type="email"
                     className="nl-input"
-                    placeholder={t("emailPlaceholder", lang)}
+                    placeholder={ct("emailPlaceholder")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyPress={handleKeyPress}
@@ -422,7 +447,7 @@ const NewsletterSection = () => {
                     {loading ? (
                       <span className="nl-spinner" />
                     ) : (
-                      t("subscribe", lang)
+                      ct("subscribe")
                     )}
                   </button>
                 </div>
@@ -448,7 +473,7 @@ const NewsletterSection = () => {
               }}
             >
               <motion.img
-                src={mockup}
+                src={saved?.image || mockup}
                 alt="App mockup"
                 draggable={false}
                 initial={{ opacity: 0, x: 160 }}
@@ -618,7 +643,7 @@ const NewsletterSection = () => {
                 marginBottom: 8,
               }}
             >
-              {t("subscribed", lang)}
+              {ct("subscribed")}
             </h2>
             <p
               style={{
@@ -628,7 +653,7 @@ const NewsletterSection = () => {
                 lineHeight: 1.6,
               }}
             >
-              {t("subscriptionConfirmation", lang)}
+              {ct("subscriptionConfirmation")}
             </p>
 
             <button

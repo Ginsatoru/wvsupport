@@ -15,6 +15,7 @@ import {
   FiFileText,
 } from "react-icons/fi";
 import bluelogo from "../../../Components/Images/bluelogo.png";
+import socket from "../../services/adminSocket";
 
 const getInitials = (name) =>
   (name || "")
@@ -66,6 +67,45 @@ const MessageField = ({
   actionIcon,
 }) => {
   const [replyContent, setReplyContent] = useState("");
+  const [visitorTyping, setVisitorTyping] = useState(false);
+  const typingRef = useRef({ active: false, timer: null, sessionId: null });
+
+  // Tell the visitor support is typing: "started" once, "stopped" after 2s idle, on send, or on switching chat
+  const setTyping = (isTyping) => {
+    const t = typingRef.current;
+    clearTimeout(t.timer);
+    if (isTyping) t.timer = setTimeout(() => setTyping(false), 2000);
+    if (t.active === isTyping || !t.sessionId) return;
+    t.active = isTyping;
+    socket.emit("admin_typing", { sessionId: t.sessionId, isTyping });
+  };
+
+  // Track the open chat; stop our indicator on the old one and listen for the visitor's
+  useEffect(() => {
+    const sessionId = selectedThread?.sessionId || null;
+    typingRef.current.sessionId = sessionId;
+    setVisitorTyping(false);
+
+    let timer;
+    const onVisitorTyping = (data) => {
+      if (data.sessionId !== sessionId) return;
+      clearTimeout(timer);
+      setVisitorTyping(data.isTyping);
+      if (data.isTyping) timer = setTimeout(() => setVisitorTyping(false), 6000);
+    };
+    socket.on("visitor_typing", onVisitorTyping);
+
+    return () => {
+      setTyping(false);
+      socket.off("visitor_typing", onVisitorTyping);
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedThread?.sessionId]);
+
+  // A new visitor message means they've stopped typing
+  const messageCount = selectedThread?.messages?.length || 0;
+  useEffect(() => setVisitorTyping(false), [messageCount]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [attachments, setAttachments] = useState([]);
@@ -98,6 +138,7 @@ const MessageField = ({
       return;
     }
 
+    setTyping(false);
     setIsSubmitting(true);
     setError("");
 
@@ -237,7 +278,7 @@ const MessageField = ({
     if (contentRef.current && selectedThread) {
       contentRef.current.scrollTop = contentRef.current.scrollHeight;
     }
-  }, [selectedThread, expandedMessages]);
+  }, [selectedThread, expandedMessages, visitorTyping]);
 
   const fieldStyles = (
     <style>{`
@@ -249,6 +290,21 @@ const MessageField = ({
       .dark .mf-meta { color: #ffffff; }
       .mf-content { color: #000000; }
       .dark .mf-content { color: #ffffff; }
+
+      .mf-typing span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #6b7280;
+        animation: mf-typing-dot 1.2s infinite ease-in-out;
+      }
+      .dark .mf-typing span { background: #d1d5db; }
+      .mf-typing span:nth-child(2) { animation-delay: 0.15s; }
+      .mf-typing span:nth-child(3) { animation-delay: 0.3s; }
+      @keyframes mf-typing-dot {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+        30% { transform: translateY(-4px); opacity: 1; }
+      }
     `}</style>
   );
 
@@ -425,6 +481,22 @@ const MessageField = ({
                 </div>
               );
             })}
+
+            {/* Visitor typing */}
+            {visitorTyping && (
+              <div className="flex justify-start mt-2">
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl shadow-sm bg-white dark:bg-gray-800">
+                  <div className="w-9 h-9 flex-shrink-0 rounded-full bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
+                    {getInitials(selectedThread.user?.name || "User")}
+                  </div>
+                  <div className="mf-typing flex items-center gap-1" aria-label="Visitor is typing">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -476,7 +548,10 @@ const MessageField = ({
                 className="block w-full px-4 py-2 text-sm placeholder-gray-600 dark:placeholder-gray-400 focus:outline-none dark:bg-gray-800 bg-white-100 dark:text-white resize-none rounded-xl"
                 placeholder="Type your reply here..."
                 value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
+                onChange={(e) => {
+                  setReplyContent(e.target.value);
+                  setTyping(!!e.target.value.trim());
+                }}
                 disabled={isSubmitting}
                 style={{ minHeight: "80px", maxHeight: "400px" }}
               />

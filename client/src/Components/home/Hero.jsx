@@ -32,6 +32,9 @@ const DEFAULT_CONTENT = {
     secondaryCtaText: "Get Started",
     secondaryCtaLink: "/contact",
     backgroundImage: fallbackHero,
+    features: ["25+ Years\nTrusted", "AU, NZ & Asia-\nPacific Reach", "7 Days a Week\nSupport"],
+    testimonial:
+      "WV Support is a game changer in my life that offered me an incredible opportunity to get this position. I can't be more thankful than today.",
   },
   km: {
     title: "សេវាកម្មគាំទ្រ WV\nកម្ពុជា",
@@ -42,6 +45,8 @@ const DEFAULT_CONTENT = {
     secondaryCtaText: "ចាប់ផ្តើម",
     secondaryCtaLink: "/contact",
     backgroundImage: fallbackHero,
+    features: ["ទុកចិត្តជាង 25 ឆ្នាំ", "អាស៊ី-ប៉ាស៊ីហ្វិក", "គាំទ្រ 7 ថ្ងៃក្នុងសប្តាហ៍"],
+    testimonial: "WV Support គឺជាការប្រែប្រួលយ៉ាងខ្លាំង ដែលផ្តល់ឱ្យខ្ញុំនូវឱកាសសំខាន់ ខ្ញុំមិនអាចដឹងគុណបានគ្រប់គ្រាន់ជាងនេះទេ។",
   },
 };
 
@@ -59,7 +64,7 @@ const HeroSection = () => {
     const fetchHeroContent = async () => {
       try {
         setLoading(true);
-        const result = await getActiveHeroContent();
+        const result = await getActiveHeroContent(i18n.language === "km" ? "km" : "en");
         if (result.success && result.data) {
           setHeroData(result.data);
         } else {
@@ -95,57 +100,44 @@ const HeroSection = () => {
   const isKm = i18n.language === "km";
   const titleLines = (heroData.title || "").split("\n");
 
-  const features = [
-    {
-      icon: (
+  // Highlight icons stay fixed; labels come from the CMS ("\n" = line break)
+  const featureIcons = [
+    (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#000000" }}>
-          <path d="M12 2.5l8 4v5.5c0 5.2-3.4 8.7-8 10-4.6-1.3-8-4.8-8-10V6.5l8-4z" />
-          <path d="M8.5 12l2.3 2.3L15.5 9.5" />
-        </svg>
-      ),
-      label: isKm ? (
-        <>ទុកចិត្តជាង 25 ឆ្នាំ</>
-      ) : (
-        <>25+ Years<br />Trusted</>
-      ),
-    },
-    {
-      icon: (
+        <path d="M12 2.5l8 4v5.5c0 5.2-3.4 8.7-8 10-4.6-1.3-8-4.8-8-10V6.5l8-4z" />
+        <path d="M8.5 12l2.3 2.3L15.5 9.5" />
+      </svg>
+    ),
+    (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#000000" }}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M3 12h18" />
-          <path d="M12 3c2.5 2.6 4 6 4 9s-1.5 6.4-4 9c-2.5-2.6-4-6-4-9s1.5-6.4 4-9z" />
-        </svg>
-      ),
-      label: isKm ? (
-        <>អាស៊ី-ប៉ាស៊ីហ្វិក</>
-      ) : (
-        <>AU, NZ &amp; Asia-<br />Pacific Reach</>
-      ),
-    },
-    {
-      icon: (
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18" />
+        <path d="M12 3c2.5 2.6 4 6 4 9s-1.5 6.4-4 9c-2.5-2.6-4-6-4-9s1.5-6.4 4-9z" />
+      </svg>
+    ),
+    (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" style={{ color: "#000000" }}>
-          <path d="M4 13a8 8 0 0116 0" />
-          <path d="M3 13v3a2 2 0 002 2h1v-6H5a2 2 0 00-2 2z" />
-          <path d="M21 13v3a2 2 0 01-2 2h-1v-6h1a2 2 0 012 2z" />
-          <path d="M15 19a3 3 0 01-3 2" />
-        </svg>
-      ),
-      label: isKm ? (
-        <>គាំទ្រ 7 ថ្ងៃក្នុងសប្តាហ៍</>
-      ) : (
-        <>7 Days a Week<br />Support</>
-      ),
-    },
+        <path d="M4 13a8 8 0 0116 0" />
+        <path d="M3 13v3a2 2 0 002 2h1v-6H5a2 2 0 00-2 2z" />
+        <path d="M21 13v3a2 2 0 01-2 2h-1v-6h1a2 2 0 012 2z" />
+        <path d="M15 19a3 3 0 01-3 2" />
+      </svg>
+    ),
   ];
+  const defaults = DEFAULT_CONTENT[isKm ? "km" : "en"];
+  const features = featureIcons.map((icon, i) => ({
+    icon,
+    label: heroData.features?.[i] || defaults.features[i],
+  }));
+  const testimonial = heroData.testimonial || defaults.testimonial;
 
   return (
     <section
       className={`relative w-full overflow-hidden bg-white${entered ? " hero-entered" : ""}`}
     >
-      {/* ── LEFT — content ── */}
-      <div className="relative z-10 flex flex-col justify-center w-full lg:w-[50%] lg:min-h-screen px-6 sm:px-10 lg:pl-[11%] lg:pr-10 pt-16 pb-10 sm:pt-20 sm:pb-14 lg:py-0">
+      {/* ── LEFT — content, inside the same container as the other sections ── */}
+      <div className="hero-container relative z-10">
+      <div className="flex flex-col justify-center w-full lg:w-1/2 lg:min-h-screen lg:pr-10 pt-16 pb-10 sm:pt-20 sm:pb-14 lg:py-0">
 
         {/* Title */}
         <h2
@@ -169,7 +161,7 @@ const HeroSection = () => {
 
         {/* CTA buttons */}
         <div
-          className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-8 lg:mb-16 hero-slide-up"
+          className="flex flex-row items-center gap-4 mb-8 lg:mb-16 hero-slide-up"
           style={{ transitionDelay: "0.85s" }}
         >
           <button
@@ -199,8 +191,54 @@ const HeroSection = () => {
           </button>
         </div>
 
-        {/* Feature highlights */}
-        <div className="flex items-center">
+        {/* ── Phones/tablets: image (the right panel is desktop-only) — soft glow, no box edges ── */}
+        <div
+          className="lg:hidden hero-rise relative h-[26rem] sm:h-[32rem] mb-4"
+          style={{
+            transitionDelay: "1s",
+            background: "radial-gradient(ellipse 55% 60% at 50% 60%, #c2e6f5 0%, #d9f0f8 30%, #eef8fd 55%, rgba(255,255,255,0) 80%)",
+          }}
+        >
+          {heroData.personImage ? (
+            <img
+              src={heroData.personImage}
+              alt=""
+              draggable={false}
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 h-full max-w-none w-auto object-contain object-bottom select-none pointer-events-none"
+              style={{
+                maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+              }}
+            />
+          ) : (
+            <img
+              src={heroData.backgroundImage || fallbackHero}
+              alt=""
+              draggable={false}
+              className="w-full h-full object-contain select-none pointer-events-none"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackHero; }}
+            />
+          )}
+        </div>
+
+        {/* ── Phones/tablets: feature tiles ── */}
+        <div className="grid lg:hidden grid-cols-3 gap-2">
+          {features.map((f, i) => (
+            <div
+              key={i}
+              className="hero-stat-drop flex flex-col items-center text-center gap-2 rounded-2xl px-2 py-3"
+              style={{ background: "#f1f5f9", transitionDelay: `${1.1 + i * 0.1}s` }}
+            >
+              {f.icon}
+              <span className="text-[11px] font-semibold leading-tight whitespace-pre-line" style={{ color: "#000000" }}>
+                {f.label}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Feature highlights (desktop) */}
+        <div className="hidden lg:flex items-center">
           {features.map((f, i, arr) => (
             <div
               key={i}
@@ -210,12 +248,13 @@ const HeroSection = () => {
               style={{ transitionDelay: `${1.0 + i * 0.12}s` }}
             >
               {f.icon}
-              <span className="text-[10px] sm:text-[12px] font-medium leading-tight" style={{ color: "#000000" }}>
+              <span className="text-[10px] sm:text-[12px] font-medium leading-tight whitespace-pre-line" style={{ color: "#000000" }}>
                 {f.label}
               </span>
             </div>
           ))}
         </div>
+      </div>
       </div>
 
       {/* ── RIGHT — image panel (desktop only) ── */}
@@ -291,14 +330,24 @@ const HeroSection = () => {
             </svg>
           </div>
           <p className="text-[12px] font-semibold text-gray-700 leading-[1.7]">
-            {isKm
-              ? "WV Support គឺជាការប្រែប្រួលយ៉ាងខ្លាំង ដែលផ្តល់ឱ្យខ្ញុំនូវឱកាសសំខាន់ ខ្ញុំមិនអាចដឹងគុណបានគ្រប់គ្រាន់ជាងនេះទេ។"
-              : "WV Support is a game changer in my life that offered me an incredible opportunity to get this position. I can't be more thankful than today."}
+            {testimonial}
           </p>
         </motion.div>
       </div>
 
       <style>{`
+        /* ── Container — same breakpoints as .fs-container (Work) / navbar ── */
+        .hero-container {
+          width: 100%;
+          padding: 0 16px;
+          margin: 0 auto;
+        }
+        @media (min-width: 640px)  { .hero-container { padding: 0 24px; } }
+        @media (min-width: 1024px) { .hero-container { width: 88%; padding: 0; } }
+        @media (min-width: 1280px) { .hero-container { width: 83%; } }
+        @media (min-width: 1536px) { .hero-container { max-width: 1400px; } }
+        @media (min-width: 1700px) { .hero-container { max-width: 1500px; } }
+
         .hero-word-wrap {
           display: inline-block;
           overflow: hidden;
@@ -323,6 +372,17 @@ const HeroSection = () => {
                       opacity 0.6s ease;
         }
         .hero-entered .hero-slide-up {
+          transform: translateY(0);
+          opacity: 1;
+        }
+        /* Same slide-up as .hero-slide-up, but never sets display — so lg:hidden still works */
+        .hero-rise {
+          transform: translateY(24px);
+          opacity: 0;
+          transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                      opacity 0.6s ease;
+        }
+        .hero-entered .hero-rise {
           transform: translateY(0);
           opacity: 1;
         }
@@ -385,8 +445,8 @@ const HeroSection = () => {
           box-shadow: 0 1px 4px rgba(0,0,0,0.08);
         }
         @media (max-width: 640px) {
-          .cta-primary { width: 100%; }
-          .cta-ghost    { width: 100%; }
+          .cta-ghost { gap: 10px; }
+          .cta-ghost__ring { width: 40px; height: 40px; }
         }
       `}</style>
     </section>

@@ -10,6 +10,11 @@ import Image7 from "../Images/image7.webp";
 import Image8 from "../Images/image8.webp";
 import Image9 from "../Images/image9.webp";
 import Image10 from "../Images/image10.webp";
+import { getActiveGallery } from "../../services/galleryApi";
+
+// Built-in photos — saved rows refer to them as "default:<n>"
+const BUILT_IN = { 1: Image1, 2: Image2, 3: Image3, 4: Image4, 5: Image5, 6: Image6, 7: Image7, 8: Image8, 9: Image9, 10: Image10 };
+const photoSrc = (value) => (value.startsWith("default:") ? BUILT_IN[value.slice(8)] : value);
 
 /* ── Word-slice text, same mechanic as Tech / Team ── */
 const SliceText = ({ text, inView, baseDelay = 0 }) => (
@@ -43,11 +48,19 @@ const Gallery = () => {
     return () => observer.disconnect();
   }, []);
 
-  const eyebrow   = isKm ? "វិចិត្រសាលរបស់យើង"       : "Our Gallery";
-  const headLine1 = isKm ? "ជឿជាក់ដោយអ្នកលក់រាយ" : "Retailers trust us worldwide.";
+  // Saved content from Content › Home › Gallery (empty keeps the built-in wording/photos)
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveGallery(isKm ? "km" : "en")
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [isKm]);
 
-  const firstRow  = [Image1, Image2, Image3, Image7, Image8];
-  const secondRow = [Image4, Image5, Image6, Image9, Image10];
+  const eyebrow   = saved?.eyebrow || (isKm ? "វិចិត្រសាលរបស់យើង" : "Our Gallery");
+  const headLine1 = saved?.title || (isKm ? "ជឿជាក់ដោយអ្នកលក់រាយ" : "Retailers trust us worldwide.");
+
+  const firstRow  = saved?.topRow?.length ? saved.topRow.map(photoSrc) : [Image1, Image2, Image3, Image7, Image8];
+  const secondRow = saved?.bottomRow?.length ? saved.bottomRow.map(photoSrc) : [Image4, Image5, Image6, Image9, Image10];
 
   return (
     <>
@@ -118,11 +131,20 @@ const Gallery = () => {
           margin-left: calc(-50vw + 50%);
           margin-right: calc(-50vw + 50%);
         }
+
+        /* ── Phones/tablets: tighter spacing, slightly bigger heading ── */
+        @media (max-width: 1023px) {
+          .gl-section { padding-top: 32px !important; padding-bottom: 32px !important; }
+          .gl-header { margin-bottom: 28px !important; }
+          .gl-title { font-size: 22px !important; }
+          .gl-row-gap { margin-bottom: 12px !important; }
+          .gl-track-ltr, .gl-track-rtl { gap: 12px !important; }
+        }
       `}</style>
 
       <section
         ref={sectionRef}
-        className={entered ? "gl-in" : ""}
+        className={`gl-section${entered ? " gl-in" : ""}`}
         style={{
           background: "#ffffff",
           position: "relative",
@@ -151,7 +173,7 @@ const Gallery = () => {
         }}>
 
           {/* ── Header ── */}
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div className="gl-header" style={{ textAlign: "center", marginBottom: 48 }}>
             <div style={{ overflow: "hidden", marginBottom: 16 }}>
               <span
                 className="gl-slide-up"
@@ -168,7 +190,7 @@ const Gallery = () => {
               </span>
             </div>
 
-            <h2 style={{
+            <h2 className="gl-title" style={{
               fontSize: "clamp(18px, 2.2vw, 34px)",
               fontWeight: 800,
               lineHeight: 1.08,
@@ -177,14 +199,14 @@ const Gallery = () => {
               marginBottom: 16,
             }}>
               <div style={{ overflow: "hidden", marginBottom: "0.06em" }}>
-                <SliceText text={headLine1} inView={entered} baseDelay={0.15} />
+                <SliceText key={headLine1} text={headLine1} inView={entered} baseDelay={0.15} />
               </div>
             </h2>
           </div>
 
           {/* ── First Row (left-to-right) — breaks out to full viewport width ── */}
           <div
-            className="gl-row gl-full-bleed"
+            className="gl-row gl-row-gap gl-full-bleed"
             style={{
               position: "relative",
               overflow: "hidden",

@@ -1,0 +1,20 @@
+const API_URL = `${import.meta.env.VITE_BACKEND_URL || "http://localhost:5000"}/api/content/partners`;
+
+// Admin calls send the token; errors come back as the server's message
+const request = async (path = "", { auth = true, json, ...options } = {}) => {
+  const headers = auth ? { Authorization: `Bearer ${localStorage.getItem("adminToken")}` } : {};
+  if (json) headers["Content-Type"] = "application/json";
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers, body: json ? JSON.stringify(json) : options.body });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.success === false) throw new Error(data.message || `Request failed (${res.status})`);
+  return data;
+};
+
+// Public: logos in display order
+export const getPartners = () => request("", { auth: false });
+
+// Admin — formData: name and/or image
+export const addPartner = (formData) => request("/admin", { method: "POST", body: formData });
+export const updatePartner = (id, formData) => request(`/admin/${id}`, { method: "PUT", body: formData });
+export const deletePartner = (id) => request(`/admin/${id}`, { method: "DELETE" });
+export const reorderPartners = (ids) => request("/admin/reorder", { method: "PATCH", json: { ids } });

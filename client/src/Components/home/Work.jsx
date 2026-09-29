@@ -8,6 +8,7 @@ import hubspotLogo from "../Images/tools/hubspot.webp";
 import aircallLogo from "../Images/tools/aircall.webp";
 import jiraLogo from "../Images/tools/jira.webp";
 import techGuy from "../Images/work.webp";
+import { getActiveWork } from "../../services/workApi";
 
 /* ── Word-slice (same mechanic as Hero & Tech) ── */
 const SliceText = ({ text, inView, baseDelay = 0 }) => (
@@ -33,6 +34,15 @@ const Work = () => {
   const [entered, setEntered] = useState(false);
   const isKm = i18n.language === "km";
 
+  // Saved content from Content › Home › Work (empty fields keep the built-in wording/images)
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveWork(isKm ? "km" : "en")
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [isKm]);
+  const pick = (field, fallback) => saved?.[field] || fallback;
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -47,15 +57,18 @@ const Work = () => {
     return () => observer.disconnect();
   }, []);
 
-  const headline1 = isKm ? "យើងធ្វើការ" : "We do the work,";
-  const headline2 = isKm ? "អ្នកផ្តោតលើ" : "so you focus on";
-  const headline3 = isKm ? "អ្វីដែលសំខាន់។" : "what matters.";
+  const headline1 = pick("headingLine1", isKm ? "យើងធ្វើការ" : "We do the work,");
+  const headline2 = pick("headingLine2", isKm ? "អ្នកផ្តោតលើ" : "so you focus on");
+  const headline3 = pick("headingLine3", isKm ? "អ្វីដែលសំខាន់។" : "what matters.");
 
-  const body = isKm
-    ? "ក្រុមការងាររបស់យើងនៅសៀមរាបផ្តល់ការជំនួយបច្ចេកទេសពីចម្ងាយ ការទូរស័ព្ទ និងការគ្រប់គ្រងប្រព័ន្ធ RetailManager ដល់អតិថិជនអូស្ត្រាលី ២៤/៧។"
-    : "Our Siem Reap-based team delivers expert remote support, phone assistance, and RetailManager system management to Australian clients, reliably, every day.";
+  const body = pick(
+    "body",
+    isKm
+      ? "ក្រុមការងាររបស់យើងនៅសៀមរាបផ្តល់ការជំនួយបច្ចេកទេសពីចម្ងាយ ការទូរស័ព្ទ និងការគ្រប់គ្រងប្រព័ន្ធ RetailManager ដល់អតិថិជនអូស្ត្រាលី ២៤/៧។"
+      : "Our Siem Reap-based team delivers expert remote support, phone assistance, and RetailManager system management to Australian clients, reliably, every day."
+  );
 
-  const services = [
+  const defaultServices = [
     {
       icon: <Monitor size={18} strokeWidth={1.8} />,
       title: isKm ? "ការជំនួយពីចម្ងាយ" : "Remote Support",
@@ -85,6 +98,23 @@ const Work = () => {
         : "RetailManager monitoring, updates, database optimization, and health checks.",
     },
   ];
+
+  const services = defaultServices.map((svc, i) => ({
+    ...svc,
+    title: saved?.cards?.[i]?.title || svc.title,
+    desc: saved?.cards?.[i]?.description || svc.desc,
+  }));
+
+  // Tools strip: saved name/logo first
+  const tools = [
+    { src: teamviewerLogo, alt: "TeamViewer" },
+    { src: hubspotLogo, alt: "HubSpot" },
+    { src: aircallLogo, alt: "Aircall" },
+    { src: jiraLogo, alt: "Jira" },
+  ].map((tool, i) => ({
+    src: saved?.tools?.[i]?.logo || tool.src,
+    alt: saved?.tools?.[i]?.name || tool.alt,
+  }));
 
   return (
     <>
@@ -186,26 +216,54 @@ const Work = () => {
           .fs-container { max-width: 1500px; }
         }
 
+        /* ── Phones + tablets: one column — text, person image, service cards ── */
         @media (max-width: 1023px) {
-          .fs-center-col { display: none !important; }
+          .fs-section { padding: 56px 0 64px !important; }
           .fs-main-grid {
-            grid-template-columns: 1fr 1fr !important;
-            gap: 40px !important;
+            grid-template-columns: 1fr !important;
+            gap: 36px !important;
+            min-height: 0 !important;
           }
+          .fs-center-col {
+            height: 420px !important;
+            min-height: 0 !important;
+          }
+          .fs-person-img {
+            height: 100% !important;
+            max-height: none !important;
+          }
+          /* Keep the floating badges inside the screen */
+          .fs-badge-left { left: 0 !important; top: 16px !important; }
+          .fs-badge-right { right: 0 !important; bottom: 24px !important; }
           .fs-right-col {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
             padding-left: 0 !important;
           }
         }
+
+        /* ── Phones ── */
         @media (max-width: 600px) {
-          .fs-main-grid {
-            grid-template-columns: 1fr !important;
+          .fs-center-col { height: 380px !important; }
+          .fs-right-col { grid-template-columns: 1fr; }
+          /* Tools as a 2×2 grid of chips instead of a cramped row */
+          .fs-tools {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px !important;
+          }
+          .fs-tool {
+            padding: 10px 12px !important;
+            border-left: none !important;
+            border-radius: 14px;
+            background: #f1f5f9;
           }
         }
       `}</style>
 
       <section
         ref={sectionRef}
-        className={entered ? "fs-entered" : ""}
+        className={`fs-section${entered ? " fs-entered" : ""}`}
         style={{
           background: "#ffffff",
           padding: "80px 0 90px",
@@ -240,7 +298,7 @@ const Work = () => {
                     transitionDelay: "0.05s",
                   }}
                 >
-                  {isKm ? "មូលដ្ឋានការងាររបស់យើង" : "Our Base, Your Backbone"}
+                  {pick("eyebrow", isKm ? "មូលដ្ឋានការងាររបស់យើង" : "Our Base, Your Backbone")}
                 </span>
               </div>
 
@@ -286,8 +344,8 @@ const Work = () => {
 
               {/* CTA */}
               <div className="fs-slide-up" style={{ transitionDelay: "0.7s" }}>
-                <a href="https://aaapos.com/support" className="fs-cta-btn">
-                  {isKm ? "ស្វែងយល់បន្ថែម" : "Learn More"}
+                <a href={pick("buttonLink", "https://aaapos.com/support")} className="fs-cta-btn">
+                  {pick("buttonText", isKm ? "ស្វែងយល់បន្ថែម" : "Learn More")}
                   <ArrowRight size={15} />
                 </a>
               </div>
@@ -312,9 +370,10 @@ const Work = () => {
                     transitionDelay: "0.85s",
                   }}
                 >
-                  {isKm ? "ឧបករណ៍ដែលយើងប្រើ" : "Tools we work with"}
+                  {pick("toolsLabel", isKm ? "ឧបករណ៍ដែលយើងប្រើ" : "Tools we work with")}
                 </div>
                 <div
+                  className="fs-tools"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -322,15 +381,10 @@ const Work = () => {
                     flexWrap: "wrap",
                   }}
                 >
-                  {[
-                    { src: teamviewerLogo, alt: "TeamViewer" },
-                    { src: hubspotLogo, alt: "HubSpot" },
-                    { src: aircallLogo, alt: "Aircall" },
-                    { src: jiraLogo, alt: "Jira" },
-                  ].map((tool, i) => (
+                  {tools.map((tool, i) => (
                     <div
                       key={tool.alt}
-                      className="fs-drop"
+                      className="fs-tool fs-drop"
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -391,9 +445,9 @@ const Work = () => {
 
               {/* Person */}
               <img
-                src={techGuy}
+                src={pick("image", techGuy)}
                 alt="Support specialist"
-                className="fs-person"
+                className="fs-person fs-person-img"
                 draggable={false}
                 style={{
                   position: "relative",
@@ -415,6 +469,7 @@ const Work = () => {
 
               {/* Badge — top left: 100% Remote */}
               <motion.div
+                className="fs-badge-left"
                 style={{
                   position: "absolute",
                   top: 36,
@@ -482,16 +537,17 @@ const Work = () => {
                       lineHeight: 1,
                     }}
                   >
-                    {isKm ? "ពីចម្ងាយ ១០០%" : "100% Remote"}
+                    {pick("badgeLeftTitle", isKm ? "ពីចម្ងាយ ១០០%" : "100% Remote")}
                   </div>
                   <div style={{ fontSize: 10, color: "#000000", marginTop: 2 }}>
-                    {isKm ? "ភ្ជាប់ជា TeamViewer" : "Via TeamViewer"}
+                    {pick("badgeLeftText", isKm ? "ភ្ជាប់ជា TeamViewer" : "Via TeamViewer")}
                   </div>
                 </div>
               </motion.div>
 
               {/* Badge — bottom right: 15 min Response */}
               <motion.div
+                className="fs-badge-right"
                 style={{
                   position: "absolute",
                   bottom: 52,
@@ -559,10 +615,10 @@ const Work = () => {
                       lineHeight: 1,
                     }}
                   >
-                    {isKm ? "ឆ្លើយតបក្នុង ១៥ នាទី" : "15 Min Response"}
+                    {pick("badgeRightTitle", isKm ? "ឆ្លើយតបក្នុង ១៥ នាទី" : "15 Min Response")}
                   </div>
                   <div style={{ fontSize: 10, color: "#000000", marginTop: 2 }}>
-                    {isKm ? "ពេលវេលាឆ្លើយតបជាមធ្យម" : "Avg. Response Time"}
+                    {pick("badgeRightText", isKm ? "ពេលវេលាឆ្លើយតបជាមធ្យម" : "Avg. Response Time")}
                   </div>
                 </div>
               </motion.div>

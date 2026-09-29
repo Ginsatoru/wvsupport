@@ -202,7 +202,8 @@ const AdminPanel = () => {
             sidebarOpen ? "md:ml-0" : "md:ml-0"
           } ${darkMode ? "bg-gray-800" : "bg-white"}`}
         >
-          <div className="max-w-full">
+          {/* h-full lets pages like the CMS fill the area and scroll inside it */}
+          <div className="max-w-full h-full">
             <Routes>
               {/* Default redirect to dashboard - use relative path */}
               <Route path="/" element={<Navigate to="dashboard" replace />} />

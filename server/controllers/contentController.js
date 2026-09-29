@@ -1,404 +1,155 @@
-const HeroContent = require('../models/FrontendContent');
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
+const HeroContent = require("../models/FrontendContent");
 
-// Helper function to delete old image file
-const deleteOldImage = (imagePath) => {
-  if (imagePath && fs.existsSync(imagePath)) {
-    try {
-      fs.unlinkSync(imagePath);
-      console.log(`🗑️  Deleted old image: ${imagePath}`);
-    } catch (error) {
-      console.error(`❌ Error deleting old image: ${error.message}`);
-    }
-  }
+// ── Helpers ──
+const str = (value) => (typeof value === "string" ? value.trim() : "");
+const text = (value, fallback = "") => ({ en: str(value?.en) || fallback, km: str(value?.km) });
+
+const uploadedPath = (file) => (file ? `uploads/${file.filename}` : null);
+const removeFile = (relativePath) => {
+  if (!relativePath || relativePath.startsWith("http")) return;
+  fs.unlink(path.join(__dirname, "..", relativePath), () => {});
 };
+const uploadedFiles = (req) => ({
+  background: req.files?.backgroundImage?.[0],
+  person: req.files?.personImage?.[0],
+});
+const removeUploads = (req) => Object.values(uploadedFiles(req)).forEach((f) => f && fs.unlink(f.path, () => {}));
 
-// @desc    Get active hero content for frontend with language support
-// @route   GET /api/content/hero/active?lang=en|km
-// @access  Public
-const getActiveHeroContent = async (req, res) => {
+// Stored "uploads/x" → full URL for the browser
+const fullUrl = (req, p) => (!p || p.startsWith("http") ? p || "" : `${req.protocol}://${req.get("host")}/${p}`);
+const withUrls = (req, hero) => ({
+  ...hero,
+  backgroundImage: fullUrl(req, hero.backgroundImage),
+  personImage: fullUrl(req, hero.personImage),
+});
+
+const handle = (label, fn) => async (req, res) => {
   try {
-    const { lang = 'en' } = req.query;
-    const supportedLangs = ['en', 'km'];
-    const language = supportedLangs.includes(lang) ? lang : 'en';
-
-    const heroContent = await HeroContent.findActiveWithLang(language);
-
-    if (!heroContent) {
-      return res.status(404).json({
-        success: false,
-        message: 'No active hero content found'
-      });
-    }
-
-    // Construct full image URL
-    const fullImageUrl = heroContent.backgroundImage.startsWith('http') 
-      ? heroContent.backgroundImage 
-      : `${req.protocol}://${req.get('host')}/${heroContent.backgroundImage}`;
-
-    const responseData = {
-      ...heroContent,
-      backgroundImage: fullImageUrl
-    };
-
-    res.json({
-      success: true,
-      data: responseData,
-      language: language
-    });
+    await fn(req, res);
   } catch (error) {
-    console.error('Error fetching active hero content:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+    removeUploads(req);
+    console.error(`Hero ${label} error:`, error);
+    res.status(500).json({ success: false, message: `Failed to ${label}` });
   }
 };
 
-// @desc    Get all hero content for admin (includes all languages)
-// @route   GET /api/content/hero/admin/all
-// @access  Private (Admin)
-const getAllHeroContent = async (req, res) => {
+const notFound = (req, res) => {
+  removeUploads(req);
+  res.status(404).json({ success: false, message: "Hero content not found" });
+};
+
+// Form sends all text/links/flags as one JSON string in "content"
+const readContent = (req) => {
   try {
-    const heroContents = await HeroContent.find()
-      .sort({ updatedAt: -1 });
-
-    // Return full bilingual data for admin
-    const responseData = heroContents.map(content => {
-      const fullImageUrl = content.backgroundImage.startsWith('http') 
-        ? content.backgroundImage 
-        : `${req.protocol}://${req.get('host')}/${content.backgroundImage}`;
-      
-      return {
-        ...content.toObject(),
-        backgroundImage: fullImageUrl
-      };
-    });
-
-    res.json({
-      success: true,
-      data: responseData,
-      count: responseData.length
-    });
-  } catch (error) {
-    console.error('Error fetching all hero content:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+    const c = JSON.parse(req.body.content || "{}");
+    return {
+      data: {
+        title: text(c.title),
+        subtitle: text(c.subtitle),
+        primaryCtaText: text(c.primaryCtaText, "Learn More"),
+        secondaryCtaText: text(c.secondaryCtaText, "Get Started"),
+        primaryCtaLink: str(c.primaryCtaLink) || "/services",
+        secondaryCtaLink: str(c.secondaryCtaLink) || "/contact",
+        features: (Array.isArray(c.features) ? c.features : []).slice(0, 3).map((f) => text(f)),
+        testimonial: text(c.testimonial),
+        isActive: !!c.isActive,
+      },
+      removePersonImage: !!c.removePersonImage,
+    };
+  } catch {
+    return null;
   }
 };
 
-// @desc    Create new hero content with bilingual support
-// @route   POST /api/content/hero/admin
-// @access  Private (Admin)
-const createHeroContent = async (req, res) => {
-  try {
-    const {
-      // English fields
-      title_en,
-      subtitle_en,
-      primaryCtaText_en,
-      secondaryCtaText_en,
-      
-      // Khmer fields
-      title_km,
-      subtitle_km,
-      primaryCtaText_km,
-      secondaryCtaText_km,
-      
-      // Common fields
-      primaryCtaLink,
-      secondaryCtaLink,
-      isActive
-    } = req.body;
-
-    // Validate required English fields
-    if (!title_en || !subtitle_en) {
-      return res.status(400).json({
-        success: false,
-        message: 'English title and subtitle are required'
-      });
-    }
-
-    // Check if file was uploaded
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'Background image is required'
-      });
-    }
-
-    // If this hero is set as active, deactivate all others
-    if (isActive === 'true' || isActive === true) {
-      await HeroContent.updateMany({}, { isActive: false });
-    }
-
-    const heroData = {
-      title: {
-        en: title_en.trim(),
-        km: title_km?.trim() || ''
-      },
-      subtitle: {
-        en: subtitle_en.trim(),
-        km: subtitle_km?.trim() || ''
-      },
-      primaryCtaText: {
-        en: primaryCtaText_en?.trim() || 'Learn More',
-        km: primaryCtaText_km?.trim() || ''
-      },
-      secondaryCtaText: {
-        en: secondaryCtaText_en?.trim() || 'Get Started',
-        km: secondaryCtaText_km?.trim() || ''
-      },
-      primaryCtaLink: primaryCtaLink?.trim() || '/services',
-      secondaryCtaLink: secondaryCtaLink?.trim() || '/contact',
-      backgroundImage: `uploads/${req.file.filename}`,
-      isActive: isActive === 'true' || isActive === true
-    };
-
-    const newHeroContent = new HeroContent(heroData);
-    await newHeroContent.save();
-
-    // Return response with full image URL
-    const fullImageUrl = `${req.protocol}://${req.get('host')}/${heroData.backgroundImage}`;
-    const responseData = {
-      ...newHeroContent.toObject(),
-      backgroundImage: fullImageUrl
-    };
-
-    res.status(201).json({
-      success: true,
-      message: 'Hero content created successfully',
-      data: responseData
-    });
-  } catch (error) {
-    // Delete uploaded file if hero creation fails
-    if (req.file) {
-      deleteOldImage(req.file.path);
-    }
-
-    console.error('Error creating hero content:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
-  }
+const invalid = (req, res, message) => {
+  removeUploads(req);
+  res.status(400).json({ success: false, message });
 };
 
-// @desc    Update hero content with bilingual support
-// @route   PUT /api/content/hero/admin/:id
-// @access  Private (Admin)
-const updateHeroContent = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const {
-      // English fields
-      title_en,
-      subtitle_en,
-      primaryCtaText_en,
-      secondaryCtaText_en,
-      
-      // Khmer fields
-      title_km,
-      subtitle_km,
-      primaryCtaText_km,
-      secondaryCtaText_km,
-      
-      // Common fields
-      primaryCtaLink,
-      secondaryCtaLink,
-      isActive
-    } = req.body;
+// Only one hero can be active
+const deactivateOthers = (id) => HeroContent.updateMany(id ? { _id: { $ne: id } } : {}, { isActive: false });
 
-    // Find existing hero content
-    const existingHero = await HeroContent.findById(id);
-    if (!existingHero) {
-      // Clean up uploaded file if hero doesn't exist
-      if (req.file) {
-        deleteOldImage(req.file.path);
-      }
-      return res.status(404).json({
-        success: false,
-        message: 'Hero content not found'
-      });
-    }
+// ── Public: active hero in one language — GET /api/content/hero/active?lang=en|km ──
+const getActiveHeroContent = handle("fetch hero content", async (req, res) => {
+  const hero = await HeroContent.findActiveWithLang(req.query.lang);
+  if (!hero) return res.status(404).json({ success: false, message: "No active hero content found" });
+  res.json({ success: true, data: withUrls(req, hero) });
+});
 
-    // Validate required English fields
-    if (!title_en || !subtitle_en) {
-      if (req.file) {
-        deleteOldImage(req.file.path);
-      }
-      return res.status(400).json({
-        success: false,
-        message: 'English title and subtitle are required'
-      });
-    }
+// ── Admin: all heroes, both languages ──
+const getAllHeroContent = handle("fetch hero content", async (req, res) => {
+  const heroes = await HeroContent.find().sort({ updatedAt: -1 }).lean();
+  res.json({ success: true, data: heroes.map((h) => withUrls(req, h)), count: heroes.length });
+});
 
-    // If this hero is set as active, deactivate all others
-    if (isActive === 'true' || isActive === true) {
-      await HeroContent.updateMany({ _id: { $ne: id } }, { isActive: false });
-    }
+// ── Admin: create ──
+const createHeroContent = handle("create hero content", async (req, res) => {
+  const content = readContent(req);
+  const { background, person } = uploadedFiles(req);
+  if (!content) return invalid(req, res, "Invalid form data");
+  if (!content.data.title.en || !content.data.subtitle.en) return invalid(req, res, "English title and subtitle are required");
+  if (!background) return invalid(req, res, "Background image is required");
 
-    // Prepare update data
-    const updateData = {
-      title: {
-        en: title_en.trim(),
-        km: title_km?.trim() || ''
-      },
-      subtitle: {
-        en: subtitle_en.trim(),
-        km: subtitle_km?.trim() || ''
-      },
-      primaryCtaText: {
-        en: primaryCtaText_en?.trim() || 'Learn More',
-        km: primaryCtaText_km?.trim() || ''
-      },
-      secondaryCtaText: {
-        en: secondaryCtaText_en?.trim() || 'Get Started',
-        km: secondaryCtaText_km?.trim() || ''
-      },
-      primaryCtaLink: primaryCtaLink?.trim() || '/services',
-      secondaryCtaLink: secondaryCtaLink?.trim() || '/contact',
-      isActive: isActive === 'true' || isActive === true,
-      updatedAt: Date.now()
-    };
+  if (content.data.isActive) await deactivateOthers();
+  const hero = await HeroContent.create({
+    ...content.data,
+    backgroundImage: uploadedPath(background),
+    personImage: uploadedPath(person) || "",
+  });
 
-    // Handle image update
-    if (req.file) {
-      // Delete old image
-      const oldImagePath = path.join(__dirname, '..', existingHero.backgroundImage);
-      deleteOldImage(oldImagePath);
-      
-      // Set new image path
-      updateData.backgroundImage = `uploads/${req.file.filename}`;
-    }
+  res.status(201).json({ success: true, message: "Hero section created", data: withUrls(req, hero.toObject()) });
+});
 
-    // Update hero content
-    const updatedHero = await HeroContent.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+// ── Admin: update (images optional; old files are removed when replaced) ──
+const updateHeroContent = handle("update hero content", async (req, res) => {
+  const hero = await HeroContent.findById(req.params.id);
+  if (!hero) return notFound(req, res);
 
-    // Return response with full image URL
-    const fullImageUrl = updatedHero.backgroundImage.startsWith('http') 
-      ? updatedHero.backgroundImage 
-      : `${req.protocol}://${req.get('host')}/${updatedHero.backgroundImage}`;
+  const content = readContent(req);
+  const { background, person } = uploadedFiles(req);
+  if (!content) return invalid(req, res, "Invalid form data");
+  if (!content.data.title.en || !content.data.subtitle.en) return invalid(req, res, "English title and subtitle are required");
 
-    const responseData = {
-      ...updatedHero.toObject(),
-      backgroundImage: fullImageUrl
-    };
+  if (content.data.isActive) await deactivateOthers(hero._id);
 
-    res.json({
-      success: true,
-      message: 'Hero content updated successfully',
-      data: responseData
-    });
-  } catch (error) {
-    // Delete uploaded file if update fails
-    if (req.file) {
-      deleteOldImage(req.file.path);
-    }
-
-    console.error('Error updating hero content:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+  if (background) {
+    removeFile(hero.backgroundImage);
+    hero.backgroundImage = uploadedPath(background);
   }
-};
-
-// @desc    Delete hero content
-// @route   DELETE /api/content/hero/admin/:id
-// @access  Private (Admin)
-const deleteHeroContent = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const heroContent = await HeroContent.findById(id);
-    if (!heroContent) {
-      return res.status(404).json({
-        success: false,
-        message: 'Hero content not found'
-      });
-    }
-
-    // Delete associated image file
-    const imagePath = path.join(__dirname, '..', heroContent.backgroundImage);
-    deleteOldImage(imagePath);
-
-    // Delete from database
-    await HeroContent.findByIdAndDelete(id);
-
-    res.json({
-      success: true,
-      message: 'Hero content deleted successfully'
-    });
-  } catch (error) {
-    console.error('Error deleting hero content:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+  if (person || content.removePersonImage) {
+    removeFile(hero.personImage);
+    hero.personImage = uploadedPath(person) || "";
   }
-};
+  hero.set(content.data);
+  await hero.save();
 
-// @desc    Toggle hero content active status
-// @route   PATCH /api/content/hero/admin/:id/toggle-active
-// @access  Private (Admin)
-const toggleHeroActive = async (req, res) => {
-  try {
-    const { id } = req.params;
+  res.json({ success: true, message: "Hero section updated", data: withUrls(req, hero.toObject()) });
+});
 
-    const heroContent = await HeroContent.findById(id);
-    if (!heroContent) {
-      return res.status(404).json({
-        success: false,
-        message: 'Hero content not found'
-      });
-    }
+// ── Admin: delete (and its images) ──
+const deleteHeroContent = handle("delete hero content", async (req, res) => {
+  const hero = await HeroContent.findByIdAndDelete(req.params.id);
+  if (!hero) return notFound(req, res);
+  removeFile(hero.backgroundImage);
+  removeFile(hero.personImage);
+  res.json({ success: true, message: "Hero section deleted" });
+});
 
-    // If making this hero active, deactivate all others
-    if (!heroContent.isActive) {
-      await HeroContent.updateMany({ _id: { $ne: id } }, { isActive: false });
-    }
-
-    // Toggle the active status
-    heroContent.isActive = !heroContent.isActive;
-    await heroContent.save();
-
-    // Return response with full image URL
-    const fullImageUrl = heroContent.backgroundImage.startsWith('http') 
-      ? heroContent.backgroundImage 
-      : `${req.protocol}://${req.get('host')}/${heroContent.backgroundImage}`;
-
-    const responseData = {
-      ...heroContent.toObject(),
-      backgroundImage: fullImageUrl
-    };
-
-    res.json({
-      success: true,
-      message: `Hero content ${heroContent.isActive ? 'activated' : 'deactivated'} successfully`,
-      data: responseData
-    });
-  } catch (error) {
-    console.error('Error toggling hero active status:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
-  }
-};
+// ── Admin: show / hide on the site ──
+const toggleHeroActive = handle("update hero status", async (req, res) => {
+  const hero = await HeroContent.findById(req.params.id);
+  if (!hero) return notFound(req, res);
+  if (!hero.isActive) await deactivateOthers(hero._id);
+  hero.isActive = !hero.isActive;
+  await hero.save();
+  res.json({
+    success: true,
+    message: `Hero section ${hero.isActive ? "activated" : "deactivated"}`,
+    data: withUrls(req, hero.toObject()),
+  });
+});
 
 module.exports = {
   getActiveHeroContent,
@@ -406,5 +157,5 @@ module.exports = {
   createHeroContent,
   updateHeroContent,
   deleteHeroContent,
-  toggleHeroActive
+  toggleHeroActive,
 };

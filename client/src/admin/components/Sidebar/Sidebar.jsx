@@ -47,7 +47,11 @@ const Sidebar = ({
     else setActiveTab(subItem.id);
   };
 
-  const isActive = (item) => item.route ? location.pathname === item.route : activeTab === item.id;
+  // Exact route or anything under it (e.g. /admin-panel/frontend/home/hero keeps "Content" active)
+  const isActive = (item) =>
+    item.route
+      ? location.pathname === item.route || location.pathname.startsWith(`${item.route}/`)
+      : activeTab === item.id;
   const isSubmenuActive = (subItem) => subItem.route ? location.pathname === subItem.route : activeTab === subItem.id;
   const shouldHighlightParent = (item) => item.children ? item.children.some(isSubmenuActive) : false;
 

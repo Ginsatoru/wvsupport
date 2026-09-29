@@ -1,5 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { getActiveServices } from "../../services/servicesApi";
 
 import posImage from "../Images/pos1.webp";
 import webstoreImage from "../Images/webstore1.webp";
@@ -15,14 +17,6 @@ const services = [
   { key: "support",    image: supportImage },
 ];
 
-const icons = [
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>,
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>,
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-];
-
 const supportContent = {
   en: {
     title: "Technical Support",
@@ -33,6 +27,25 @@ const supportContent = {
     description: "ជំនួយបច្ចេកទេស និងដោះស្រាយបញ្ហាដ៏អាចទុកចិត្តបានសម្រាប់ផលិតផលទាំងអស់របស់យើង ជាមួយពេលឆ្លើយតបលឿន និងការណែនាំពីអ្នកជំនាញ។",
   },
 };
+
+const DEFAULT_SUBTITLE = {
+  en: "End-to-end solutions for retail businesses, from point of sale to online store and everything in between.",
+  km: "ដំណោះស្រាយគ្រប់ជ្រុងជ្រោយសម្រាប់អាជីវកម្មលក់រាយ ពីចំណុចលក់រហូតដល់ហាងអនឡាញ",
+};
+
+const DEFAULT_STATS = {
+  en: ["All-in-One POS System", "Cloud-Synced Multi-Store", "Local AU/NZ Support Team"],
+  km: ["ប្រព័ន្ធលក់ពេញលេញ", "ធ្វើសមកាលកម្មច្រើនហាងលើពពក", "ក្រុមគាំទ្រក្នុងតំបន់ AU/NZ"],
+};
+
+
+const icons = [
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>,
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>,
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+];
 
 /* ── Word-slice (entrance animation) ── */
 const SliceText = ({ text, baseDelay = 0, className = "" }) => (
@@ -60,10 +73,12 @@ const DescSlice = ({ text }) => (
   </>
 );
 
-/* ── Mobile bento layout ── */
-const MobileServices = ({ services, icons, stats, subtitle, t, isKm }) => {
+/* ── Mobile layout: header, stat tiles, then a swipeable card carousel ── */
+const MobileServices = ({ items, icons, stats, title, subtitle }) => {
   const mobRef = useRef(null);
+  const railRef = useRef(null);
   const hasAnimated = useRef(false);
+  const [active, setActive] = useState(0);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -79,95 +94,110 @@ const MobileServices = ({ services, icons, stats, subtitle, t, isKm }) => {
     return () => observer.disconnect();
   }, []);
 
-  const [s0, s1, s2, s3, s4] = services;
+  // Scroll position that puts a card at the rail's left padding (rail is position:relative)
+  const cardScrollLeft = (rail, card) => card.offsetLeft - parseFloat(getComputedStyle(rail).paddingLeft);
+
+  // Which card is currently lined up at the left
+  const handleScroll = () => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const cards = Array.from(rail.children);
+    const nearest = cards.reduce(
+      (best, card, i) =>
+        Math.abs(cardScrollLeft(rail, card) - rail.scrollLeft) <
+        Math.abs(cardScrollLeft(rail, cards[best]) - rail.scrollLeft)
+          ? i
+          : best,
+      0
+    );
+    setActive(nearest);
+  };
+
+  const goTo = (i) => {
+    const rail = railRef.current;
+    const card = rail?.children[i];
+    if (card) rail.scrollTo({ left: cardScrollLeft(rail, card), behavior: "smooth" });
+  };
 
   return (
-    <div className="block md:hidden" ref={mobRef}>
-      <div className="bg-[#f5f8ff] px-4 py-10">
+    <div className="block md:hidden bg-white py-12" ref={mobRef}>
+      {/* Header + stats */}
+      <div className="srv-container">
+        <h2 className="srv-mob-fade text-[1.75rem] font-extrabold leading-tight mb-2" style={{ color: "#000000" }}>
+          {title}
+        </h2>
+        <p className="srv-mob-fade text-sm leading-relaxed mb-6" style={{ color: "#000000", transitionDelay: "0.08s" }}>
+          {subtitle}
+        </p>
 
-        {/* Header */}
-        <div className="mb-6 px-1 srv-mob-fade" style={{ transitionDelay: "0s" }}>
-          <h2 className="text-[1.75rem] font-extrabold leading-tight mb-2" style={{ color: "#000000" }}>
-            {t("services.header.title")}
-          </h2>
-          <p className="text-[0.8rem] text-slate-400 leading-relaxed">{subtitle}</p>
-        </div>
-
-        {/* Stats */}
-        <div className="flex pt-3 mb-6 srv-mob-fade" style={{ transitionDelay: "0.1s" }}>
+        <div className="grid grid-cols-3 gap-2 mb-8">
           {stats.map((s, i) => (
-            <div key={i} className={`flex-1 flex items-center gap-2 ${i > 0 ? "pl-4 border-l border-slate-200" : ""}`}>
+            <div
+              key={i}
+              className="srv-mob-fade flex flex-col items-center text-center gap-2 rounded-2xl px-2 py-3"
+              style={{ background: "#f1f5f9", transitionDelay: `${0.14 + i * 0.06}s` }}
+            >
               {s.icon}
-              <span className="text-[12px] font-medium leading-tight" style={{ color: "#000000" }}>{s.label}</span>
+              <span className="text-[11px] font-semibold leading-tight" style={{ color: "#000000" }}>
+                {s.label}
+              </span>
             </div>
           ))}
         </div>
+      </div>
 
-        {/* Bento cards */}
-        <div className="flex flex-col gap-3">
-
-          {/* Card 0 — large image */}
-          <div className="relative rounded-[1.25rem] overflow-hidden h-60 srv-mob-fade" style={{ transitionDelay: "0.18s" }}>
-            <img src={s0.image} alt={t(`services.${s0.key}.title`)} loading="eager" draggable={false} className="w-full h-full object-cover select-none" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/15 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-5">
-              <div className="inline-flex items-center justify-center w-8 h-8 rounded-[9px] bg-white/15 border border-white/25 text-white mb-2">
-                {icons[0]}
-              </div>
-              <div className="text-base font-bold text-white leading-snug mb-1">{t(`services.${s0.key}.title`)}</div>
-              <div className="text-[0.75rem] text-white/65 leading-relaxed">{t(`services.${s0.key}.description`)}</div>
-            </div>
-          </div>
-
-          {/* Card 1 — horizontal light */}
-          <div className="rounded-[1.25rem] overflow-hidden bg-white border border-slate-200 flex h-[110px] srv-mob-fade" style={{ transitionDelay: "0.28s" }}>
-            <div className="w-[110px] shrink-0 overflow-hidden">
-              <img src={s1.image} alt={t(`services.${s1.key}.title`)} loading="lazy" draggable={false} className="w-full h-full object-cover select-none" />
-            </div>
-            <div className="flex-1 px-4 py-3 flex flex-col justify-center">
-              <div className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-sky-100 text-sky-600 mb-1.5 shrink-0">
-                {icons[1]}
-              </div>
-              <div className="text-[0.82rem] font-bold text-slate-900 leading-snug mb-0.5">{t(`services.${s1.key}.title`)}</div>
-              <div className="text-[0.7rem] text-slate-400 leading-relaxed line-clamp-2">{t(`services.${s1.key}.description`)}</div>
-            </div>
-          </div>
-
-          {/* Cards 2 & 3 — mini row */}
-          <div className="grid grid-cols-2 gap-3 srv-mob-fade" style={{ transitionDelay: "0.38s" }}>
-            {[s2, s3].map((svc, i) => (
-              <div key={svc.key} className="rounded-[1.25rem] overflow-hidden bg-white border border-slate-200 flex flex-col">
-                <div className="h-[100px] overflow-hidden">
-                  <img src={svc.image} alt={t(`services.${svc.key}.title`)} loading="lazy" draggable={false} className="w-full h-full object-cover select-none" />
-                </div>
-                <div className="p-3 flex flex-col gap-1">
-                  <div className="inline-flex items-center justify-center w-[26px] h-[26px] rounded-[7px] bg-slate-100 text-slate-500">
-                    {icons[i + 2]}
-                  </div>
-                  <div className="text-[0.75rem] font-bold text-slate-900 leading-snug">{t(`services.${svc.key}.title`)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Card 4 — horizontal dark */}
-          <div
-            className="rounded-[1.25rem] overflow-hidden border-transparent flex flex-row-reverse h-[110px] srv-mob-fade"
-            style={{ transitionDelay: "0.48s", background: "#1a1a2e" }}
+      {/* Card carousel — swipe sideways, next card peeks in */}
+      <div
+        ref={railRef}
+        onScroll={handleScroll}
+        className="srv-mob-rail srv-mob-fade relative flex gap-3 overflow-x-auto snap-x snap-mandatory"
+        style={{ transitionDelay: "0.3s" }}
+      >
+        {items.map((svc, i) => (
+          <article
+            key={i}
+            className="snap-start shrink-0 w-[82%] rounded-[20px] overflow-hidden flex flex-col"
+            style={{ background: "#f1f5f9" }}
           >
-            <div className="w-[110px] shrink-0 overflow-hidden">
-              <img src={s4.image} alt={t(`services.${s4.key}.title`)} loading="lazy" draggable={false} className="w-full h-full object-cover select-none" />
+            <div className="h-44 overflow-hidden bg-white">
+              <img
+                src={svc.image}
+                alt={svc.title}
+                loading={i === 0 ? "eager" : "lazy"}
+                draggable={false}
+                className="w-full h-full object-cover select-none"
+              />
             </div>
-            <div className="flex-1 px-4 py-3 flex flex-col justify-center">
-              <div className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white/10 text-white mb-1.5 shrink-0">
-                {icons[4]}
+            <div className="flex-1 flex items-start gap-3 p-4">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: "#000000", color: "#ffffff" }}
+              >
+                {icons[i % icons.length]}
               </div>
-              <div className="text-[0.82rem] font-bold text-white leading-snug mb-0.5">{isKm ? supportContent.km.title : supportContent.en.title}</div>
-              <div className="text-[0.7rem] text-white/50 leading-relaxed line-clamp-2">{isKm ? supportContent.km.description : supportContent.en.description}</div>
+              <div className="min-w-0">
+                <h3 className="text-[15px] font-bold leading-snug mb-1" style={{ color: "#000000" }}>
+                  {svc.title}
+                </h3>
+                <p className="text-[13px] leading-relaxed" style={{ color: "#000000" }}>
+                  {svc.description}
+                </p>
+              </div>
             </div>
-          </div>
+          </article>
+        ))}
+      </div>
 
-        </div>
+      {/* Dots */}
+      <div className="srv-mob-fade flex justify-center gap-1.5 mt-5" style={{ transitionDelay: "0.4s" }}>
+        {items.map((svc, i) => (
+          <button
+            key={i}
+            onClick={() => goTo(i)}
+            aria-label={`Show ${svc.title}`}
+            className={`h-2 rounded-full transition-all duration-300 ${active === i ? "w-6 bg-black" : "w-2 bg-gray-300"}`}
+          />
+        ))}
       </div>
     </div>
   );
@@ -175,16 +205,52 @@ const MobileServices = ({ services, icons, stats, subtitle, t, isKm }) => {
 
 const Services = () => {
   const { t, i18n } = useTranslation();
-  const isKm = i18n.language === "km";
+  const lang = i18n.language === "km" ? "km" : "en";
+
+  // Content from the admin (Content › Home › Services); empty fields keep the built-in wording/images
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveServices(lang)
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [lang]);
+
+  const content = useMemo(() => {
+    // Built-in cards, by key
+    const defaults = Object.fromEntries(
+      services.map((svc) => [
+        svc.key,
+        {
+          title: svc.key === "support" ? supportContent[lang].title : t(`services.${svc.key}.title`),
+          description: svc.key === "support" ? supportContent[lang].description : t(`services.${svc.key}.description`),
+          image: svc.image,
+        },
+      ])
+    );
+    // Saved list (cards added/removed in the admin) or the built-in 5; empty fields fall back by key
+    const list = saved?.items?.length ? saved.items : services.map((svc) => ({ key: svc.key }));
+    return {
+      title: saved?.title || t("services.header.title"),
+      subtitle: saved?.subtitle || DEFAULT_SUBTITLE[lang],
+      stats: DEFAULT_STATS[lang].map((label, i) => saved?.stats?.[i] || label),
+      items: list.map((item) => {
+        const d = defaults[item.key] || {};
+        return {
+          title: item.title || d.title || "",
+          description: item.description || d.description || "",
+          image: item.image || d.image || "",
+        };
+      }),
+    };
+  }, [saved, lang, t]);
+  const items = content.items;
+  const itemCountRef = useRef(items.length);
+  itemCountRef.current = items.length;
   const sectionRef   = useRef(null);
   const activeIdxRef = useRef(0);
   const hasAnimated  = useRef(false);
 
-  const subtitle = isKm
-    ? "ដំណោះស្រាយគ្រប់ជ្រុងជ្រោយសម្រាប់អាជីវកម្មលក់រាយ ពីចំណុចលក់រហូតដល់ហាងអនឡាញ"
-    : "End-to-end solutions for retail businesses, from point of sale to online store and everything in between.";
-
-  const stats = [
+  const statIcons = [
     {
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 flex-shrink-0" style={{ color: "#000000" }}>
@@ -193,7 +259,6 @@ const Services = () => {
           <path d="M7 8h2M7 11h5" />
         </svg>
       ),
-      label: isKm ? "ប្រព័ន្ធលក់ពេញលេញ" : "All-in-One POS System",
     },
     {
       icon: (
@@ -202,7 +267,6 @@ const Services = () => {
           <path d="M12 12v6m0 0l-2-2m2 2l2-2" />
         </svg>
       ),
-      label: isKm ? "ធ្វើសមកាលកម្មច្រើនហាងលើពពក" : "Cloud-Synced Multi-Store",
     },
     {
       icon: (
@@ -213,9 +277,9 @@ const Services = () => {
           <path d="M15 19a3 3 0 01-3 2" />
         </svg>
       ),
-      label: isKm ? "ក្រុមគាំទ្រក្នុងតំបន់ AU/NZ" : "Local AU/NZ Support Team",
     },
   ];
+  const stats = statIcons.map((s, i) => ({ icon: s.icon, label: content.stats[i] }));
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -249,9 +313,8 @@ const Services = () => {
   };
 
   useEffect(() => {
-    const totalSteps = services.length;
-
     const onScroll = () => {
+      const totalSteps = itemCountRef.current;
       const el = sectionRef.current;
       if (!el) return;
       const rect     = el.getBoundingClientRect();
@@ -274,6 +337,18 @@ const Services = () => {
   return (
     <>
       <style>{`
+        /* ── Container — same breakpoints as .fs-container (Work) / navbar ── */
+        .srv-container {
+          width: 100%;
+          padding: 0 16px;
+          margin: 0 auto;
+        }
+        @media (min-width: 640px)  { .srv-container { padding: 0 24px; } }
+        @media (min-width: 1024px) { .srv-container { width: 88%; padding: 0; } }
+        @media (min-width: 1280px) { .srv-container { width: 83%; } }
+        @media (min-width: 1536px) { .srv-container { max-width: 1400px; } }
+        @media (min-width: 1700px) { .srv-container { max-width: 1500px; } }
+
         /* ── Word-slice entrance ── */
         .srv-word {
           transform: translateY(110%);
@@ -315,11 +390,7 @@ const Services = () => {
                       transform 0.45s cubic-bezier(0.34,1.56,0.64,1),
                       background 0.6s cubic-bezier(0.25,0.46,0.45,0.94);
         }
-        .srv-entered .srv-row:nth-child(1) { opacity:1; transform:translateY(0); transition-delay:0.55s,0.55s,0s; }
-        .srv-entered .srv-row:nth-child(2) { opacity:1; transform:translateY(0); transition-delay:0.67s,0.67s,0s; }
-        .srv-entered .srv-row:nth-child(3) { opacity:1; transform:translateY(0); transition-delay:0.79s,0.79s,0s; }
-        .srv-entered .srv-row:nth-child(4) { opacity:1; transform:translateY(0); transition-delay:0.91s,0.91s,0s; }
-        .srv-entered .srv-row:nth-child(5) { opacity:1; transform:translateY(0); transition-delay:1.03s,1.03s,0s; }
+        .srv-entered .srv-row { opacity:1; transform:translateY(0); }
 
         /* ── Right panel fade-in ── */
         .srv-right {
@@ -360,6 +431,18 @@ const Services = () => {
         }
         .srv-img.is-active { opacity: 1; transform: scale(1); }
 
+        /* ── Mobile card rail: same side padding as the container, no scrollbar ── */
+        .srv-mob-rail {
+          padding: 0 16px;
+          scroll-padding: 0 16px;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+        }
+        .srv-mob-rail::-webkit-scrollbar { display: none; }
+        @media (min-width: 640px) {
+          .srv-mob-rail { padding: 0 24px; scroll-padding: 0 24px; }
+        }
+
         /* ── Mobile entrance ── */
         .srv-mob-fade {
           opacity: 0;
@@ -375,24 +458,26 @@ const Services = () => {
       {/* ── DESKTOP ── */}
       <div
         className="relative hidden md:block bg-white"
-        style={{ height: `${services.length * 60}vh` }}
+        style={{ height: `${items.length * 60}vh` }}
         ref={sectionRef}
       >
-        <div className="sticky top-0 h-screen grid grid-cols-2 overflow-hidden">
+        <div className="sticky top-0 h-screen overflow-hidden">
+        {/* Both columns sit inside the global container, so edges match the other sections */}
+        <div className="srv-container h-full grid grid-cols-2 gap-x-10">
 
           {/* LEFT */}
-          <div className="relative flex flex-col justify-center items-start bg-white gap-0 px-[5%] pl-[11vw]">
+          <div className="relative flex flex-col justify-center items-start bg-white gap-0">
 
             {/* Header */}
             <div className="w-full mb-2">
               <h2 className="text-[clamp(1.8rem,3vw,2.6rem)] font-extrabold leading-tight m-0 flex flex-wrap" style={{ color: "#000000" }}>
-                <SliceText text={t("services.header.title")} baseDelay={0.1} />
+                <SliceText key={content.title} text={content.title} baseDelay={0.1} />
               </h2>
             </div>
 
             {/* Subtitle */}
             <p className="srv-subtitle text-[0.82rem] leading-relaxed max-w-[480px] mb-5" style={{ color: "#000000" }}>
-              {subtitle}
+              {content.subtitle}
             </p>
 
             {/* Stats */}
@@ -410,23 +495,23 @@ const Services = () => {
             </div>
 
             {/* Hidden panels */}
-            {services.map((svc, i) => (
-              <div key={svc.key} className={`srv-panel hidden${i === 0 ? " is-active" : ""}`} />
+            {items.map((svc, i) => (
+              <div key={i} className={`srv-panel hidden${i === 0 ? " is-active" : ""}`} />
             ))}
 
             {/* Service list */}
             <div className="w-full flex flex-col">
-              {services.map((svc, i) => {
-                const desc = svc.key === "support" ? (isKm ? supportContent.km.description : supportContent.en.description) : t(`services.${svc.key}.description`);
-                const title = svc.key === "support" ? (isKm ? supportContent.km.title : supportContent.en.title) : t(`services.${svc.key}.title`);
+              {items.map((svc, i) => {
+                const { title, description: desc } = svc;
                 return (
                   <div
-                    key={svc.key}
+                    key={i}
                     onClick={() => activate(i)}
+                    style={{ transitionDelay: `${0.55 + i * 0.12}s, ${0.55 + i * 0.12}s, 0s` }}
                     className={`srv-row flex items-start gap-4 py-4 px-2 -mx-2 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors duration-300 ${i === 0 ? "is-active" : ""}`}
                   >
                     <div className="srv-row-icon w-[38px] h-[38px] rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: "#000000", color: "#ffffff" }}>
-                      {icons[i]}
+                      {icons[i % icons.length]}
                     </div>
                     <div className="flex-1">
                       <div className="srv-row-title text-[0.92rem] font-bold text-slate-400 mb-0.5 transition-colors duration-[0.6s]">
@@ -443,21 +528,22 @@ const Services = () => {
           </div>
 
           {/* RIGHT */}
-          <div className="srv-right relative overflow-hidden bg-white py-[6vh] pr-[11vw] pl-[1.5vw] flex items-center justify-center">
+          <div className="srv-right relative overflow-hidden bg-white py-[6vh] flex items-center justify-center">
             <div className="relative w-full h-[70%] rounded-[1.5rem] overflow-hidden">
-              {services.map((svc, i) => (
-                <div key={svc.key} className={`srv-img${i === 0 ? " is-active" : ""}`}>
-                  <img src={svc.image} alt={t(`services.${svc.key}.title`)} loading={i === 0 ? "eager" : "lazy"} draggable={false} className="w-full h-full object-cover select-none" />
+              {items.map((svc, i) => (
+                <div key={i} className={`srv-img${i === 0 ? " is-active" : ""}`}>
+                  <img src={svc.image} alt={svc.title} loading={i === 0 ? "eager" : "lazy"} draggable={false} className="w-full h-full object-cover select-none" />
                 </div>
               ))}
             </div>
           </div>
 
         </div>
+        </div>
       </div>
 
       {/* ── MOBILE ── */}
-      <MobileServices services={services} icons={icons} stats={stats} subtitle={subtitle} t={t} isKm={isKm} />
+      <MobileServices items={items} icons={icons} stats={stats} title={content.title} subtitle={content.subtitle} />
     </>
   );
 };

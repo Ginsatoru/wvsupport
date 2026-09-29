@@ -1,8 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../context/SettingsContext";
-import { FaFacebookF, FaTwitter, FaLinkedinIn, FaPhone, FaEnvelope, FaYoutube} from "react-icons/fa";
+import { FaFacebookF, FaTwitter, FaLinkedinIn, FaPhone, FaEnvelope, FaYoutube, FaInstagram, FaTiktok } from "react-icons/fa";
+import { getActiveFooter } from "../../services/footerApi";
+
+// Icon per social platform (chosen in Content › Site-wide › Footer)
+const SOCIAL_ICONS = {
+  facebook: FaFacebookF,
+  youtube: FaYoutube,
+  linkedin: FaLinkedinIn,
+  instagram: FaInstagram,
+  tiktok: FaTiktok,
+  twitter: FaTwitter,
+};
 
 const Footer = () => {
   const { i18n } = useTranslation();
@@ -10,7 +21,15 @@ const Footer = () => {
   const { settings } = useSettings();
   const location = useLocation();
 
-  const columns = [
+  // Saved footer content (logo, name, phone and email still come from Settings)
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveFooter(isKm ? "km" : "en")
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [isKm]);
+
+  const defaultColumns = [
     {
       heading: isKm ? "អំពីយើង" : "About Us",
       links: [
@@ -23,22 +42,35 @@ const Footer = () => {
     {
       heading: isKm ? "តំណភ្ជាប់មានប្រយោជន៍" : "Useful Links",
       links: [
-        { label: isKm ? "រកមើល AAAPOS" : "Browse to AAAPOS", href: "https://www.aaapos.com/", external: true },
-        { label: "Webstore Manager", href: "https://www.aaapos.com/webstore-manager", external: true },
-        { label: "RM Mobile", href: "https://www.aaapos.com/rm-mobile", external: true },
+        { label: isKm ? "រកមើល AAAPOS" : "Browse to AAAPOS", href: "https://www.aaapos.com/" },
+        { label: "Webstore Manager", href: "https://www.aaapos.com/webstore-manager" },
+        { label: "RM Mobile", href: "https://www.aaapos.com/rm-mobile" },
         { label: isKm ? "សំណួរញឹកញាប់" : "FAQs", href: "/FAQ" },
       ],
     },
   ];
 
-  const socials = [
-    { icon: FaFacebookF, href: "https://www.facebook.com/aaapos.retailmanager/",  label: "Facebook" },
-    { icon: FaYoutube,href: "https://www.youtube.com/@aaapos/about",  label: "Youtube" },
+  const defaultSocials = [
+    { platform: "facebook", url: "https://www.facebook.com/aaapos.retailmanager/" },
+    { platform: "youtube", url: "https://www.youtube.com/@aaapos/about" },
   ];
+
+  // Links starting with http open in a new tab
+  const columns = (saved?.columns?.length ? saved.columns : defaultColumns).map((col) => ({
+    ...col,
+    links: col.links.map((l) => ({ ...l, external: l.href.startsWith("http") })),
+  }));
+
+  const socials = (saved?.socials?.length ? saved.socials : defaultSocials)
+    .filter((s) => SOCIAL_ICONS[s.platform])
+    .map((s) => ({ icon: SOCIAL_ICONS[s.platform], href: s.url, label: s.platform }));
 
   const defaultDescription = isKm
     ? "WV Support គឺជាក្រុមការងារនៅសៀមរាប ដែលផ្តល់ការគាំទ្របច្ចេកទេសពីចម្ងាយសម្រាប់ RetailManager ជូនអតិថិជនអូស្ត្រាលី និយសេឡង់ និងតំបន់អាស៊ី-ប៉ាស៊ីហ្វិក។"
     : "WV Support is a Siem Reap-based team delivering remote technical support for RetailManager, helping retailers across Australia, New Zealand, and the Asia-Pacific region.";
+
+  const description = saved?.description || settings?.companyDescription || defaultDescription;
+  const followLabel = saved?.followLabel || (isKm ? "តាមដានយើង" : "Follow Us");
 
   return (
     <>
@@ -257,9 +289,7 @@ const Footer = () => {
                 </span>
               </Link>
 
-              <p className="ft-desc">
-                {settings?.companyDescription || defaultDescription}
-              </p>
+              <p className="ft-desc">{description}</p>
 
               <div className="ft-contact-list">
                 {settings?.phoneNumber && (
@@ -278,12 +308,12 @@ const Footer = () => {
             </div>
 
             {/* ── Link columns ── */}
-            {columns.map((col) => (
-              <div key={col.heading}>
+            {columns.map((col, c) => (
+              <div key={c}>
                 <p className="ft-col-heading">{col.heading}</p>
                 <ul className="ft-links">
-                  {col.links.map(({ label, href, external }) => (
-                    <li key={href}>
+                  {col.links.map(({ label, href, external }, l) => (
+                    <li key={`${href}-${l}`}>
                       {external ? (
                         <a href={href} target="_blank" rel="noopener noreferrer">
                           {label}
@@ -315,11 +345,11 @@ const Footer = () => {
             </span>
 
             <div className="ft-right">
-              <span className="ft-follow">{isKm ? "តាមដានយើង" : "Follow Us"}</span>
+              <span className="ft-follow">{followLabel}</span>
               <div className="ft-socials">
-                {socials.map(({ icon: Icon, href, label }) => (
+                {socials.map(({ icon: Icon, href, label }, i) => (
                   <a
-                    key={label}
+                    key={`${label}-${i}`}
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"

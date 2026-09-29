@@ -86,6 +86,7 @@ router.get(
   handle(async (req, res) => {
     const thread = await Message.findOne({ sessionId: req.params.sessionId }).lean();
     res.json({
+      name: thread?.user?.name || "",
       messages: (thread?.messages || []).map((m) => ({
         content: m.content,
         attachments: m.attachments || [],
@@ -93,6 +94,25 @@ router.get(
         isAdmin: m.sender === "admin",
       })),
     });
+  })
+);
+
+// ── Visitor: set their name (shown on the thread in the admin inbox straight away) ──
+router.patch(
+  "/:sessionId/name",
+  handle(async (req, res) => {
+    const name = cleanText(req.body.name).slice(0, 60);
+    if (!name) return res.status(400).json({ message: "Name is required" });
+
+    const thread = await Message.findOneAndUpdate(
+      { sessionId: req.params.sessionId },
+      { $set: { "user.name": name } },
+      { new: true, timestamps: false }
+    );
+    if (!thread) return res.status(404).json({ message: "Thread not found" });
+
+    socket(req).broadcastToAdmins("message_updated", thread);
+    res.json({ success: true, name });
   })
 );
 

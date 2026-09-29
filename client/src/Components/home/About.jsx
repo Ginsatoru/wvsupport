@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -8,6 +8,33 @@ import teamImg from "../Images/team.webp";
 import techImg from "../Images/tech-guy.webp";
 import integrationIcon from "../Images/integration.gif";
 import reportIcon from "../Images/report.gif";
+import { getActiveAbout } from "../../services/aboutApi";
+
+// Built-in wording/images (used until edited in Content › Home › About)
+const DEFAULT_CARDS = {
+  en: [
+    { title: "Point of Sale & Inventory", description: "Process sales, manage stock levels, and track inventory across every register in real time." },
+    {
+      title: "Sales Reporting & Analytics",
+      description: "Track sales activity, monitor stock movement, and generate detailed reports to guide business decisions.",
+      buttonText: "Learn More",
+    },
+    { title: "Xero & MYOB Integration", description: "Sync sales and financial data directly with Xero and MYOB, keeping your books accurate automatically." },
+    { title: "EFTPOS & Payment Integration", description: "Accept payments seamlessly with integrated EFTPOS support from Tyro and Linkly, right at the counter." },
+  ],
+  km: [
+    { title: "ចំណុចលក់ និងស្តុកទំនិញ", description: "ដំណើរការការលក់ គ្រប់គ្រងស្តុក និងតាមដានទំនិញគ្រប់ម៉ាស៊ីនលក់ជាក់ស្តែង។" },
+    {
+      title: "របាយការណ៍ និងការវិភាគលក់",
+      description: "តាមដានប្រតិបត្តិការលក់ តាមដានស្តុក និងបង្កើតរបាយការណ៍លម្អិតដើម្បីជួយសម្រេចចិត្តអាជីវកម្ម។",
+      buttonText: "ស្វែងយល់បន្ថែម",
+    },
+    { title: "ការតភ្ជាប់ជាមួយ Xero និង MYOB", description: "ធ្វើសមកាលកម្មទិន្នន័យលក់ និងហិរញ្ញវត្ថុដោយផ្ទាល់ជាមួយ Xero និង MYOB ដើម្បីរក្សាបញ្ជីគណនេយ្យឲ្យត្រឹមត្រូវដោយស្វ័យប្រវត្តិ។" },
+    { title: "ការទូទាត់ EFTPOS", description: "ទទួលការទូទាត់យ៉ាងរលូនជាមួយ EFTPOS ដែលភ្ជាប់ជាមួយ Tyro និង Linkly នៅចំណុចលក់។" },
+  ],
+};
+const DEFAULT_IMAGES = [teamImg, reportIcon, integrationIcon, techImg];
+const DEFAULT_LINK = "https://www.aaapos.com/";
 
 /* ── Shared variants ── */
 const fadeUp = (delay = 0) => ({
@@ -54,12 +81,32 @@ const About = () => {
   const navigate = useNavigate();
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.12 });
   const isKm = i18n.language === "km";
+  const lang = isKm ? "km" : "en";
+
+  // Saved content (empty fields keep the built-in wording/images)
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveAbout(lang)
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [lang]);
+
+  const title = saved?.title || t("retailManager.subtitle");
+  const cards = DEFAULT_CARDS[lang].map((d, i) => {
+    const card = saved?.cards?.[i];
+    return {
+      title: card?.title || d.title,
+      description: card?.description || d.description,
+      image: card?.image || DEFAULT_IMAGES[i],
+      buttonText: card?.buttonText || d.buttonText,
+      buttonLink: card?.buttonLink || DEFAULT_LINK,
+    };
+  });
 
   return (
-    <section
-      ref={ref}
-      className="w-full bg-white py-12 md:py-20 px-4 md:px-[11vw]"
-    >
+    <section ref={ref} className="w-full bg-white py-12 md:py-20">
+      {/* Global container — same breakpoints as the navbar / .fs-container (Work) */}
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-0 lg:w-[88%] xl:w-[83%] 2xl:max-w-[1400px] [@media(min-width:1700px)]:max-w-[1500px]">
       {/* ── Header ── */}
       <motion.div
         className="text-center mb-8 md:mb-14 max-w-2xl mx-auto"
@@ -68,7 +115,7 @@ const About = () => {
         variants={fadeUp(0)}
       >
         <h2 className="text-2xl sm:text-3xl md:text-[42px] font-extrabold leading-[1.15] tracking-tight" style={{ color: "#000000" }}>
-          {t("retailManager.subtitle")}
+          {title}
         </h2>
       </motion.div>
 
@@ -83,8 +130,8 @@ const About = () => {
             inView={inView}
           >
             <motion.img
-              src={teamImg}
-              alt="Team"
+              src={cards[0].image}
+              alt={cards[0].title}
               className="w-full h-full object-cover"
               initial={{ scale: 1.08 }}
               animate={inView ? { scale: 1 } : { scale: 1.08 }}
@@ -104,12 +151,10 @@ const About = () => {
               transition={{ duration: 0.6, delay: 0.45, ease: "easeOut" }}
             >
               <h3 className="text-white text-base md:text-xl font-bold leading-snug">
-                {isKm ? "ចំណុចលក់ និងស្តុកទំនិញ" : "Point of Sale & Inventory"}
+                {cards[0].title}
               </h3>
               <p className="text-white/70 text-xs md:text-sm mt-1 max-w-[240px]">
-                {isKm
-                  ? "ដំណើរការការលក់ គ្រប់គ្រងស្តុក និងតាមដានទំនិញគ្រប់ម៉ាស៊ីនលក់ជាក់ស្តែង។"
-                  : "Process sales, manage stock levels, and track inventory across every register in real time."}
+                {cards[0].description}
               </p>
             </motion.div>
           </HoverCard>
@@ -123,22 +168,20 @@ const About = () => {
             scaleVariant
           >
             <div className="relative z-10">
-              <img src={reportIcon} alt="" className="w-10 h-10 mb-3 object-contain" />
+              <img src={cards[1].image} alt="" className="w-10 h-10 mb-3 object-contain" />
               <h3 className="text-lg md:text-2xl font-bold leading-snug mb-2 md:mb-3" style={{ color: "#000000" }}>
-                {isKm ? "របាយការណ៍ និងការវិភាគលក់" : "Sales Reporting & Analytics"}
+                {cards[1].title}
               </h3>
               <p className="text-xs md:text-sm leading-relaxed" style={{ color: "#000000" }}>
-                {isKm
-                  ? "តាមដានប្រតិបត្តិការលក់ តាមដានស្តុក និងបង្កើតរបាយការណ៍លម្អិតដើម្បីជួយសម្រេចចិត្តអាជីវកម្ម។"
-                  : "Track sales activity, monitor stock movement, and generate detailed reports to guide business decisions."}
+                {cards[1].description}
               </p>
             </div>
 
             <motion.a
-              href="https://www.aaapos.com/"
+              href={cards[1].buttonLink}
               className="relative z-10 self-start inline-flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 bg-black text-white rounded-full text-xs md:text-sm font-semibold hover:bg-gray-800 transition-colors duration-200 group mt-4 md:mt-0"
             >
-              {isKm ? "ស្វែងយល់បន្ថែម" : "Learn More"}
+              {cards[1].buttonText}
               <ArrowUpRight className="w-3.5 h-3.5 md:w-4 md:h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </motion.a>
           </HoverCard>
@@ -155,14 +198,12 @@ const About = () => {
             scaleVariant
           >
             <div className="relative z-10 py-4 md:py-0">
-              <img src={integrationIcon} alt="" className="w-10 h-10 mb-3 object-contain" />
+              <img src={cards[2].image} alt="" className="w-10 h-10 mb-3 object-contain" />
               <h3 className="text-lg md:text-xl font-bold mb-2" style={{ color: "#000000" }}>
-                {isKm ? "ការតភ្ជាប់ជាមួយ Xero និង MYOB" : "Xero & MYOB Integration"}
+                {cards[2].title}
               </h3>
               <p className="text-xs md:text-sm leading-relaxed" style={{ color: "#000000" }}>
-                {isKm
-                  ? "ធ្វើសមកាលកម្មទិន្នន័យលក់ និងហិរញ្ញវត្ថុដោយផ្ទាល់ជាមួយ Xero និង MYOB ដើម្បីរក្សាបញ្ជីគណនេយ្យឲ្យត្រឹមត្រូវដោយស្វ័យប្រវត្តិ។"
-                  : "Sync sales and financial data directly with Xero and MYOB, keeping your books accurate automatically."}
+                {cards[2].description}
               </p>
             </div>
           </HoverCard>
@@ -175,8 +216,8 @@ const About = () => {
             inView={inView}
           >
             <motion.img
-              src={techImg}
-              alt="Tech expert"
+              src={cards[3].image}
+              alt={cards[3].title}
               className="absolute bottom-0 right-0 h-full w-auto object-contain object-bottom pointer-events-none select-none"
               style={{ maxWidth: "260px" }}
               initial={{ opacity: 0, x: 30, scale: 1.05 }}
@@ -195,16 +236,15 @@ const About = () => {
               transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
             >
               <h3 className="text-white text-base md:text-xl font-bold leading-snug mb-1 md:mb-2">
-                {isKm ? "ការទូទាត់ EFTPOS" : "EFTPOS & Payment Integration"}
+                {cards[3].title}
               </h3>
               <p className="text-white/65 text-xs md:text-sm leading-relaxed">
-                {isKm
-                  ? "ទទួលការទូទាត់យ៉ាងរលូនជាមួយ EFTPOS ដែលភ្ជាប់ជាមួយ Tyro និង Linkly នៅចំណុចលក់។"
-                  : "Accept payments seamlessly with integrated EFTPOS support from Tyro and Linkly, right at the counter."}
+                {cards[3].description}
               </p>
             </motion.div>
           </HoverCard>
         </div>
+      </div>
       </div>
     </section>
   );

@@ -21,6 +21,7 @@ import ChatBox from "./Components/shared/ChatBox";
 import Legal from "./pages/Legal";
 import Careers from "./pages/Careers";
 import FAQ from "./pages/FAQ";
+import NotFound from "./pages/NotFound";
 
 function App() {
   const location = useLocation();
@@ -76,9 +77,11 @@ function App() {
               path="/admin"
               element={<Navigate to="/admin/login" replace />}
             />
+            {/* Logout / expired session land here — login is a modal on the site, so go home */}
+            <Route path="/admin/login" element={<Navigate to="/" replace />} />
 
-            {/* Fallback route for non-existent paths */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Anything else: 404 page */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
 

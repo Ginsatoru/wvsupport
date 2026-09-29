@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { useSettings } from "../../context/SettingsContext";
 import enFlag from "../Images/en.png";
 import khFlag from "../Images/kh.png";
-import { Home, Mail, LayoutGrid, Info, Menu } from "lucide-react";
+import { Home, Mail, LayoutGrid, Info, Menu, Briefcase, HelpCircle, Phone, Users } from "lucide-react";
+import { getActiveNav } from "../../services/navApi";
 import LoginModal from "../LoginForm";
 
 const useFontLoader = () => {
@@ -46,6 +47,9 @@ const getAdminName = () => {
   }
 };
 
+// Mobile bottom-bar icons by name (chosen in Content › Site-wide › Navbar)
+const NAV_ICONS = { home: Home, mail: Mail, grid: LayoutGrid, info: Info, briefcase: Briefcase, help: HelpCircle, phone: Phone, users: Users };
+
 const NAV_LINKS_EN = [
   { label: "Home", to: "/", icon: Home },
   { label: "Contact", to: "/Contact", icon: Mail },
@@ -73,7 +77,30 @@ function Nav() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { i18n } = useTranslation();
   const isKm = i18n.language === "km";
-  const NAV_LINKS = isKm ? NAV_LINKS_KM : NAV_LINKS_EN;
+
+  // Saved navbar content (logo and company name still come from Settings)
+  const [savedNav, setSavedNav] = useState(null);
+  useEffect(() => {
+    getActiveNav(isKm ? "km" : "en")
+      .then((res) => setSavedNav(res.data))
+      .catch(() => setSavedNav(null));
+  }, [isKm]);
+
+  const NAV_LINKS = savedNav?.links?.length
+    ? savedNav.links.map((l) => ({ label: l.label, to: l.href, icon: NAV_ICONS[l.icon] || Home }))
+    : isKm
+    ? NAV_LINKS_KM
+    : NAV_LINKS_EN;
+  const loginText = savedNav?.loginText || (isKm ? "ចូល" : "Log in");
+  const ctaText = savedNav?.ctaText || (isKm ? "ចាប់ផ្តើម" : "Get Started");
+  const ctaLink = savedNav?.ctaLink || "/contact";
+
+  // Language switcher: saved flag/labels, or the built-in ones
+  const LANGS = {
+    en: { flag: savedNav?.languages?.en?.flag || enFlag, short: savedNav?.languages?.en?.short || "EN", name: savedNav?.languages?.en?.name || "English" },
+    km: { flag: savedNav?.languages?.km?.flag || khFlag, short: savedNav?.languages?.km?.short || "ខ្មែរ", name: savedNav?.languages?.km?.name || "Khmer" },
+  };
+  const currentLangInfo = (code) => LANGS[code === "en" ? "en" : "km"];
   const [currentLang, setCurrentLang] = useState("en");
   const { settings, loading } = useSettings();
 
@@ -224,11 +251,11 @@ function Nav() {
               <div className="relative group">
                 <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 text-black hover:bg-[#f1f5f9]">
                   <img
-                    src={currentLang === "en" ? enFlag : khFlag}
-                    alt={currentLang === "en" ? "English" : "Khmer"}
+                    src={currentLangInfo(currentLang).flag}
+                    alt={currentLangInfo(currentLang).name}
                     className="w-4 h-3 rounded-sm"
                   />
-                  <span>{currentLang === "en" ? "EN" : "KH"}</span>
+                  <span>{currentLangInfo(currentLang).short}</span>
                   <svg
                     className="w-3 h-3 transition-transform duration-200 group-hover:rotate-180"
                     fill="none"
@@ -242,8 +269,8 @@ function Nav() {
                 <div className="absolute right-0 mt-2 w-40 origin-top-right rounded-xl bg-white shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-1 transition-all duration-200">
                   <div className="py-1.5">
                     {[
-                      { lang: "en", flag: enFlag, label: "English" },
-                      { lang: "km", flag: khFlag, label: "Khmer" },
+                      { lang: "en", flag: LANGS.en.flag, label: LANGS.en.name },
+                      { lang: "km", flag: LANGS.km.flag, label: LANGS.km.name },
                     ].map(({ lang, flag, label }) => (
                       <button
                         key={lang}
@@ -278,16 +305,16 @@ function Nav() {
                   onClick={openLogin}
                   className="px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 text-black hover:bg-[#f1f5f9]"
                 >
-                  {isKm ? "ចូល" : "Log in"}
+                  {loginText}
                 </button>
               )}
 
               {/* Get Started */}
               <Link
-                to="/contact"
+                to={ctaLink}
                 className="px-5 py-2 text-sm font-semibold rounded-full transition-all duration-200 bg-black text-white hover:bg-gray-800"
               >
-                {isKm ? "ចាប់ផ្តើម" : "Get Started"}
+                {ctaText}
               </Link>
             </div>
 
@@ -298,11 +325,11 @@ function Nav() {
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 text-black hover:bg-[#f1f5f9]"
               >
                 <img
-                  src={currentLang === "en" ? enFlag : khFlag}
-                  alt={currentLang === "en" ? "English" : "Khmer"}
+                  src={currentLangInfo(currentLang).flag}
+                  alt={currentLangInfo(currentLang).name}
                   className="w-4 h-3 rounded-sm"
                 />
-                <span>{currentLang === "en" ? "EN" : "KH"}</span>
+                <span>{currentLangInfo(currentLang).short}</span>
                 <svg
                   className={`w-3 h-3 transition-transform duration-200 ${languageDropdownActive ? "rotate-180" : ""}`}
                   fill="none"
@@ -317,8 +344,8 @@ function Nav() {
                 <div className="absolute right-0 mt-2 w-36 rounded-xl bg-white shadow-lg border border-gray-100 z-50">
                   <div className="py-1.5">
                     {[
-                      { lang: "en", flag: enFlag, label: "English" },
-                      { lang: "km", flag: khFlag, label: "Khmer" },
+                      { lang: "en", flag: LANGS.en.flag, label: LANGS.en.name },
+                      { lang: "km", flag: LANGS.km.flag, label: LANGS.km.name },
                     ].map(({ lang, flag, label }) => (
                       <button
                         key={lang}
@@ -362,15 +389,15 @@ function Nav() {
                   onClick={openLogin}
                   className="flex-1 py-2.5 text-center text-sm font-medium text-black border border-gray-200 rounded-full hover:bg-[#f1f5f9] transition-colors duration-150"
                 >
-                  {isKm ? "ចូល" : "Log in"}
+                  {loginText}
                 </button>
               )}
               <Link
-                to="/contact"
+                to={ctaLink}
                 onClick={() => setMenuActive(false)}
                 className="flex-1 py-2.5 text-center text-sm font-semibold text-white bg-black rounded-full hover:bg-gray-800 transition-colors duration-150"
               >
-                {isKm ? "ចាប់ផ្តើម" : "Get Started"}
+                {ctaText}
               </Link>
             </div>
           </div>
