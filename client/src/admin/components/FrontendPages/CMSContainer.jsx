@@ -14,7 +14,7 @@ import WorkManager from "./Home/WorkSection/WorkManager";
 import GalleryManager from "./Home/GallerySection/GalleryManager";
 import NewsletterManager from "./Home/NewsletterSection/NewsletterManager";
 import FooterManager from "./Global/FooterManager";
-import NavManager from "./Global/NavManager";
+import NavManager from "./Global/NavManager"; 
 import { getActiveHeroContent } from "../../../services/heroApi";
 import { getPartners } from "../../../services/partnerApi";
 import { getActiveServices } from "../../../services/servicesApi";
