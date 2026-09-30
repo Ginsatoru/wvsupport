@@ -165,7 +165,6 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
             <div className="lm-body lm-fade-in">
               <div className="lm-header">
                 <h2 className="lm-title">
-                  <span className="lm-dot" />
                   Admin Login
                 </h2>
                 <p className="lm-subtitle">Welcome back! Please enter your credentials</p>
@@ -342,8 +341,8 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
         }
 
         .lm-header {
-          margin-bottom:36px; text-align:center;
-          padding-bottom:36px; border-bottom:1px solid #f3f4f6;
+          margin-bottom:10px; text-align:center; /* <-- FURTHER REDUCED */
+          padding-bottom:10px; /* <-- FURTHER REDUCED */
         }
         .lm-modal.lm-first-open .lm-header {
           opacity:0; transform:translateY(-16px);
@@ -353,16 +352,16 @@ const LoginModal = ({ isOpen, onClose, onLogin }) => {
 
         .lm-title {
           font-size:1.65rem; font-weight:700; color:#111827;
-          margin:0 0 18px;
+          margin:0 0 10px; /* <-- REDUCED FROM 18px */
           display:flex; align-items:center; justify-content:center; gap:8px;
         }
-        .lm-dot { width:7px; height:7px; background:#0f8abe; border-radius:50%; flex-shrink:0; }
+        /* .lm-dot removed entirely */
         .lm-subtitle { font-size:0.85rem; color:#6b7280; margin:0; }
 
         .lm-error {
           padding:10px 14px; background:#fef2f2;
           border-left:3px solid #ef4444; border-radius:10px;
-          color:#991b1b; font-size:0.82rem; margin-bottom:14px;
+          color:#991b1b; font-size:0.82rem; margin-bottom:8px; /* <-- FURTHER REDUCED */
           animation:lmFadeSlide 0.3s ease forwards;
         }
 

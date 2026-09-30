@@ -7,20 +7,23 @@ const cors = require("cors");
 const http = require("http");
 const path = require("path");
 const fs = require("fs");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 
 const { initGeoIP } = require("./utils/geoIP");
 const SocketServer = require("./utils/socket");
 const { startEmailInbox } = require("./services/emailInbox");
-const verifyAdmin = require("./middleware/verifyAdmin");
-const User = require("./models/User");
 
 console.log("Environment:", {
   MONGO_URI: process.env.MONGO_URI ? "*****" : "NOT FOUND",
   JWT_SECRET: process.env.JWT_SECRET ? "*****" : "NOT FOUND",
   PORT: process.env.PORT || "5000 (default)",
 });
+
+// Refuse to start without a signing secret; warn if it's weak
+if (!process.env.JWT_SECRET) {
+  console.error("❌ JWT_SECRET is not set");
+  process.exit(1);
+}
+if (process.env.JWT_SECRET.length < 32) console.warn("⚠️  JWT_SECRET is shorter than 32 characters; use a longer random value");
 
 // ======================
 // CONFIG
@@ -47,6 +50,7 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const app = express();
+app.set("trust proxy", 1); // behind Nginx: req.ip is the visitor's real IP (used by login rate limiting)
 const server = http.createServer(app);
 
 // ======================
@@ -143,49 +147,12 @@ app.get("/api/health", (req, res) =>
 
 app.use("/api/messages", require("./routes/messageRoutes"));
 app.use("/api/settings", require("./routes/settings"));
-app.use("/api/auth", require("./routes/auth"));
 app.use("/api/analytics", require("./routes/analytics"));
 app.use("/api/newsletter", require("./routes/newsletterRoutes"));
 app.use("/api/contact", require("./routes/contactRoutes"));
 app.use("/api/content", require("./routes/contentRoutes"));
 app.use("/api/users", require("./routes/users"));
-
-// Admin login
-app.post("/api/admin/login", async (req, res) => {
-  const { email, password, rememberMe } = req.body;
-
-  try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
-    if (!user.isAdmin) return res.status(403).json({ message: "Admin access required" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
-
-    // Same as WordPress: 2 days by default, 14 days with "Keep me logged in"
-    const token = jwt.sign(
-      { id: user._id, email: user.email, name: user.name, role: user.role, isAdmin: user.isAdmin },
-      process.env.JWT_SECRET,
-      { expiresIn: rememberMe ? "14d" : "2d" }
-    );
-    res.json({ token, user: { email: user.email, isAdmin: user.isAdmin } });
-  } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Current admin (for the dashboard top bar)
-app.get("/api/admin/me", verifyAdmin, async (req, res) => {
-  try {
-    const user = await User.findById(req.admin.id).select("name email role isAdmin createdAt").lean();
-    if (!user) return res.status(401).json({ message: "Account not found" });
-    res.json({ user });
-  } catch (err) {
-    console.error("Fetch admin error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+app.use("/api/admin", require("./routes/admin")); // login + current account
 
 // ======================
 // 404 + ERROR HANDLING

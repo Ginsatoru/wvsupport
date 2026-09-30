@@ -1,16 +1,30 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-// Allows the request only with a valid admin JWT in "Authorization: Bearer <token>"
-const verifyAdmin = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
+// Admin routes: valid token (HS256) + the account still exists, still has access,
+// and its password hasn't changed since the token was issued.
+const verifyAdmin = async (req, res, next) => {
+  const token = req.headers.authorization?.startsWith("Bearer ") && req.headers.authorization.slice(7).trim();
   if (!token) return res.status(401).json({ success: false, message: "No token provided" });
+
+  let decoded;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded.isAdmin) return res.status(403).json({ success: false, message: "Admin access required" });
-    req.admin = decoded;
+    decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
+  } catch {
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
+  }
+
+  try {
+    const user = await User.findById(decoded.id).select("name email role isAdmin passwordChangedAt").lean();
+    const issuedAt = (decoded.iat || 0) * 1000;
+    const passwordChanged = user?.passwordChangedAt && issuedAt < user.passwordChangedAt.getTime() - 1000;
+    if (!user || !user.isAdmin || passwordChanged) {
+      return res.status(401).json({ success: false, message: "Session no longer valid" });
+    }
+    req.admin = { id: String(user._id), email: user.email, name: user.name, role: user.role };
     next();
   } catch {
-    res.status(401).json({ success: false, message: "Invalid token" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 

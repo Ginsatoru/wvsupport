@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Settings = require('../models/Settings');
-const { auth, admin } = require('../middleware/auth');
+const verifyAdmin = require('../middleware/verifyAdmin');
 const { body, validationResult } = require('express-validator');
 
 const MAX_HOURS_ROWS = 7;
@@ -55,8 +55,7 @@ router.get('/', async (req, res) => {
  * @access  Private (admin)
  */
 router.put('/', 
-  auth, 
-  admin,
+  verifyAdmin,
   [
     body('companyName').optional().trim().escape(),
     body('address').optional().trim().escape(),
