@@ -14,7 +14,12 @@ import WorkManager from "./Home/WorkSection/WorkManager";
 import GalleryManager from "./Home/GallerySection/GalleryManager";
 import NewsletterManager from "./Home/NewsletterSection/NewsletterManager";
 import FooterManager from "./Global/FooterManager";
-import NavManager from "./Global/NavManager"; 
+import NavManager from "./Global/NavManager";
+import AboutPageManager from "./About/AboutPageManager";
+import ServicesPageManager from "./Services/ServicesPageManager";
+import FaqManager from "./FAQ/FaqManager";
+import LegalManager from "./Legal/LegalManager";
+import CareersManager from "./Careers/CareersManager";
 import { getActiveHeroContent } from "../../../services/heroApi";
 import { getPartners } from "../../../services/partnerApi";
 import { getActiveServices } from "../../../services/servicesApi";
@@ -28,7 +33,13 @@ import defaultWorkImage from "../../../Components/Images/work.webp";
 import { getActiveGallery } from "../../../services/galleryApi";
 import defaultGalleryImage from "../../../Components/Images/image1.webp";
 import { getActiveNewsletterContent } from "../../../services/newsletterContentApi";
-import { getNewsPopups } from "../../../services/newsPopupApi";
+import { getNewsPopups } from "../../../services/newspopupApi";
+import { getActiveAboutPage } from "../../../services/aboutPageApi";
+import defaultAboutPageImage from "../../../Components/Images/about.webp";
+import { getActiveServicesPage } from "../../../services/servicesPageApi";
+import defaultServicesPageImage from "../../../Components/Images/services.webp";
+import { getActiveCareers } from "../../../services/careersApi";
+import defaultCareersImage from "../../../Components/Images/careers.webp";
 import defaultNewsletterImage from "../../../Components/Images/mockup.webp";
 
 // ── Editable sections ──
@@ -42,21 +53,24 @@ const SECTIONS = [
   { id: "work", name: "Work", type: "Content", description: "Our base block: text, tools, badges, person and service cards", Icon: Headphones },
   { id: "gallery", name: "Gallery", type: "Content", description: "Heading and the two scrolling photo rows", Icon: Images },
   { id: "newsletter", name: "Newsletter", type: "Content", description: "Signup block: text, button, mockup and success message", Icon: Send },
+  { id: "about-page", name: "Page Content", type: "Content", description: "Intro, quick facts, image and the 3 value cards", Icon: Info },
+  { id: "services-page", name: "Page Content", type: "Content", description: "Intro, service panels and the other products box", Icon: LayoutGrid },
+  { id: "legal", name: "Terms & Conditions", type: "Content", description: "Heading and the terms sections", Icon: Scale },
+  { id: "careers-page", name: "Page Content", type: "Content", description: "Intro, values, openings box and open roles", Icon: Briefcase },
   { id: "nav", name: "Navbar", type: "Content", description: "Menu links, mobile icons and the top buttons", Icon: Menu },
   { id: "footer", name: "Footer", type: "Content", description: "Description, link columns and social links", Icon: LinkIcon },
-  { id: "contact", name: "Contact Info", type: "Form", description: "Contact information and form", Icon: Mail },
-  { id: "faq", name: "FAQ Section", type: "Content", description: "Frequently asked questions", Icon: HelpCircle },
+  { id: "faq", name: "FAQ Section", type: "Content", description: "Heading and the questions & answers", Icon: HelpCircle },
 ];
 
 // ── Site pages and the sections that live on each ──
 const PAGES = [
   { id: "home", name: "Home", path: "/", Icon: Home, sections: ["hero", "partners", "services", "about", "tech", "work", "gallery", "newsletter"] },
-  { id: "about", name: "About Us", path: "/aboutus", Icon: Info, sections: [] },
-  { id: "services", name: "Services", path: "/services", Icon: LayoutGrid, sections: [] },
-  { id: "contact", name: "Contact", path: "/contact", Icon: Mail, sections: ["contact"] },
+  { id: "about", name: "About Us", path: "/aboutus", Icon: Info, sections: ["about-page"] },
+  { id: "services", name: "Services", path: "/services", Icon: LayoutGrid, sections: ["services-page"] },
+  { id: "contact", name: "Contact", path: "/contact", Icon: Mail, sections: [] },
   { id: "faq", name: "FAQ", path: "/FAQ", Icon: HelpCircle, sections: ["faq"] },
-  { id: "careers", name: "Careers", path: "/Careers", Icon: Briefcase, sections: [] },
-  { id: "legal", name: "Legal", path: "/Legal", Icon: Scale, sections: [] },
+  { id: "careers", name: "Careers", path: "/Careers", Icon: Briefcase, sections: ["careers-page"] },
+  { id: "legal", name: "Legal", path: "/Legal", Icon: Scale, sections: ["legal"] },
   { id: "global", name: "Site-wide", path: null, Icon: Globe, sections: ["nav", "news-popup", "footer"], note: "Shows on every page" },
 ];
 
@@ -126,6 +140,15 @@ const CMSContainer = () => {
         if (popup?.image) setThumbs((prev) => ({ ...prev, "news-popup": popup.image }));
       })
       .catch(() => {});
+    getActiveAboutPage()
+      .then(({ data }) => setThumbs((prev) => ({ ...prev, "about-page": data?.image || defaultAboutPageImage })))
+      .catch(() => setThumbs((prev) => ({ ...prev, "about-page": defaultAboutPageImage })));
+    getActiveServicesPage()
+      .then(({ data }) => setThumbs((prev) => ({ ...prev, "services-page": data?.image || defaultServicesPageImage })))
+      .catch(() => setThumbs((prev) => ({ ...prev, "services-page": defaultServicesPageImage })));
+    getActiveCareers()
+      .then(({ data }) => setThumbs((prev) => ({ ...prev, "careers-page": data?.image || defaultCareersImage })))
+      .catch(() => setThumbs((prev) => ({ ...prev, "careers-page": defaultCareersImage })));
     getActiveServices()
       .then(({ data }) => setThumbs((prev) => ({ ...prev, services: data?.items?.[0]?.image || defaultServiceImage })))
       .catch(() => setThumbs((prev) => ({ ...prev, services: defaultServiceImage })));
@@ -291,6 +314,16 @@ const CMSContainer = () => {
         return <FooterManager />;
       case "nav":
         return <NavManager />;
+      case "about-page":
+        return <AboutPageManager />;
+      case "services-page":
+        return <ServicesPageManager />;
+      case "faq":
+        return <FaqManager />;
+      case "legal":
+        return <LegalManager />;
+      case "careers-page":
+        return <CareersManager />;
       case "news-popup":
         return <NewsPopup />;
       default:

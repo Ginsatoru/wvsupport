@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Award, Globe2, MapPin, ShieldCheck, Heart, Headphones } from "lucide-react";
 import Newsletter from "../Components/home/Newsletter";
 import aboutImg from "../Components/Images/about.webp";
+import { getActiveAboutPage } from "../services/aboutPageApi";
 
 /* ── Word-slice text, same mechanic as Hero / Tech / Work ── */
 const SliceText = ({ text, inView, baseDelay = 0 }) => (
@@ -27,6 +28,15 @@ const AboutUs = () => {
   const sectionRef = useRef(null);
   const [entered, setEntered] = useState(false);
 
+  // Saved content from Content › About Us (empty fields keep the built-in wording/image)
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveAboutPage(isKm ? "km" : "en")
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [isKm]);
+  const pick = (field, fallback) => saved?.[field] || fallback;
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -41,29 +51,32 @@ const AboutUs = () => {
     return () => observer.disconnect();
   }, []);
 
-  const eyebrow = isKm ? "អំពីយើង" : "About Us";
-  const headline1 = isKm ? "ក្រុមគាំទ្រនៅជិតអតិថិជន" : "Support that stays close";
-  const headline2 = isKm ? "ជានិច្ចកាល" : "to the people we help.";
-  const body = isKm
-    ? "WV Support គឺជាក្រុមការងារនៅសៀមរាប ដែលផ្តល់ការគាំទ្របច្ចេកទេសពីចម្ងាយសម្រាប់ RetailManager ជូនអតិថិជនអូស្ត្រាលី និងតំបន់អាស៊ី-ប៉ាស៊ីហ្វិក។"
-    : "WV Support is a Siem Reap-based team delivering remote technical support for RetailManager, helping retailers across Australia, New Zealand, and the Asia-Pacific region every day.";
+  const eyebrow = pick("eyebrow", isKm ? "អំពីយើង" : "About Us");
+  const headline1 = pick("headingLine1", isKm ? "ក្រុមគាំទ្រនៅជិតអតិថិជន" : "Support that stays close");
+  const headline2 = pick("headingLine2", isKm ? "ជានិច្ចកាល" : "to the people we help.");
+  const body = pick(
+    "body",
+    isKm
+      ? "WV Support គឺជាក្រុមការងារនៅសៀមរាប ដែលផ្តល់ការគាំទ្របច្ចេកទេសពីចម្ងាយសម្រាប់ RetailManager ជូនអតិថិជនអូស្ត្រាលី និងតំបន់អាស៊ី-ប៉ាស៊ីហ្វិក។"
+      : "WV Support is a Siem Reap-based team delivering remote technical support for RetailManager, helping retailers across Australia, New Zealand, and the Asia-Pacific region every day."
+  );
 
   const quickFacts = [
     {
       icon: <Award size={22} strokeWidth={1.6} />,
-      label: isKm ? "ទុកចិត្តជាង 25 ឆ្នាំ" : "25+ Years Trusted",
+      label: saved?.facts?.[0] || (isKm ? "ទុកចិត្តជាង 25 ឆ្នាំ" : "25+ Years Trusted"),
     },
     {
       icon: <Globe2 size={22} strokeWidth={1.6} />,
-      label: isKm ? "អាស៊ី-ប៉ាស៊ីហ្វិក" : "AU, NZ & Asia-Pacific",
+      label: saved?.facts?.[1] || (isKm ? "អាស៊ី-ប៉ាស៊ីហ្វិក" : "AU, NZ & Asia-Pacific"),
     },
     {
       icon: <MapPin size={22} strokeWidth={1.6} />,
-      label: isKm ? "ក្រុមការងារនៅសៀមរាប" : "Siem Reap-Based Team",
+      label: saved?.facts?.[2] || (isKm ? "ក្រុមការងារនៅសៀមរាប" : "Siem Reap-Based Team"),
     },
   ];
 
-  const values = [
+  const defaultValues = [
     {
       icon: <ShieldCheck size={20} strokeWidth={1.8} />,
       title: isKm ? "ភាពជឿទុកចិត្តបាន" : "Reliability",
@@ -86,6 +99,11 @@ const AboutUs = () => {
         : "Remote support via TeamViewer and phone, whenever you need it.",
     },
   ];
+  const values = defaultValues.map((v, i) => ({
+    ...v,
+    title: saved?.values?.[i]?.title || v.title,
+    desc: saved?.values?.[i]?.description || v.desc,
+  }));
 
   return (
     <>
@@ -171,10 +189,10 @@ const AboutUs = () => {
                   style={{ fontSize: "clamp(28px, 4vw, 48px)", color: "#000000" }}
                 >
                   <div className="overflow-hidden">
-                    <SliceText text={headline1} inView={entered} baseDelay={0.1} />
+                    <SliceText key={headline1} text={headline1} inView={entered} baseDelay={0.1} />
                   </div>
                   <div className="overflow-hidden mt-1">
-                    <SliceText text={headline2} inView={entered} baseDelay={0.25} />
+                    <SliceText key={headline2} text={headline2} inView={entered} baseDelay={0.25} />
                   </div>
                 </h1>
 
@@ -203,7 +221,7 @@ const AboutUs = () => {
               <div className="ab-slide-up flex-1 w-full max-w-sm lg:max-w-none mx-auto lg:mx-0" style={{ transitionDelay: "0.3s" }}>
                 <div className="rounded-2xl overflow-hidden">
                   <img
-                    src={aboutImg}
+                    src={pick("image", aboutImg)}
                     alt=""
                     draggable={false}
                     className="w-full h-auto max-h-[360px] object-contain select-none mx-auto"

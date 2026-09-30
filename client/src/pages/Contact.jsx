@@ -179,12 +179,16 @@ const Contact = () => {
     },
   ];
 
-  // ── Business hours rows (mirrors .hours-item rows) ──
-  const hoursRows = [
-    { day: text.hoursWeekday, time: text.hoursWeekdayTime },
-    { day: text.hoursSaturday, time: text.hoursWeekendTime },
-    { day: text.hoursSunday, time: text.hoursWeekendTime },
-  ];
+  // ── Business hours rows: from Settings (admin panel), or the built-in ones ──
+  const lang = isKm ? "km" : "en";
+  const pick = (t) => t?.[lang] || t?.en || "";
+  const hoursRows = settings?.businessHours?.length
+    ? settings.businessHours.map((row) => ({ day: pick(row.day), time: pick(row.time) }))
+    : [
+        { day: text.hoursWeekday, time: text.hoursWeekdayTime },
+        { day: text.hoursSaturday, time: text.hoursWeekendTime },
+        { day: text.hoursSunday, time: text.hoursWeekendTime },
+      ];
 
   return (
     <>

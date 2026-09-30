@@ -27,9 +27,19 @@ const {
   getActiveNewsletterContent,
   getNewsletterContentAdmin,
   saveNewsletterContent,
-} = require("../controllers/newsletterContentController");
+} = require("../controllers/newslettercontentController");
 const { getActiveFooter, getFooterAdmin, saveFooter } = require("../controllers/footerController");
 const { getActiveNav, getNavAdmin, saveNav, flagFields } = require("../controllers/navController");
+const { getActiveAboutPage, getAboutPageAdmin, saveAboutPage } = require("../controllers/aboutPageController");
+const {
+  getActiveServicesPage,
+  getServicesPageAdmin,
+  saveServicesPage,
+  MAX_SERVICES: MAX_PAGE_SERVICES,
+} = require("../controllers/servicesPageController");
+const { getActiveFaq, getFaqAdmin, saveFaq } = require("../controllers/faqController");
+const { getActiveLegal, getLegalAdmin, saveLegal } = require("../controllers/legalController");
+const { getActiveCareers, getCareersAdmin, saveCareers } = require("../controllers/careersController");
 
 const router = express.Router();
 
@@ -120,6 +130,35 @@ const navImages = upload.fields(flagFields.map((name) => ({ name, maxCount: 1 })
 router.get("/nav/active", getActiveNav);
 router.get("/nav/admin", verifyAdmin, getNavAdmin);
 router.put("/nav/admin", verifyAdmin, navImages, saveNav);
+
+// ── About Us page ──
+router.get("/about-page/active", getActiveAboutPage);
+router.get("/about-page/admin", verifyAdmin, getAboutPageAdmin);
+router.put("/about-page/admin", verifyAdmin, upload.single("image"), saveAboutPage);
+
+// ── Services page ──
+const servicesPageImages = upload.fields([
+  { name: "image", maxCount: 1 },
+  ...[...Array(MAX_PAGE_SERVICES)].map((_, i) => ({ name: `service${i}`, maxCount: 1 })),
+]);
+router.get("/services-page/active", getActiveServicesPage);
+router.get("/services-page/admin", verifyAdmin, getServicesPageAdmin);
+router.put("/services-page/admin", verifyAdmin, servicesPageImages, saveServicesPage);
+
+// ── FAQ page (JSON, no images) ──
+router.get("/faq/active", getActiveFaq);
+router.get("/faq/admin", verifyAdmin, getFaqAdmin);
+router.put("/faq/admin", verifyAdmin, saveFaq);
+
+// ── Legal page (JSON, no images) ──
+router.get("/legal/active", getActiveLegal);
+router.get("/legal/admin", verifyAdmin, getLegalAdmin);
+router.put("/legal/admin", verifyAdmin, saveLegal);
+
+// ── Careers page ──
+router.get("/careers/active", getActiveCareers);
+router.get("/careers/admin", verifyAdmin, getCareersAdmin);
+router.put("/careers/admin", verifyAdmin, upload.single("image"), saveCareers);
 
 // ── News popup ──
 router.get("/news-popup/active", newsPopupController.getActive);

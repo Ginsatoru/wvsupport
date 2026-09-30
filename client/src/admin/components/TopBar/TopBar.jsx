@@ -17,17 +17,43 @@ import tranlogo from "../../../Components/Images/tranlogo.png";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
-// Searchable admin sections — label + route + a few keywords to match against.
-// Mirrors the sections available in the sidebar/content management area.
+// Everything the top-bar search can jump to: admin pages, CMS pages and each section editor.
+// label + where it lives (group) + route + extra words people might type.
+const CMS = "/admin-panel/frontend";
 const SEARCHABLE_SECTIONS = [
-  { label: "Dashboard", route: "/admin-panel/dashboard", keywords: ["analytics", "overview", "stats"] },
-  { label: "Email", route: "/admin-panel/emails", keywords: ["inbox", "mail", "messages"] },
-  { label: "Open Messages", route: "/admin-panel/inbox/open", keywords: ["inbox", "open", "messages"] },
-  { label: "Closed Messages", route: "/admin-panel/inbox/closed", keywords: ["inbox", "closed", "archive", "messages"] },
-  { label: "Subscribers", route: "/admin-panel/subscribers", keywords: ["newsletter", "email list", "users"] },
-  { label: "Pages", route: "/admin-panel/frontend", keywords: ["content", "frontend", "hero", "team"] },
-  { label: "Users", route: "/admin-panel/users", keywords: ["accounts", "team", "roles", "admin", "support"] },
-  { label: "Settings", route: "/admin-panel/settings", keywords: ["company", "logo", "config"] },
+  // Admin pages
+  { label: "Dashboard", group: "Admin", route: "/admin-panel/dashboard", keywords: ["analytics", "overview", "stats", "views", "visitors"] },
+  { label: "Inbox", group: "Admin", route: "/admin-panel/inbox", keywords: ["messages", "email", "live chat", "chat", "contact form", "replies"] },
+  { label: "Subscribers", group: "Admin", route: "/admin-panel/subscribers", keywords: ["newsletter", "email list", "signups"] },
+  { label: "Content", group: "Admin", route: CMS, keywords: ["cms", "pages", "frontend", "website"] },
+  { label: "Users", group: "Admin", route: "/admin-panel/users", keywords: ["accounts", "team", "roles", "admin", "support", "password"] },
+  { label: "Settings", group: "Admin", route: "/admin-panel/settings", keywords: ["company", "config"] },
+  { label: "Logo & company details", group: "Settings", route: "/admin-panel/settings", keywords: ["logo", "company name", "phone", "email address", "address"] },
+  { label: "Business hours", group: "Settings", route: "/admin-panel/settings", keywords: ["opening hours", "hours", "open", "times"] },
+  { label: "Map", group: "Settings", route: "/admin-panel/settings", keywords: ["google maps", "embed", "location", "find us"] },
+
+  // Home page
+  { label: "Home page", group: "Content", route: `${CMS}/home`, keywords: ["homepage", "landing"] },
+  { label: "Hero Banner", group: "Home", route: `${CMS}/home/hero`, keywords: ["hero", "banner", "title", "testimonial", "highlights", "person image"] },
+  { label: "Partner Logos", group: "Home", route: `${CMS}/home/partners`, keywords: ["partners", "logos", "brands"] },
+  { label: "Services", group: "Home", route: `${CMS}/home/services`, keywords: ["service cards", "our services"] },
+  { label: "About", group: "Home", route: `${CMS}/home/about`, keywords: ["retailmanager", "feature cards", "bento"] },
+  { label: "Tech", group: "Home", route: `${CMS}/home/tech`, keywords: ["rm mobile", "devices", "avatars"] },
+  { label: "Work", group: "Home", route: `${CMS}/home/work`, keywords: ["our base", "tools", "badges", "service cards"] },
+  { label: "Gallery", group: "Home", route: `${CMS}/home/gallery`, keywords: ["photos", "images"] },
+  { label: "Newsletter", group: "Home", route: `${CMS}/home/newsletter`, keywords: ["signup", "subscribe", "mockup"] },
+
+  // Other pages
+  { label: "About Us page", group: "Content", route: `${CMS}/about/about-page`, keywords: ["about us", "values", "facts"] },
+  { label: "Services page", group: "Content", route: `${CMS}/services/services-page`, keywords: ["service panels", "other products", "aaapos products"] },
+  { label: "FAQ", group: "Content", route: `${CMS}/faq/faq`, keywords: ["questions", "answers", "faqs"] },
+  { label: "Careers", group: "Content", route: `${CMS}/careers/careers-page`, keywords: ["jobs", "openings", "roles", "resume", "hiring"] },
+  { label: "Terms & Conditions", group: "Content", route: `${CMS}/legal/legal`, keywords: ["legal", "terms", "privacy", "policy"] },
+
+  // Site-wide
+  { label: "Navbar", group: "Site-wide", route: `${CMS}/global/nav`, keywords: ["menu", "navigation", "links", "language", "flags", "get started", "log in"] },
+  { label: "News Popup", group: "Site-wide", route: `${CMS}/global/news-popup`, keywords: ["popup", "announcement", "poster", "promotion"] },
+  { label: "Footer", group: "Site-wide", route: `${CMS}/global/footer`, keywords: ["social links", "facebook", "youtube", "footer links"] },
 ];
 
 // Profile for the top bar — the account's name, or the email's first part when no name is set
@@ -99,15 +125,22 @@ const TopBar = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Filter searchable sections against the current query
+  // Match the query against name, group and keywords; names starting with the query come first
   const searchResults = (() => {
     const query = searchValue.trim().toLowerCase();
     if (!query) return [];
-    return SEARCHABLE_SECTIONS.filter(
-      (section) =>
-        section.label.toLowerCase().includes(query) ||
-        section.keywords.some((kw) => kw.toLowerCase().includes(query))
-    );
+    const score = (section) => {
+      const label = section.label.toLowerCase();
+      if (label.startsWith(query)) return 0;
+      if (label.includes(query)) return 1;
+      if (section.keywords.some((kw) => kw.toLowerCase().includes(query))) return 2;
+      if (section.group.toLowerCase().includes(query)) return 3;
+      return -1;
+    };
+    return SEARCHABLE_SECTIONS.map((section) => ({ section, rank: score(section) }))
+      .filter(({ rank }) => rank >= 0)
+      .sort((a, b) => a.rank - b.rank)
+      .map(({ section }) => section);
   })();
 
   // Close the results dropdown when clicking outside either search box
@@ -171,7 +204,7 @@ const TopBar = ({
         {searchResults.length > 0 ? (
           <ul className="max-h-64 overflow-y-auto py-1">
             {searchResults.map((section) => (
-              <li key={section.route}>
+              <li key={`${section.group}-${section.label}`}>
                 <button
                   type="button"
                   onClick={() => goToSection(section.route)}
@@ -182,7 +215,10 @@ const TopBar = ({
                   }`}
                 >
                   <FiSearch className="h-3.5 w-3.5 flex-shrink-0 text-sky-400" />
-                  {section.label}
+                  <span className="flex-1 truncate">{section.label}</span>
+                  <span className={`text-xs flex-shrink-0 ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
+                    {section.group}
+                  </span>
                 </button>
               </li>
             ))}

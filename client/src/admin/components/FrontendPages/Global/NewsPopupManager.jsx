@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Loader2, Upload } from "lucide-react";
 import { ModernAlert } from "../../Modals/Alert";
-import { getNewsPopups, saveNewsPopup } from "../../../../services/newsPopupApi";
+import { getNewsPopups, saveNewsPopup } from "../../../../services/newspopupApi";
 
 const EMPTY_FORM = { title: "", message: "", isActive: true, expiresAt: "" };
 

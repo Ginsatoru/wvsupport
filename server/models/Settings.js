@@ -1,5 +1,23 @@
 const mongoose = require('mongoose');
 
+// Bilingual text (Khmer empty = show English)
+const text = new mongoose.Schema(
+  { en: { type: String, default: '', trim: true }, km: { type: String, default: '', trim: true } },
+  { _id: false }
+);
+
+// One row on the Contact page's "Business Hours" card
+const hoursRow = new mongoose.Schema(
+  { day: { type: text, default: () => ({}) }, time: { type: text, default: () => ({}) } },
+  { _id: false }
+);
+
+const DEFAULT_HOURS = [
+  { day: { en: 'Monday - Friday', km: 'ច័ន្ទ - សុក្រ' }, time: { en: '09:00 - 20:00', km: '០៩.០០ - ២០.០០' } },
+  { day: { en: 'Saturday', km: 'សៅរ៍' }, time: { en: '10:30 - 22:30', km: '១០.៣០ - ២២.៣០' } },
+  { day: { en: 'Sunday', km: 'អាទិត្យ' }, time: { en: '10:30 - 22:30', km: '១០.៣០ - ២២.៣០' } },
+];
+
 const SettingsSchema = new mongoose.Schema({
   logo: { type: String, default: '' },
   companyName: { type: String, required: true },
@@ -7,6 +25,7 @@ const SettingsSchema = new mongoose.Schema({
   phoneNumber: { type: String, required: true },
   email: { type: String, required: true },
   mapEmbedCode: { type: String, required: false },
+  businessHours: { type: [hoursRow], default: DEFAULT_HOURS },
   lastUpdated: { type: Date, default: Date.now }
 });
 

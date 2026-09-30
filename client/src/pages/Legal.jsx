@@ -1,11 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { getActiveLegal } from "../services/legalApi";
 
 const Legal = () => {
   const { i18n } = useTranslation();
   const isKm = i18n.language === "km";
 
-  const sections = [
+  // Saved content from Content › Legal (empty keeps the built-in wording)
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveLegal(isKm ? "km" : "en")
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [isKm]);
+
+  const defaultSections = [
     {
       title: isKm ? "សេចក្តីស្វាគមន៍" : "Welcome",
       body: isKm
@@ -43,6 +52,9 @@ const Legal = () => {
         : "If you have any questions about these terms, please contact us at wvservicescambodia@gmail.com or +855 974 839 135.",
     },
   ];
+  const sections = saved?.sections?.length ? saved.sections : defaultSections;
+  const eyebrow = saved?.eyebrow || (isKm ? "លក្ខខណ្ឌ" : "Legal");
+  const title = saved?.title || (isKm ? "លក្ខខណ្ឌ និងលក្ខខណ្ឌប្រើប្រាស់" : "Terms & Conditions");
 
   return (
     <div className="bg-white">
@@ -53,13 +65,13 @@ const Legal = () => {
               className="inline-block text-[11px] font-bold uppercase tracking-[0.13em] mb-4"
               style={{ color: "#0f8abe" }}
             >
-              {isKm ? "លក្ខខណ្ឌ" : "Legal"}
+              {eyebrow}
             </span>
             <h1
               className="font-extrabold leading-[1.15] mb-10"
               style={{ fontSize: "clamp(28px, 4vw, 46px)", color: "#000000" }}
             >
-              {isKm ? "លក្ខខណ្ឌ និងលក្ខខណ្ឌប្រើប្រាស់" : "Terms & Conditions"}
+              {title}
             </h1>
 
             <div className="flex flex-col gap-10">
@@ -68,7 +80,7 @@ const Legal = () => {
                   <h2 className="text-xl font-bold mb-3" style={{ color: "#000000" }}>
                     {s.title}
                   </h2>
-                  <p className="text-[15px] leading-[1.8]" style={{ color: "#000000" }}>
+                  <p className="text-[15px] leading-[1.8] whitespace-pre-line" style={{ color: "#000000" }}>
                     {s.body}
                   </p>
                 </div>

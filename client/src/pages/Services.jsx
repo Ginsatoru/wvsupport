@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import servicesImg from "../Components/Images/services.webp";
+import { getActiveServicesPage } from "../services/servicesPageApi";
 
 // Reused images from the home page's Services section
 import posImage from "../Components/Images/pos1.webp";
@@ -32,6 +33,15 @@ const Services = () => {
   const sectionRef = useRef(null);
   const [entered, setEntered] = useState(false);
 
+  // Saved content from Content › Services (empty fields keep the built-in wording/images)
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveServicesPage(isKm ? "km" : "en")
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [isKm]);
+  const pick = (field, fallback) => saved?.[field] || fallback;
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -46,15 +56,20 @@ const Services = () => {
     return () => observer.disconnect();
   }, []);
 
-  const eyebrow = isKm ? "សេវាកម្មរបស់យើង" : "Our Services";
-  const headline1 = isKm ? "អ្វីគ្រប់យ៉ាងសម្រាប់ការលក់រាយ" : "Everything your retail";
-  const headline2 = isKm ? "ការគាំទ្ររបស់អ្នក" : "business needs.";
-  const bodyText = isKm
-    ? "ពីចំណុចលក់រហូតដល់របាយការណ៍ យើងផ្តល់ដំណោះស្រាយ RetailManager ពេញលេញសម្រាប់អាជីវកម្មរបស់អ្នក។"
-    : "From point of sale to reporting, we cover the full RetailManager toolkit your business relies on.";
+  const eyebrow = pick("eyebrow", isKm ? "សេវាកម្មរបស់យើង" : "Our Services");
+  const headline1 = pick("headingLine1", isKm ? "អ្វីគ្រប់យ៉ាងសម្រាប់ការលក់រាយ" : "Everything your retail");
+  const headline2 = pick("headingLine2", isKm ? "ការគាំទ្ររបស់អ្នក" : "business needs.");
+  const bodyText = pick(
+    "body",
+    isKm
+      ? "ពីចំណុចលក់រហូតដល់របាយការណ៍ យើងផ្តល់ដំណោះស្រាយ RetailManager ពេញលេញសម្រាប់អាជីវកម្មរបស់អ្នក។"
+      : "From point of sale to reporting, we cover the full RetailManager toolkit your business relies on."
+  );
 
-  const services = [
+  // Built-in panels (keyed so saved panels can fall back to their original image/wording)
+  const defaultServices = [
     {
+      key: "pos",
       image: posImage,
       title: isKm ? "ចំណុចលក់ RetailManager" : "RetailManager POS",
       desc: isKm
@@ -62,6 +77,7 @@ const Services = () => {
         : "Process sales in seconds, including lay-bys, account sales, quotes, and gift vouchers, while RetailManager quietly tracks every price, discount, and stock movement behind the scenes. Built-in reports show what's selling, your margins, and where stock needs attention, so decisions are based on real numbers, not guesswork.",
     },
     {
+      key: "webstore",
       image: webstoreImage,
       title: isKm ? "ការតភ្ជាប់ហាងអនឡាញ" : "Webstore Integration",
       desc: isKm
@@ -69,6 +85,7 @@ const Services = () => {
         : "Connect RetailManager to Shopify, WooCommerce, eBay, or BigCommerce through AAAPOS Webstore Manager, and let stock levels, pricing, and order downloads sync automatically between your online store and the shop floor. No more updating the same product in two places.",
     },
     {
+      key: "multistore",
       image: multistoreImage,
       title: isKm ? "ការគ្រប់គ្រងច្រើនហាង" : "Multi-Store Management",
       desc: isKm
@@ -76,6 +93,7 @@ const Services = () => {
         : "Run sales, stock, and pricing across every register and every location from one system. Multi-level security keeps staff access appropriate to their role, and every additional register is included in the one subscription, with no per-terminal surprises as you grow.",
     },
     {
+      key: "hosting",
       image: emailImage,
       title: isKm ? "សេវាកម្ម Hosting" : "Web Hosting Service",
       desc: isKm
@@ -83,6 +101,7 @@ const Services = () => {
         : "Keep your webstore fast, secure, and always reachable, so customers can browse and buy any time without interruptions to the site that's connected to your RetailManager stock.",
     },
     {
+      key: "support",
       image: supportImage,
       title: isKm ? "ការគាំទ្រជាប់លាប់ និងឧបករណ៍អតិថិជន" : "Ongoing Support & Customer Tools",
       desc: isKm
@@ -91,7 +110,16 @@ const Services = () => {
     },
   ];
 
-  const relatedProducts = [
+  // Saved panel list (added/removed in the admin), or the built-in 5
+  const byKey = Object.fromEntries(defaultServices.map((s) => [s.key, s]));
+  const services = saved?.services?.length
+    ? saved.services.map((s) => {
+        const d = byKey[s.key] || {};
+        return { image: s.image || d.image || "", title: s.title || d.title || "", desc: s.description || d.desc || "" };
+      })
+    : defaultServices;
+
+  const defaultProducts = [
     {
       title: "RM Mobile",
       desc: isKm
@@ -114,6 +142,12 @@ const Services = () => {
       href: "https://www.aaapos.com/rm-multistore/",
     },
   ];
+  const relatedProducts = saved?.products?.length
+    ? saved.products.map((p) => ({ title: p.title, desc: p.description, href: p.href }))
+    : defaultProducts;
+
+  const productsTitle = pick("productsTitle", isKm ? "ផលិតផលផ្សេងទៀតពី AAAPOS ដែលអ្នកអាចចាប់អារម្មណ៍" : "Other AAAPOS products you may like");
+  const productsButton = pick("productsButton", isKm ? "ស្វែងយល់បន្ថែម" : "Learn More");
 
   return (
     <>
@@ -178,10 +212,10 @@ const Services = () => {
                   style={{ fontSize: "clamp(28px, 4vw, 46px)", color: "#000000" }}
                 >
                   <div className="overflow-hidden">
-                    <SliceText text={headline1} inView={entered} baseDelay={0.1} />
+                    <SliceText key={headline1} text={headline1} inView={entered} baseDelay={0.1} />
                   </div>
                   <div className="overflow-hidden mt-1">
-                    <SliceText text={headline2} inView={entered} baseDelay={0.25} />
+                    <SliceText key={headline2} text={headline2} inView={entered} baseDelay={0.25} />
                   </div>
                 </h1>
                 <p
@@ -194,7 +228,7 @@ const Services = () => {
 
               <div className="sv-slide-up flex-1 w-full mx-auto lg:mx-0" style={{ transitionDelay: "0.3s" }}>
                 <img
-                  src={servicesImg}
+                  src={pick("image", servicesImg)}
                   alt=""
                   draggable={false}
                   className="w-full h-auto max-h-[320px] object-contain select-none mx-auto"
@@ -239,14 +273,14 @@ const Services = () => {
       </div>
 
       {/* ── Other AAAPOS Products ── */}
-      <section className="pb-12 md:pb-16">
+      <section className="pb-12 md:pb-16 bg-white">
         <div className="sv-container">
           <div
             className="rounded-3xl py-10 px-6 md:py-12 md:px-12"
             style={{ background: "#0f8abe" }}
           >
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-8 md:mb-10">
-              {isKm ? "ផលិតផលផ្សេងទៀតពី AAAPOS ដែលអ្នកអាចចាប់អារម្មណ៍" : "Other AAAPOS products you may like"}
+              {productsTitle}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               {relatedProducts.map((p, i) => (
@@ -260,7 +294,7 @@ const Services = () => {
                     className="inline-block px-5 py-2.5 rounded-full text-sm font-semibold text-white"
                     style={{ background: "rgba(255,255,255,0.18)" }}
                   >
-                    {isKm ? "ស្វែងយល់បន្ថែម" : "Learn More"}
+                    {productsButton}
                   </a>
                 </div>
               ))}

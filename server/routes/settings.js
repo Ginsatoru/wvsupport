@@ -4,6 +4,19 @@ const Settings = require('../models/Settings');
 const { auth, admin } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 
+const MAX_HOURS_ROWS = 7;
+
+// Business hours from the admin form → clean rows (empty rows dropped)
+const str = (value) => (typeof value === 'string' ? value.trim() : '');
+const cleanHours = (rows) =>
+  (Array.isArray(rows) ? rows : [])
+    .slice(0, MAX_HOURS_ROWS)
+    .map((row) => ({
+      day: { en: str(row?.day?.en), km: str(row?.day?.km) },
+      time: { en: str(row?.time?.en), km: str(row?.time?.km) },
+    }))
+    .filter((row) => row.day.en && row.time.en);
+
 /**
  * @route   GET /api/settings
  * @desc    Get current site settings (public access)
@@ -49,7 +62,8 @@ router.put('/',
     body('address').optional().trim().escape(),
     body('phoneNumber').optional().trim(),
     body('email').optional().trim().isEmail().normalizeEmail(),
-    body('mapEmbedCode').optional().trim()
+    body('mapEmbedCode').optional().trim(),
+    body('businessHours').optional().isArray()
   ],
   async (req, res) => {
     try {
@@ -84,6 +98,10 @@ router.put('/',
           settings[field] = req.body[field];
         }
       });
+
+      if (req.body.businessHours !== undefined) {
+        settings.businessHours = cleanHours(req.body.businessHours);
+      }
 
       settings.lastUpdated = Date.now();
 

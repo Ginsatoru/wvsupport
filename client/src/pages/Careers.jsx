@@ -1,13 +1,25 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Lightbulb, Handshake, TrendingUp, Phone, Mail, MapPin } from "lucide-react";
 import careersImg from "../Components/Images/careers.webp";
+import { useSettings } from "../context/SettingsContext";
+import { getActiveCareers } from "../services/careersApi";
 
 const Careers = () => {
   const { i18n } = useTranslation();
   const isKm = i18n.language === "km";
+  const { settings } = useSettings();
 
-  const values = [
+  // Saved content from Content › Careers (empty keeps the built-in wording/image)
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveCareers(isKm ? "km" : "en")
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [isKm]);
+  const pick = (field, fallback) => saved?.[field] || fallback;
+
+  const defaultValues = [
     {
       icon: <Lightbulb size={20} strokeWidth={1.8} />,
       title: isKm ? "ការងារពីចម្ងាយ" : "Remote-First",
@@ -30,29 +42,38 @@ const Careers = () => {
         : "Learn a real product inside and out, and grow your skills alongside the team.",
     },
   ];
+  const values = defaultValues.map((v, i) => ({
+    ...v,
+    title: saved?.values?.[i]?.title || v.title,
+    desc: saved?.values?.[i]?.description || v.desc,
+  }));
 
+  // Contact details come from Settings (admin panel)
+  const phone = settings?.phoneNumber || "+855 974 839 135";
+  const email = settings?.email || "wvservicescambodia@gmail.com";
   const contactItems = [
     {
       icon: <Phone size={18} />,
       label: isKm ? "ទូរស័ព្ទ" : "Phone",
-      value: "+855 974 839 135",
-      href: "tel:+855974839135",
+      value: phone,
+      href: `tel:${phone.replace(/[^0-9+]/g, "")}`,
     },
     {
       icon: <Mail size={18} />,
       label: isKm ? "អ៊ីមែល" : "Email",
-      value: "wvservicescambodia@gmail.com",
-      href: "mailto:wvservicescambodia@gmail.com",
+      value: email,
+      href: `mailto:${email}`,
     },
     {
       icon: <MapPin size={18} />,
       label: isKm ? "ទីតាំង" : "Location",
-      value: isKm
-        ? "ភូមិថ្មី សង្កាត់ស្វាយដង្គំ សៀមរាប កម្ពុជា"
-        : "Phum Thmey, Sangkat Svay Dankum, Siem Reap, Cambodia",
+      value: settings?.address || "Phum Thmey, Sangkat Svay Dankum, Siem Reap, Cambodia",
       href: null,
     },
   ];
+
+  const buttonLink = pick("buttonLink", `mailto:${email}`);
+  const openings = saved?.openings || [];
 
   return (
     <div className="bg-white">
@@ -66,24 +87,27 @@ const Careers = () => {
                 className="inline-block text-[11px] font-bold uppercase tracking-[0.13em] mb-3"
                 style={{ color: "#0f8abe" }}
               >
-                {isKm ? "ការងារ" : "Careers"}
+                {pick("eyebrow", isKm ? "ការងារ" : "Careers")}
               </span>
               <h1
                 className="font-extrabold leading-[1.15] mb-4"
                 style={{ fontSize: "clamp(26px, 3.5vw, 42px)", color: "#000000" }}
               >
-                {isKm ? "ចូលរួមជាមួយក្រុមការងារ WV Support" : "Join the WV Support team"}
+                {pick("title", isKm ? "ចូលរួមជាមួយក្រុមការងារ WV Support" : "Join the WV Support team")}
               </h1>
               <p className="text-[15px] md:text-base leading-[1.8]" style={{ color: "#000000" }}>
-                {isKm
-                  ? "យើងជាក្រុមការងារនៅសៀមរាប ដែលផ្តល់ការគាំទ្របច្ចេកទេសពីចម្ងាយសម្រាប់ RetailManager ជូនអតិថិជនអូស្ត្រាលី និយសេឡង់ និងតំបន់អាស៊ី-ប៉ាស៊ីហ្វិក។"
-                  : "We're a Siem Reap-based team delivering remote technical support for RetailManager, helping retailers across Australia, New Zealand, and the Asia-Pacific region."}
+                {pick(
+                  "body",
+                  isKm
+                    ? "យើងជាក្រុមការងារនៅសៀមរាប ដែលផ្តល់ការគាំទ្របច្ចេកទេសពីចម្ងាយសម្រាប់ RetailManager ជូនអតិថិជនអូស្ត្រាលី និយសេឡង់ និងតំបន់អាស៊ី-ប៉ាស៊ីហ្វិក។"
+                    : "We're a Siem Reap-based team delivering remote technical support for RetailManager, helping retailers across Australia, New Zealand, and the Asia-Pacific region."
+                )}
               </p>
             </div>
 
             <div className="flex-1 w-full mx-auto lg:mx-0">
               <img
-                src={careersImg}
+                src={pick("image", careersImg)}
                 alt=""
                 draggable={false}
                 className="w-full h-auto max-h-[320px] object-contain select-none mx-auto"
@@ -111,25 +135,61 @@ const Careers = () => {
             ))}
           </div>
 
-          {/* ── No current openings ── */}
+          {/* ── Openings box ── */}
           <div
             className="rounded-3xl p-6 md:p-8 text-center"
             style={{ background: "#f8fafc" }}
           >
             <h2 className="text-xl md:text-2xl font-bold mb-3" style={{ color: "#000000" }}>
-              {isKm ? "មិនមានតំណែងបើកទេនាពេលនេះ" : "No Openings Right Now"}
+              {pick("boxTitle", isKm ? "មិនមានតំណែងបើកទេនាពេលនេះ" : "No Openings Right Now")}
             </h2>
-            <p className="text-[15px] leading-[1.8] mb-8 max-w-xl mx-auto" style={{ color: "#000000" }}>
-              {isKm
-                ? "យើងគ្មានតំណែងទំនេរនាពេលបច្ចុប្បន្នទេ ប៉ុន្តែយើងតែងតែចង់ស្គាល់មនុស្សល្អ។ ផ្ញើប្រវត្តិរូបសង្ខេបរបស់អ្នកមកយើងខ្ញុំ ហើយយើងនឹងទាក់ទងទៅវិញនៅពេលមានឱកាសសមស្រប។"
-                : "We don't have any open roles at the moment, but we're always happy to hear from good people. Send us your resume and we'll reach out when a suitable opportunity comes up."}
+            <p className="text-[15px] leading-[1.8] mb-8 max-w-xl mx-auto whitespace-pre-line" style={{ color: "#000000" }}>
+              {pick(
+                "boxText",
+                isKm
+                  ? "យើងគ្មានតំណែងទំនេរនាពេលបច្ចុប្បន្នទេ ប៉ុន្តែយើងតែងតែចង់ស្គាល់មនុស្សល្អ។ ផ្ញើប្រវត្តិរូបសង្ខេបរបស់អ្នកមកយើងខ្ញុំ ហើយយើងនឹងទាក់ទងទៅវិញនៅពេលមានឱកាសសមស្រប។"
+                  : "We don't have any open roles at the moment, but we're always happy to hear from good people. Send us your resume and we'll reach out when a suitable opportunity comes up."
+              )}
             </p>
+
+            {/* Open roles (only when some are added in the admin) */}
+            {openings.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 text-left">
+                {openings.map((job, i) => (
+                  <div key={i} className="rounded-2xl bg-white p-5 border border-gray-100 flex flex-col">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <h3 className="text-base font-bold" style={{ color: "#000000" }}>
+                        {job.title}
+                      </h3>
+                      {job.type && (
+                        <span className="flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100" style={{ color: "#000000" }}>
+                          {job.type}
+                        </span>
+                      )}
+                    </div>
+                    {job.description && (
+                      <p className="text-sm leading-relaxed mb-4 whitespace-pre-line" style={{ color: "#000000" }}>
+                        {job.description}
+                      </p>
+                    )}
+                    <a
+                      href={`mailto:${email}?subject=${encodeURIComponent(`Application: ${job.title}`)}`}
+                      className="mt-auto self-start px-4 py-2 rounded-full text-sm font-semibold text-white"
+                      style={{ background: "#0f8abe" }}
+                    >
+                      {isKm ? "ដាក់ពាក្យ" : "Apply"}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <a
-              href="mailto:wvservicescambodia@gmail.com"
+              href={buttonLink}
               className="inline-block px-8 py-3.5 rounded-full font-semibold text-white"
               style={{ background: "#000000" }}
             >
-              {isKm ? "ផ្ញើប្រវត្តិរូបសង្ខេប" : "Send Your Resume"}
+              {pick("buttonText", isKm ? "ផ្ញើប្រវត្តិរូបសង្ខេប" : "Send Your Resume")}
             </a>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6 pt-4 text-left">

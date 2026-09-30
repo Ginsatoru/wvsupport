@@ -1,17 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown } from "lucide-react";
+import { getActiveFaq } from "../services/faqApi";
 
 const FAQ = () => {
   const { i18n } = useTranslation();
   const isKm = i18n.language === "km";
   const [activeIndex, setActiveIndex] = useState(null);
 
+  // Saved content from Content › FAQ (empty keeps the built-in wording)
+  const [saved, setSaved] = useState(null);
+  useEffect(() => {
+    getActiveFaq(isKm ? "km" : "en")
+      .then((res) => setSaved(res.data))
+      .catch(() => setSaved(null));
+  }, [isKm]);
+
   const toggleQuestion = (index) => {
     setActiveIndex(index === activeIndex ? null : index);
   };
 
-  const faqData = [
+  const defaultFaqData = [
     {
       question: isKm ? "តើ RetailManager ជាអ្វី?" : "What is RetailManager?",
       answer: isKm
@@ -43,6 +52,20 @@ const FAQ = () => {
         : "RetailManager integrates with MYOB and XERO for accounting, Shopify, WooCommerce, eBay, and BigCommerce for e-commerce, and EFTPOS providers including Tyro, Linkly, Westpac, Commonwealth Bank, ANZ, and NAB.",
     },
   ];
+  const faqData = saved?.items?.length ? saved.items : defaultFaqData;
+
+  // 5 questions per column; extra questions start a new column on the right
+  const PER_COLUMN = 5;
+  const columns = [];
+  for (let i = 0; i < faqData.length; i += PER_COLUMN) columns.push(faqData.slice(i, i + PER_COLUMN));
+
+  const eyebrow = saved?.eyebrow || (isKm ? "សំណួរញឹកញាប់" : "FAQ");
+  const title = saved?.title || (isKm ? "សំណួរដែលសួរញឹកញាប់" : "Frequently Asked Questions");
+  const intro =
+    saved?.intro ||
+    (isKm
+      ? "នេះជាចម្លើយចំពោះសំណួរទូទៅមួយចំនួនអំពីសេវាកម្មរបស់យើង។ រកមិនឃើញអ្វីដែលអ្នកកំពុងស្វែងរក? ទាក់ទងមកយើងខ្ញុំដោយផ្ទាល់។"
+      : "Answers to a few common questions about our services. Can't find what you're looking for? Reach out to us directly.");
 
   return (
     <div className="bg-white">
@@ -53,64 +76,67 @@ const FAQ = () => {
               className="inline-block text-[11px] font-bold uppercase tracking-[0.13em] mb-4"
               style={{ color: "#0f8abe" }}
             >
-              {isKm ? "សំណួរញឹកញាប់" : "FAQ"}
+              {eyebrow}
             </span>
             <h1
               className="font-extrabold leading-[1.15] mb-4"
               style={{ fontSize: "clamp(28px, 4vw, 46px)", color: "#000000" }}
             >
-              {isKm ? "សំណួរដែលសួរញឹកញាប់" : "Frequently Asked Questions"}
+              {title}
             </h1>
             <p className="text-[15px] leading-[1.8] mb-10" style={{ color: "#000000" }}>
-              {isKm
-                ? "នេះជាចម្លើយចំពោះសំណួរទូទៅមួយចំនួនអំពីសេវាកម្មរបស់យើង។ រកមិនឃើញអ្វីដែលអ្នកកំពុងស្វែងរក? ទាក់ទងមកយើងខ្ញុំដោយផ្ទាល់។"
-                : "Answers to a few common questions about our services. Can't find what you're looking for? Reach out to us directly."}
+              {intro}
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 max-w-3xl">
-            {faqData.map((item, index) => {
-              const isActive = index === activeIndex;
-              return (
-                <div
-                  key={index}
-                  className="rounded-2xl overflow-hidden"
-                  style={{ background: "#f8fafc" }}
-                >
-                  <button
-                    onClick={() => toggleQuestion(index)}
-                    className="w-full flex items-center justify-between gap-4 text-left px-6 py-5"
-                  >
-                    <span className="text-base font-bold" style={{ color: "#000000" }}>
-                      {item.question}
-                    </span>
-                    <ChevronDown
-                      size={20}
-                      style={{
-                        color: "#000000",
-                        flexShrink: 0,
-                        transform: isActive ? "rotate(180deg)" : "rotate(0deg)",
-                        transition: "transform 0.25s ease",
-                      }}
-                    />
-                  </button>
-                  <div
-                    style={{
-                      maxHeight: isActive ? "300px" : "0px",
-                      overflow: "hidden",
-                      transition: "max-height 0.3s ease",
-                    }}
-                  >
-                    <p
-                      className="px-6 pb-5 text-[15px] leading-[1.8]"
-                      style={{ color: "#000000" }}
+          <div className={`grid grid-cols-1 gap-3 items-start ${columns.length > 1 ? "md:grid-cols-2 md:gap-6" : "max-w-3xl"}`}>
+            {columns.map((column, c) => (
+              <div key={c} className="flex flex-col gap-3">
+                {column.map((item, row) => {
+                  const index = c * PER_COLUMN + row;
+                  const isActive = index === activeIndex;
+                  return (
+                    <div
+                      key={index}
+                      className="rounded-2xl overflow-hidden"
+                      style={{ background: "#f8fafc" }}
                     >
-                      {item.answer}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+                      <button
+                        onClick={() => toggleQuestion(index)}
+                        className="w-full flex items-center justify-between gap-4 text-left px-6 py-5"
+                      >
+                        <span className="text-base font-bold" style={{ color: "#000000" }}>
+                          {item.question}
+                        </span>
+                        <ChevronDown
+                          size={20}
+                          style={{
+                            color: "#000000",
+                            flexShrink: 0,
+                            transform: isActive ? "rotate(180deg)" : "rotate(0deg)",
+                            transition: "transform 0.25s ease",
+                          }}
+                        />
+                      </button>
+                      <div
+                        style={{
+                          maxHeight: isActive ? "1000px" : "0px",
+                          overflow: "hidden",
+                          transition: "max-height 0.3s ease",
+                        }}
+                      >
+                        <p
+                          className="px-6 pb-5 text-[15px] leading-[1.8] whitespace-pre-line"
+                          style={{ color: "#000000" }}
+                        >
+                          {item.answer}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </div>
       </div>
