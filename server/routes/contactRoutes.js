@@ -1,5 +1,6 @@
 const express = require("express");
 const verifyAdmin = require("../middleware/verifyAdmin");
+const rateLimit = require("../middleware/rateLimit");
 const {
   sendContactMessage,
   getAllMessages,
@@ -14,8 +15,8 @@ const {
 
 const router = express.Router();
 
-// Public: contact form
-router.post("/", sendContactMessage);
+// Public: contact form (5 per 10 minutes per IP)
+router.post("/", rateLimit({ windowMs: 10 * 60 * 1000, max: 5 }), sendContactMessage);
 
 // Admin only
 router.get("/admin/messages", verifyAdmin, getAllMessages);

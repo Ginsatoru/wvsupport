@@ -3,6 +3,7 @@ const path = require("path");
 const ContactMessage = require("../models/ContactMessage");
 const { transporter } = require("../config/nodemailer");
 const { setupContactUpload } = require("../config/multer");
+const { verifyRecaptcha } = require("../utils/recaptcha");
 const {
   SENDER,
   TEAM_NAME,
@@ -57,11 +58,22 @@ const updateStatus = (label, buildUpdate) =>
     res.status(200).json({ success: true, data: toThread(doc) });
   });
 
+// Longest allowed value per contact-form field
+const LIMITS = { name: 100, email: 200, subject: 200, message: 5000, phone: 50 };
+const EMAIL_FORMAT = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+
 // ── Public: contact form submission ──
 const sendContactMessage = handle("send message", async (req, res) => {
   const [name, email, subject, message] = ["name", "email", "subject", "message"].map((k) => cleanText(req.body[k]));
   if (!name || !email || !subject || !message) {
     return res.status(400).json({ success: false, message: "All fields are required" });
+  }
+  if (Object.entries({ name, email, subject, message }).some(([k, v]) => v.length > LIMITS[k])) {
+    return res.status(400).json({ success: false, message: "One of the fields is too long" });
+  }
+  if (!EMAIL_FORMAT.test(email)) return res.status(400).json({ success: false, message: "Invalid email address" });
+  if (!(await verifyRecaptcha(req.body.recaptchaToken, req.ip))) {
+    return res.status(400).json({ success: false, message: "Security check failed. Please try again." });
   }
 
   const doc = await ContactMessage.create({

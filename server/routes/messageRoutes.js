@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const Message = require("../models/Message");
 const verifyAdmin = require("../middleware/verifyAdmin");
+const rateLimit = require("../middleware/rateLimit");
 const { setupChatUpload } = require("../config/multer");
 
 const router = express.Router();
@@ -44,6 +45,17 @@ const handle = (fn) => async (req, res) => {
 };
 
 const cleanText = (value) => (typeof value === "string" ? value.trim() : "");
+const MAX_MESSAGE = 2000;
+const SESSION_FORMAT = /^[\w-]{10,100}$/; // matches the widget's "user_<time>_<random>"
+
+// Public chat limits, per IP
+const sendLimit = rateLimit({ windowMs: 60 * 1000, max: 20, message: "You're sending messages too fast. Please wait a moment." });
+const readLimit = rateLimit({ windowMs: 60 * 1000, max: 60 });
+const nameLimit = rateLimit({ windowMs: 10 * 60 * 1000, max: 10 });
+
+// Rejects visitor requests with a malformed session id
+const validSession = (req, res, next) =>
+  SESSION_FORMAT.test(req.params.sessionId) ? next() : res.status(400).json({ message: "Invalid session" });
 const lastLine = (thread) => thread.messages[thread.messages.length - 1];
 const socket = (req) => req.app.get("socket");
 const STATUSES = ["open", "closed"];
@@ -51,14 +63,15 @@ const STATUSES = ["open", "closed"];
 // ── Visitor: send a message (creates the thread on first message, reopens if closed) ──
 router.post(
   "/",
+  sendLimit,
   withAttachments,
   handle(async (req, res) => {
     const sessionId = cleanText(req.body.sessionId);
     const content = cleanText(req.body.content);
     const attachments = toAttachments(req.files);
-    if (!sessionId || (!content && !attachments.length)) {
+    if (!SESSION_FORMAT.test(sessionId) || (!content && !attachments.length) || content.length > MAX_MESSAGE) {
       removeUploadedFiles(req.files);
-      return res.status(400).json({ message: "A message or attachment is required" });
+      return res.status(400).json({ message: `Messages can be up to ${MAX_MESSAGE} characters` });
     }
 
     const thread = await Message.findOneAndUpdate(
@@ -83,6 +96,8 @@ router.post(
 // ── Visitor: load chat history for the widget ──
 router.get(
   "/:sessionId",
+  readLimit,
+  validSession,
   handle(async (req, res) => {
     const thread = await Message.findOne({ sessionId: req.params.sessionId }).lean();
     res.json({
@@ -100,6 +115,8 @@ router.get(
 // ── Visitor: set their name (shown on the thread in the admin inbox straight away) ──
 router.patch(
   "/:sessionId/name",
+  nameLimit,
+  validSession,
   handle(async (req, res) => {
     const name = cleanText(req.body.name).slice(0, 60);
     if (!name) return res.status(400).json({ message: "Name is required" });

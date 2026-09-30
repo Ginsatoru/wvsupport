@@ -11,7 +11,7 @@ exports.subscribeEmail = async (req, res) => {
   try {
     const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
     if (!email) return res.status(400).json({ success: false, message: "Email is required" });
-    if (!/\S+@\S+\.\S+/.test(email)) {
+    if (email.length > 200 || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email)) {
       return res.status(400).json({ success: false, message: "Invalid email format" });
     }
 

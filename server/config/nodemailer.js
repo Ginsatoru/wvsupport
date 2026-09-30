@@ -1,18 +1,11 @@
 const nodemailer = require("nodemailer");
+const { escapeHtml } = require("../services/contactThread");
 
-// Check for required environment variables
-const requiredEnvVars = ['EMAIL_USERNAME', 'EMAIL_PASSWORD'];
-const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+// Warn (don't crash) when email isn't configured
+const missing = ["EMAIL_USERNAME", "EMAIL_PASSWORD"].filter((name) => !process.env[name]);
+if (missing.length) console.error("Missing email settings in .env:", missing.join(", "));
 
-if (missingEnvVars.length > 0) {
-  console.error('Missing required environment variables:', missingEnvVars);
-  console.error('Please set these in your .env file:');
-  missingEnvVars.forEach(varName => {
-    console.error(`${varName}=your_${varName.toLowerCase()}_here`);
-  });
-}
-
-// Create transporter - FIXED: Changed createTransporter to createTransport
+// Gmail by default; the server's certificate is always verified
 const transporter = nodemailer.createTransport({
   service: process.env.EMAIL_SERVICE || "gmail",
   host: process.env.EMAIL_HOST || "smtp.gmail.com",
@@ -22,39 +15,30 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USERNAME,
     pass: process.env.EMAIL_PASSWORD,
   },
-  tls: {
-    rejectUnauthorized: false, // Only for development/testing
-  },
 });
 
-// Verify transporter connection
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ Error with mail transporter:", error.message);
-    console.error("Please check your email configuration in .env file");
-    if (error.code === 'EAUTH') {
-      console.error("Authentication failed. Check EMAIL_USERNAME and EMAIL_PASSWORD");
-    }
-  } else {
-    console.log("✅ Mail transporter is ready");
-  }
+transporter.verify((error) => {
+  if (!error) return console.log("✅ Mail transporter is ready");
+  console.error("❌ Error with mail transporter:", error.message);
+  if (error.code === "EAUTH") console.error("Authentication failed. Check EMAIL_USERNAME and EMAIL_PASSWORD");
 });
 
-// Send welcome email
-const sendWelcomeEmail = async (email) => {
-  // Check if transporter is configured
+const assertConfigured = () => {
   if (!process.env.EMAIL_USERNAME || !process.env.EMAIL_PASSWORD) {
-    const error = new Error("Email configuration missing. Please set EMAIL_USERNAME and EMAIL_PASSWORD in your .env file");
-    console.error("❌", error.message);
-    throw error;
+    throw new Error("Email configuration missing. Please set EMAIL_USERNAME and EMAIL_PASSWORD in your .env file");
   }
+};
 
-  try {
-    const mailOptions = {
-      from: `"WV Support Services" <${process.env.EMAIL_USERNAME}>`,
-      to: email,
-      subject: "Welcome to WV Support Services Newsletter",
-      html: `
+// Friendlier messages for common mail errors
+const explainMailError = (error) => {
+  if (error.code === "EAUTH") error.message = "Email authentication failed. Please check your EMAIL_USERNAME and EMAIL_PASSWORD";
+  else if (error.code === "ENOTFOUND") error.message = "Email service not found. Please check your EMAIL_HOST configuration";
+  else if (error.code === "ECONNECTION") error.message = "Failed to connect to email service. Please check your email configuration";
+  return error;
+};
+
+// Welcome email for new newsletter subscribers
+const welcomeHtml = (email) => `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -67,18 +51,17 @@ const sendWelcomeEmail = async (email) => {
             <tr>
               <td style="padding: 40px 20px;">
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(15, 138, 190, 0.1); overflow: hidden;">
-                  
+
                   <!-- Header with Logo -->
                   <tr>
                     <td style="background: linear-gradient(135deg, #0f8abe 0%, #0d7aa8 100%); padding: 40px 30px; text-align: center; position: relative;">
                       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                         <tr>
                           <td style="text-align: center;">
-                            <!-- Logo Container -->
                             <div style="background-color: rgba(255,255,255,0.15); width: 80px; height: 80px; border-radius: 20px; display: inline-block; line-height: 80px; margin-bottom: 25px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.2);">
                               <img src="https://wvsupportservices.com/logo-blue.png?v=2" alt="WV Support Services" style="width: 50px; height: 35px; vertical-align: middle;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                               <span style="font-size: 32px; color: white; display: none;">🛠️</span>
-                            </div>  
+                            </div>
                             <h1 style="color: white; margin: 0 0 10px 0; font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">
                               Welcome to Our Newsletter! 🎉
                             </h1>
@@ -95,7 +78,7 @@ const sendWelcomeEmail = async (email) => {
                       </table>
                     </td>
                   </tr>
-                  
+
                   <!-- Main Content -->
                   <tr>
                     <td style="padding: 50px 40px;">
@@ -111,7 +94,7 @@ const sendWelcomeEmail = async (email) => {
                           </td>
                         </tr>
                       </table>
-                      
+
                       <!-- Services Grid -->
                       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 40px 0;">
                         <tr>
@@ -162,14 +145,12 @@ const sendWelcomeEmail = async (email) => {
                           </td>
                         </tr>
                       </table>
-                      
+
                       <!-- Call to Action Buttons -->
                       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 45px 0;">
                         <tr>
                           <td style="text-align: center;">
                             <h3 style="color: #2d3748; margin: 0 0 25px 0; font-size: 20px; font-weight: 600;">Explore Our Services</h3>
-                            
-                            <!-- Primary Button - Visit WV Support -->
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 20px auto;">
                               <tr>
                                 <td style="background: linear-gradient(135deg, #0f8abe 0%, #0d7aa8 100%); padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(15, 138, 190, 0.3);">
@@ -179,8 +160,6 @@ const sendWelcomeEmail = async (email) => {
                                 </td>
                               </tr>
                             </table>
-                            
-                            <!-- Secondary Button - Main Site -->
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
                               <tr>
                                 <td style="background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%); padding: 16px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(74, 85, 104, 0.3);">
@@ -193,7 +172,7 @@ const sendWelcomeEmail = async (email) => {
                           </td>
                         </tr>
                       </table>
-                      
+
                       <!-- What's Next Section -->
                       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 40px 0;">
                         <tr>
@@ -207,7 +186,7 @@ const sendWelcomeEmail = async (email) => {
                       </table>
                     </td>
                   </tr>
-                  
+
                   <!-- Footer -->
                   <tr>
                     <td style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); padding: 40px 30px; text-align: center; border-top: 2px solid #e2e8f0;">
@@ -225,8 +204,6 @@ const sendWelcomeEmail = async (email) => {
                             </p>
                           </td>
                         </tr>
-                        
-                        <!-- Contact Info -->
                         <tr>
                           <td style="text-align: center; padding: 20px 0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
@@ -241,94 +218,62 @@ const sendWelcomeEmail = async (email) => {
                             </table>
                           </td>
                         </tr>
-                        
                         <tr>
                           <td style="text-align: center; padding-top: 25px;">
                             <p style="margin: 0; font-size: 13px; color: #718096; line-height: 1.5;">
                               If you didn't request this subscription, please ignore this email.<br>
-                              This email was sent to <strong>${email}</strong>
+                              This email was sent to <strong>${escapeHtml(email)}</strong>
                             </p>
                             <p style="margin: 15px 0 0 0; font-size: 12px; color: #a0aec0;">
-                              © 2025 WV Support Services Cambodia. All rights reserved.
+                              © ${new Date().getFullYear()} WV Support Services Cambodia. All rights reserved.
                             </p>
                           </td>
                         </tr>
                       </table>
                     </td>
                   </tr>
-                  
+
                 </table>
               </td>
             </tr>
           </table>
         </body>
         </html>
-      `,
-    };
+      `;
 
-    console.log("Sending email to:", email);
-    const info = await transporter.sendMail(mailOptions);
-    console.log("✅ Message sent successfully:", info.messageId);
-    return info;
+const sendWelcomeEmail = async (email) => {
+  assertConfigured();
+  try {
+    return await transporter.sendMail({
+      from: `"WV Support Services" <${process.env.EMAIL_USERNAME}>`,
+      to: email,
+      subject: "Welcome to WV Support Services Newsletter",
+      html: welcomeHtml(email),
+    });
   } catch (error) {
-    console.error("❌ Error sending welcome email:", error.message);
-    
-    // Provide more specific error messages
-    if (error.code === 'EAUTH') {
-      error.message = "Email authentication failed. Please check your EMAIL_USERNAME and EMAIL_PASSWORD";
-    } else if (error.code === 'ENOTFOUND') {
-      error.message = "Email service not found. Please check your EMAIL_HOST configuration";
-    } else if (error.code === 'ECONNECTION') {
-      error.message = "Failed to connect to email service. Please check your internet connection and email configuration";
-    }
-    
-    throw error;
+    throw explainMailError(error);
   }
 };
 
-// Send bulk email function
+// Sends the same email to each address, one at a time (short pause between sends)
 const sendBulkEmail = async (emails, subject, content) => {
-  // Check if transporter is configured
-  if (!process.env.EMAIL_USERNAME || !process.env.EMAIL_PASSWORD) {
-    const error = new Error("Email configuration missing. Please set EMAIL_USERNAME and EMAIL_PASSWORD in your .env file");
-    console.error("❌", error.message);
-    throw error;
-  }
-
-  try {
-    const results = [];
-    
-    // Send emails one by one to avoid rate limiting
-    for (const email of emails) {
-      const mailOptions = {
+  assertConfigured();
+  const results = [];
+  for (const email of emails) {
+    try {
+      const info = await transporter.sendMail({
         from: `"WV Support Services" <${process.env.EMAIL_USERNAME}>`,
         to: email,
-        subject: subject,
+        subject,
         html: content,
-      };
-
-      try {
-        const info = await transporter.sendMail(mailOptions);
-        results.push({ email, success: true, messageId: info.messageId });
-        console.log(`✅ Email sent to ${email}:`, info.messageId);
-        
-        // Add delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (emailError) {
-        results.push({ email, success: false, error: emailError.message });
-        console.error(`❌ Failed to send email to ${email}:`, emailError.message);
-      }
+      });
+      results.push({ email, success: true, messageId: info.messageId });
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    } catch (error) {
+      results.push({ email, success: false, error: error.message });
     }
-
-    return results;
-  } catch (error) {
-    console.error("❌ Error in bulk email send:", error.message);
-    throw error;
   }
+  return results;
 };
 
-module.exports = { 
-  sendWelcomeEmail,
-  sendBulkEmail,
-  transporter 
-};
+module.exports = { sendWelcomeEmail, sendBulkEmail, transporter };

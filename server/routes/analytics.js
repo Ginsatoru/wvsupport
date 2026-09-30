@@ -1,6 +1,7 @@
 // routes/analytics.js
 const express = require("express");
 const verifyAdmin = require("../middleware/verifyAdmin");
+const rateLimit = require("../middleware/rateLimit");
 const {
   trackVisit,
   trackEngagement,
@@ -13,8 +14,10 @@ const {
 const router = express.Router();
 
 // Public: called by the site's tracker
-router.post("/track", trackVisit);
-router.post("/engagement", trackEngagement);
+// Public: called by the site's tracker (generous limits; real visitors never reach them)
+const trackLimit = rateLimit({ windowMs: 60 * 1000, max: 60 });
+router.post("/track", trackLimit, trackVisit);
+router.post("/engagement", trackLimit, trackEngagement);
 
 // Admin only
 router.get("/overview", verifyAdmin, getOverviewStats);
