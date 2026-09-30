@@ -254,7 +254,7 @@ const TopBar = ({
             </div>
 
             <h1 className="text-lg sm:text-3xl font-bold bg-clip-text text-sky-400 hidden md:block">
-              Admin Dashboard
+              WV SUPPORT
             </h1>
           </div>
 

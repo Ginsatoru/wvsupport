@@ -220,3 +220,336 @@ exports.getViewTrends = handle("trends", async (req, res) => {
   res.set("Cache-Control", "no-store");
   res.json({ range, points: buckets.map((b, i) => ({ label: b.label, value: counts[i] })) });
 });
+
+// ══════════════════════════════════════════════════════════════════
+// Dashboard — stat cards + recent activity — GET /api/analytics/dashboard?tzOffset=-420&limit=5
+// ══════════════════════════════════════════════════════════════════
+const Message = require("../models/Message");
+const ContactMessage = require("../models/ContactMessage");
+const NewsletterEmail = require("../models/newsletterModel");
+const User = require("../models/User");
+const Settings = require("../models/Settings");
+
+// Every editable CMS section: model, name and where it's edited in the admin
+const CMS_ROUTE = "/admin-panel/frontend";
+const CONTENT_SECTIONS = [
+  ["FrontendContent", "Hero Banner", "home/hero"],
+  ["Partner", "Partner Logos", "home/partners"],
+  ["ServicesContent", "Home Services", "home/services"],
+  ["AboutContent", "Home About", "home/about"],
+  ["TechContent", "Tech section", "home/tech"],
+  ["WorkContent", "Work section", "home/work"],
+  ["GalleryContent", "Gallery", "home/gallery"],
+  ["NewsletterContent", "Newsletter section", "home/newsletter"],
+  ["AboutPageContent", "About Us page", "about/about-page"],
+  ["ServicesPageContent", "Services page", "services/services-page"],
+  ["FaqContent", "FAQ", "faq/faq"],
+  ["CareersContent", "Careers page", "careers/careers-page"],
+  ["LegalContent", "Terms & Conditions", "legal/legal"],
+  ["NavContent", "Navbar", "global/nav"],
+  ["NewsPopup", "News Popup", "global/news-popup"],
+  ["FooterContent", "Footer", "global/footer"],
+].map(([model, name, route]) => ({ model: require(`../models/${model}`), name, route: `${CMS_ROUTE}/${route}` }));
+
+// When a document was created / last changed (falls back to the id's own timestamp)
+const createdOf = (doc) => doc.createdAt || doc._id?.getTimestamp?.();
+const changedOf = (doc) => doc.updatedAt || doc.lastUpdated || createdOf(doc);
+
+// % change, one decimal (no previous value → +100% if anything happened)
+const pctChange = (current, previous) =>
+  previous ? Math.round(((current - previous) / previous) * 1000) / 10 : current ? 100 : 0;
+
+// Friendly names for the site's pages (anything else shows its path)
+const PAGE_NAMES = {
+  "/": ["Home Page", "home"],
+  "/aboutus": ["About Us", "about"],
+  "/services": ["Services", "services"],
+  "/contact": ["Contact Page", "contact"],
+  "/faq": ["FAQ", "faq"],
+  "/careers": ["Careers", "careers"],
+  "/legal": ["Legal", "legal"],
+};
+// "/Services/?ref=x" → "/services"
+const cleanPath = (path = "") => {
+  const p = path.split(/[?#]/)[0].toLowerCase().replace(/\/+$/, "");
+  return p || "/";
+};
+
+// Chat threads with a visitor line the admin hasn't read yet
+const UNREAD_CHAT = { messages: { $elemMatch: { sender: "user", status: { $ne: "read" } } } };
+
+exports.getDashboard = handle("dashboard", async (req, res) => {
+  const tzOffset = clampTz(req.query.tzOffset);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 5, 1), 50);
+  const now = new Date();
+
+  // 7 daily buckets (oldest → today), plus this week vs the week before
+  const dayStarts = [...Array(7)].map((_, i) => startOfDay(tzOffset, 6 - i));
+  const weekStart = dayStarts[0];
+  const prevWeekStart = startOfDay(tzOffset, 13);
+  const dayIndex = (date) => {
+    for (let i = 6; i >= 0; i--) if (date >= dayStarts[i]) return i;
+    return -1;
+  };
+  const perDay = (dates) => {
+    const counts = Array(7).fill(0);
+    dates.forEach((d) => {
+      const i = dayIndex(new Date(d));
+      if (i >= 0) counts[i] += 1;
+    });
+    return counts;
+  };
+  // Running total at the end of each day, from creation dates
+  const cumulative = (dates) =>
+    dayStarts.map((_, i) => {
+      const end = i < 6 ? dayStarts[i + 1] : now;
+      return dates.filter((d) => new Date(d) < end).length;
+    });
+
+  const [
+    week, prevWeek, dailyTraffic,
+    unreadChats, unreadEmails, chatLines, emailDates,
+    subscriberDates, userDocs, contentDocs,
+  ] = await Promise.all([
+    countRange(weekStart, now),
+    countRange(prevWeekStart, weekStart),
+    Promise.all(dayStarts.map((start, i) => countRange(start, i < 6 ? dayStarts[i + 1] : now))),
+    Message.countDocuments(UNREAD_CHAT),
+    ContactMessage.countDocuments({ read: false }),
+    // Visitor chat lines in the last 14 days
+    Message.aggregate([
+      { $match: { updatedAt: { $gte: prevWeekStart } } },
+      { $unwind: "$messages" },
+      { $match: { "messages.sender": "user", "messages.timestamp": { $gte: prevWeekStart } } },
+      { $project: { _id: 0, t: "$messages.timestamp" } },
+    ]),
+    ContactMessage.find({ createdAt: { $gte: prevWeekStart } }).select("createdAt").lean(),
+    NewsletterEmail.find().select("createdAt").lean(),
+    User.find().select("createdAt").lean(),
+    Promise.all(CONTENT_SECTIONS.map((s) => s.model.findOne().select("createdAt updatedAt").lean())),
+  ]);
+
+  // ── Cards ──
+  const incoming = [...chatLines.map((l) => l.t), ...emailDates.map((e) => e.createdAt)];
+  const incomingThisWeek = incoming.filter((d) => new Date(d) >= weekStart).length;
+  const incomingLastWeek = incoming.length - incomingThisWeek;
+
+  const subDates = subscriberDates.map((s) => s.createdAt || s._id.getTimestamp());
+  const userDates = userDocs.map(createdOf);
+  const contentDates = contentDocs.filter(Boolean).map(createdOf);
+  const countBefore = (dates, date) => dates.filter((d) => new Date(d) < date).length;
+
+  const stats = [
+    {
+      key: "views",
+      label: "Total Views",
+      value: week.views,
+      change: pctChange(week.views, prevWeek.views),
+      series: dailyTraffic.map((d) => d.views),
+    },
+    {
+      key: "visitors",
+      label: "Unique Visitors",
+      value: week.visitors,
+      change: pctChange(week.visitors, prevWeek.visitors),
+      series: dailyTraffic.map((d) => d.visitors),
+    },
+    {
+      key: "messages",
+      label: "New Messages",
+      value: unreadChats + unreadEmails,
+      change: pctChange(incomingThisWeek, incomingLastWeek),
+      series: perDay(incoming),
+    },
+    {
+      key: "subscribers",
+      label: "Subscribers",
+      value: subDates.length,
+      change: pctChange(subDates.length, countBefore(subDates, weekStart)),
+      series: cumulative(subDates),
+    },
+    {
+      key: "content",
+      label: "Published Content",
+      value: contentDates.length,
+      change: pctChange(contentDates.length, countBefore(contentDates, weekStart)),
+      series: cumulative(contentDates),
+    },
+    {
+      key: "users",
+      label: "Active Users",
+      value: userDates.length,
+      change: pctChange(userDates.length, countBefore(userDates, weekStart)),
+      series: cumulative(userDates),
+    },
+  ];
+
+  // ── Recent activity (built from existing timestamps) ──
+  const [latestChats, latestEmails, latestSubs, latestUsers, settings, latestContent] = await Promise.all([
+    // Newest visitor line per chat thread
+    Message.aggregate([
+      { $unwind: "$messages" },
+      { $match: { "messages.sender": "user" } },
+      { $sort: { "messages.timestamp": -1 } },
+      {
+        $group: {
+          _id: "$_id",
+          sessionId: { $first: "$sessionId" },
+          name: { $first: "$user.name" },
+          content: { $first: "$messages.content" },
+          time: { $first: "$messages.timestamp" },
+          status: { $first: "$messages.status" },
+        },
+      },
+      { $sort: { time: -1 } },
+      { $limit: limit },
+    ]),
+    ContactMessage.find().sort({ createdAt: -1 }).limit(limit).select("name subject createdAt read").lean(),
+    NewsletterEmail.find().sort({ createdAt: -1 }).limit(limit).select("email createdAt seen").lean(),
+    User.find().sort({ createdAt: -1 }).limit(limit).select("name email createdAt").lean(),
+    Settings.findOne().select("lastUpdated").lean(),
+    Promise.all(
+      CONTENT_SECTIONS.map((s) => s.model.findOne().sort({ updatedAt: -1 }).select("createdAt updatedAt").lean())
+    ),
+  ]);
+
+  const activity = [
+    ...latestChats.map((c) => ({
+      type: "chat",
+      id: c.sessionId,
+      title: "New chat message",
+      detail: `From: ${c.name || "Visitor"}${c.content ? ` · ${c.content.slice(0, 60)}` : ""}`,
+      time: c.time,
+      unread: c.status !== "read",
+      link: "/admin-panel/inbox",
+    })),
+    ...latestEmails.map((e) => ({
+      type: "email",
+      id: String(e._id),
+      title: "New message received",
+      detail: `From: ${e.name}${e.subject ? ` · ${e.subject}` : ""}`,
+      time: e.createdAt,
+      unread: !e.read,
+      link: "/admin-panel/inbox",
+    })),
+    ...latestSubs.map((s) => ({
+      type: "subscriber",
+      id: String(s._id),
+      title: "New subscriber",
+      detail: `${s.email} subscribed to your newsletter`,
+      time: s.createdAt || s._id.getTimestamp(),
+      unread: s.seen === false,
+      link: "/admin-panel/subscribers",
+    })),
+    ...latestUsers.map((u) => ({
+      type: "user",
+      title: "New user registered",
+      detail: `${u.name || u.email} was added to the dashboard`,
+      time: createdOf(u),
+      unread: false,
+      link: "/admin-panel/users",
+    })),
+    ...latestContent
+      .map((doc, i) =>
+        doc
+          ? {
+              type: "content",
+              title: "Content updated",
+              detail: `${CONTENT_SECTIONS[i].name} was updated`,
+              time: changedOf(doc),
+              unread: false,
+              link: CONTENT_SECTIONS[i].route,
+            }
+          : null
+      )
+      .filter(Boolean),
+    ...(settings?.lastUpdated
+      ? [
+          {
+            type: "settings",
+            title: "Settings changed",
+            detail: "Site settings were updated",
+            time: settings.lastUpdated,
+            unread: false,
+            link: "/admin-panel/settings",
+          },
+        ]
+      : []),
+  ]
+    .filter((a) => a.time)
+    .sort((a, b) => new Date(b.time) - new Date(a.time))
+    .slice(0, limit);
+
+  // ── Popular content: top pages, last 30 days vs the 30 before ──
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const last30 = new Date(now.getTime() - 30 * DAY_MS);
+  const prev30 = new Date(now.getTime() - 60 * DAY_MS);
+  const pathCounts = await Visit.aggregate([
+    { $match: { ...COUNTED, createdAt: { $gte: prev30 } } },
+    { $group: { _id: { path: "$path", recent: { $gte: ["$createdAt", last30] } }, count: { $sum: 1 } } },
+  ]);
+  const pages = {};
+  pathCounts.forEach(({ _id, count }) => {
+    const path = cleanPath(_id.path);
+    if (path.startsWith("/admin")) return;
+    pages[path] = pages[path] || { views: 0, prev: 0 };
+    pages[path][_id.recent ? "views" : "prev"] += count;
+  });
+  const popular = Object.entries(pages)
+    .filter(([, p]) => p.views > 0)
+    .sort((a, b) => b[1].views - a[1].views)
+    .slice(0, 4)
+    .map(([path, p]) => ({
+      path,
+      name: PAGE_NAMES[path]?.[0] || path,
+      type: PAGE_NAMES[path]?.[1] || "other",
+      views: p.views,
+      change: pctChange(p.views, p.prev),
+    }));
+
+  // ── Inbox preview: 3 newest unread chats / emails ──
+  const [unreadThreadDocs, unreadEmailDocs] = await Promise.all([
+    Message.find(UNREAD_CHAT).sort({ updatedAt: -1 }).limit(3).select("sessionId user messages").lean(),
+    ContactMessage.find({ read: false })
+      .sort({ lastReplyAt: -1, createdAt: -1 })
+      .limit(3)
+      .select("name subject message messages createdAt")
+      .lean(),
+  ]);
+  const snippetOf = (line, fallback = "") =>
+    (line?.content || (line?.attachments?.length ? "Sent an attachment" : fallback)).slice(0, 90);
+  const inbox = [
+    ...unreadThreadDocs.map((t) => {
+      const lines = t.messages.filter((m) => m.sender === "user");
+      const last = lines[lines.length - 1];
+      return {
+        type: "chat",
+        id: t.sessionId,
+        name: t.user?.name || "Visitor",
+        subject: "Live chat",
+        snippet: snippetOf(last),
+        time: last?.timestamp,
+        unread: lines.filter((m) => m.status !== "read").length,
+      };
+    }),
+    ...unreadEmailDocs.map((e) => {
+      const lines = (e.messages || []).filter((m) => m.sender === "user");
+      const last = lines[lines.length - 1];
+      return {
+        type: "email",
+        id: String(e._id),
+        name: e.name,
+        subject: e.subject,
+        snippet: snippetOf(last, e.message || ""),
+        time: last?.timestamp || e.createdAt,
+        unread: 1,
+      };
+    }),
+  ]
+    .filter((m) => m.time)
+    .sort((a, b) => new Date(b.time) - new Date(a.time))
+    .slice(0, 3);
+
+  res.set("Cache-Control", "no-store");
+  res.json({ success: true, stats, activity, popular, inbox });
+});

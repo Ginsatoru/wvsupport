@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { LineChart, Line, ResponsiveContainer, Tooltip, YAxis, CartesianGrid } from "recharts";
-import { Loader2 } from "lucide-react";
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import { Loader2, BarChart3 } from "lucide-react";
 
 const TABS = ["Day", "Week", "Month", "Year"];
+const BRAND = "#0f8abe";
 
 /**
- * TotalViewsChart — "Saved This Month" style card; fills the height of its container.
- * Headline = all-time views (passed in). The line shows real page views per period:
+ * Traffic Overview — real page views per period, as a filled area chart.
  * Day = today in 4-hour blocks, Week = last 7 days, Month = last 7 months, Year = last 7 years.
  */
-const TotalViewsChart = ({ value, darkMode = false }) => {
-  const [activeTab, setActiveTab] = useState("Month");
+const TotalViewsChart = ({ darkMode = false }) => {
+  const [activeTab, setActiveTab] = useState("Day");
   const [points, setPoints] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,93 +29,92 @@ const TotalViewsChart = ({ value, darkMode = false }) => {
     };
   }, [activeTab]);
 
-  // The newest point is the current period
-  const activeLabel = points[points.length - 1]?.label;
-  const muted = darkMode ? "text-gray-500" : "text-gray-400";
+  const axisColor = darkMode ? "#9ca3af" : "#6b7280";
 
   return (
-    <div className={`rounded-3xl p-6 flex-1 flex flex-col ${darkMode ? "bg-gray-800" : "bg-gray-50"}`}>
-      {/* Header */}
-      <p className={`text-sm mb-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Total Views</p>
-      <p className={`text-2xl font-extrabold mb-4 ${darkMode ? "text-white" : "text-black"}`}>
-        {typeof value === "number" ? value.toLocaleString() : value || "0"}
-      </p>
-
-      {/* Tabs */}
-      <div className="flex items-center gap-4 mb-4">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`text-xs transition-colors ${
-              activeTab === tab ? `font-bold ${darkMode ? "text-white" : "text-black"}` : muted
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Chart */}
-      {/* Absolute inner box gives the chart a real pixel height inside the flex layout */}
-      <div className="relative flex-1 min-h-[320px]">
-        <div className="absolute inset-0">
-        {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Loader2 className={`w-5 h-5 animate-spin ${muted}`} />
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart key={activeTab} data={points} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid vertical={false} stroke={darkMode ? "#374151" : "#e5e7eb"} strokeDasharray="3 3" />
-              <YAxis
-                allowDecimals={false}
-                width={32}
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 11, fill: darkMode ? "#6b7280" : "#9ca3af" }}
-              />
-              <Tooltip
-                cursor={false}
-                formatter={(v) => [`${v.toLocaleString()} views`, ""]}
-                labelFormatter={(_, payload) => payload?.[0]?.payload?.label || ""}
-                contentStyle={{
-                  background: darkMode ? "#111827" : "#ffffff",
-                  border: "none",
-                  borderRadius: 8,
-                  fontSize: 12,
-                  color: darkMode ? "#ffffff" : "#000000",
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke={darkMode ? "#ffffff" : "#111827"}
-                strokeWidth={2.5}
-                dot={false}
-                activeDot={{ r: 4 }}
-                isAnimationActive
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        )}
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex-1 flex flex-col">
+      {/* Header: title + period tabs */}
+      <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-black dark:text-white">
+          <BarChart3 className="w-5 h-5" style={{ color: BRAND }} />
+          Traffic Overview
+        </h2>
+        <div className="flex p-1 rounded-full bg-gray-100 dark:bg-gray-700/60">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                activeTab === tab ? "text-white" : "text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white"
+              }`}
+              style={activeTab === tab ? { background: BRAND } : undefined}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Period labels — current one highlighted */}
-      <div className="flex items-center justify-between mt-2 pl-8">
-        {points.map((point) => (
-          <span
-            key={point.label}
-            className={`text-[11px] ${
-              point.label === activeLabel
-                ? `rounded-full px-2 py-1 font-semibold ${darkMode ? "bg-white text-black" : "bg-black text-white"}`
-                : muted
-            }`}
-          >
-            {point.label}
-          </span>
-        ))}
+      {/* Chart — absolute inner box gives it a real pixel height inside the flex layout */}
+      <div className="relative flex-1 min-h-[210px]">
+        <div className="absolute inset-0">
+          {loading ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart key={activeTab} data={points} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="trafficFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={BRAND} stopOpacity={0.45} />
+                    <stop offset="100%" stopColor={BRAND} stopOpacity={0.03} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} stroke={darkMode ? "#374151" : "#e5e7eb"} strokeDasharray="4 4" />
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: axisColor }}
+                  dy={8}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  allowDecimals={false}
+                  width={34}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: axisColor }}
+                />
+                <Tooltip
+                  cursor={{ stroke: BRAND, strokeOpacity: 0.3 }}
+                  formatter={(v) => [`${v.toLocaleString()} views`, ""]}
+                  labelFormatter={(label) => label}
+                  contentStyle={{
+                    background: darkMode ? "#111827" : "#ffffff",
+                    border: "none",
+                    borderRadius: 8,
+                    fontSize: 12,
+                    color: darkMode ? "#ffffff" : "#000000",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke={BRAND}
+                  strokeWidth={2.5}
+                  fill="url(#trafficFill)"
+                  dot={{ r: 3.5, fill: BRAND, stroke: BRAND }}
+                  activeDot={{ r: 5, fill: BRAND, stroke: darkMode ? "#1f2937" : "#ffffff", strokeWidth: 2 }}
+                  isAnimationActive
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
       </div>
     </div>
   );

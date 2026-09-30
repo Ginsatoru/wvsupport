@@ -2,8 +2,23 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { RefreshCw } from "lucide-react";
 import TotalViewsChart from "./TotalViewsChart";
+import DashboardStats from "./DashboardStats";
+import RecentActivity from "./RecentActivity";
+import PopularContent from "./PopularContent";
+import InboxPreview from "./InboxPreview";
+import QuickActions from "./QuickActions";
 
 const REFRESH_MS = 5 * 60 * 1000;
+
+// Admin API call with the viewer's timezone (so "today" and daily buckets match the admin's clock)
+const adminFetch = async (path) => {
+  const sep = path.includes("?") ? "&" : "?";
+  const res = await fetch(`${path}${sep}tzOffset=${new Date().getTimezoneOffset()}`, {
+    headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` },
+  });
+  if (!res.ok) throw new Error(`Failed to load dashboard (${res.status})`);
+  return res.json();
+};
 
 const ChartSkeleton = () => (
   <div className="h-full min-h-[70vh] bg-white dark:bg-gray-800 rounded-3xl p-6 animate-pulse">
@@ -26,6 +41,7 @@ const RefreshButton = ({ onClick, busy, label, busyLabel }) => (
 
 const Dashboard = ({ darkMode }) => {
   const [overviewData, setOverviewData] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -34,12 +50,12 @@ const Dashboard = ({ darkMode }) => {
     background ? setIsRefreshing(true) : setLoading(true);
     setError(null);
     try {
-      // tzOffset lets the server count "today" in the admin's own timezone
-      const res = await fetch(`/api/analytics/overview?tzOffset=${new Date().getTimezoneOffset()}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` },
-      });
-      if (!res.ok) throw new Error(`Failed to fetch overview data (${res.status})`);
-      setOverviewData(await res.json());
+      const [overview, dashboard] = await Promise.all([
+        adminFetch("/api/analytics/overview"),
+        adminFetch("/api/analytics/dashboard?limit=4"),
+      ]);
+      setOverviewData(overview);
+      setDashboardData(dashboard);
     } catch (err) {
       console.error("Error fetching analytics data:", err);
       setError(err.message);
@@ -56,6 +72,12 @@ const Dashboard = ({ darkMode }) => {
   }, []);
 
   const handleManualRefresh = () => fetchAllData(true);
+
+  // "View all" in Recent Activity
+  const loadAllActivity = () =>
+    adminFetch("/api/analytics/dashboard?limit=30")
+      .then((data) => data.activity || [])
+      .catch(() => []);
 
   if (loading) {
     return (
@@ -137,15 +159,35 @@ const Dashboard = ({ darkMode }) => {
   }
 
   return (
-    <div className={`p-5 bg-gray-200 dark:bg-gray-900 min-h-[80vh] rounded-xl flex flex-col ${darkMode ? "dark" : ""}`}>
-      {/* Views trend — full width and height (today's numbers live in the sidebar) */}
+    <div className={`p-4 bg-gray-200 dark:bg-gray-900 rounded-xl flex flex-col gap-4 ${darkMode ? "dark" : ""}`}>
+      {/* Stat cards */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        <DashboardStats stats={dashboardData?.stats || []} />
+      </motion.div>
+
+      {/* Views trend + recent activity */}
       <motion.div
-        className="flex-1 flex flex-col"
+        className="grid grid-cols-1 xl:grid-cols-3 gap-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <TotalViewsChart value={overviewData.totalViews || 0} darkMode={darkMode} />
+        <div className="xl:col-span-2 flex flex-col">
+          <TotalViewsChart darkMode={darkMode} />
+        </div>
+        <RecentActivity items={dashboardData?.activity || []} onLoadMore={loadAllActivity} />
+      </motion.div>
+
+      {/* Popular content + inbox preview + quick actions */}
+      <motion.div
+        className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+      >
+        <PopularContent pages={dashboardData?.popular || []} />
+        <InboxPreview messages={dashboardData?.inbox || []} />
+        <QuickActions />
       </motion.div>
     </div>
   );

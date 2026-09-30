@@ -7,6 +7,7 @@ const {
   getOverviewStats,
   getAnalyticsSummary,
   getViewTrends,
+  getDashboard,
 } = require("../controllers/analyticsController");
 
 const router = express.Router();
@@ -19,5 +20,6 @@ router.post("/engagement", trackEngagement);
 router.get("/overview", verifyAdmin, getOverviewStats);
 router.get("/summary", verifyAdmin, getAnalyticsSummary);
 router.get("/trends", verifyAdmin, getViewTrends);
+router.get("/dashboard", verifyAdmin, getDashboard);
 
 module.exports = router;
