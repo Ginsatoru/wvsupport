@@ -1,7 +1,6 @@
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const { setupImageUpload } = require("../config/multer");
 const verifyAdmin = require("../middleware/verifyAdmin");
 const {
   getActiveHeroContent,
@@ -43,20 +42,8 @@ const { getActiveCareers, getCareersAdmin, saveCareers } = require("../controlle
 
 const router = express.Router();
 
-// ── Image uploads (hero + news popup), 10MB each ──
-const uploadsDir = path.join(__dirname, "..", "uploads");
-fs.mkdirSync(uploadsDir, { recursive: true });
-
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadsDir),
-    filename: (req, file, cb) =>
-      cb(null, `upload-${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`),
-  }),
-  fileFilter: (req, file, cb) =>
-    file.mimetype.startsWith("image/") ? cb(null, true) : cb(new Error("Only image files are allowed!"), false),
-  limits: { fileSize: 10 * 1024 * 1024 },
-});
+// ── Image uploads (all CMS sections): JPG / PNG / GIF / WebP only, 10MB each ──
+const upload = setupImageUpload();
 
 const heroImages = upload.fields([
   { name: "backgroundImage", maxCount: 1 },

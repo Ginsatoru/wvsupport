@@ -70,6 +70,8 @@ const checkInbox = async (socketServer) => {
     auth: { user: SENDER(), pass: process.env.EMAIL_PASSWORD },
     logger: false,
   });
+  // Gmail sometimes drops the connection; log it instead of letting it crash the server
+  client.on("error", (err) => console.error("📧 Email inbox connection error:", err.message));
 
   try {
     await client.connect();

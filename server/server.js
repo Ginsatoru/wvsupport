@@ -201,8 +201,7 @@ process.on("uncaughtException", (err) => {
 });
 
 process.on("unhandledRejection", (err) => {
-  console.error("\n❌ Unhandled Rejection:", err);
-  process.exit(1);
+  console.error("\n❌ Unhandled Rejection (server kept running):", err?.message || err);
 });
 
 startServer().catch((err) => {
