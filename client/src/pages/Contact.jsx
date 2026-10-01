@@ -7,6 +7,10 @@ import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useInView } from "react-intersection-observer";
 
+// Public reCAPTCHA site key (client/.env); the matching secret lives in server/.env
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+if (!RECAPTCHA_SITE_KEY) console.warn("VITE_RECAPTCHA_SITE_KEY is not set in client/.env");
+
 /* ── Word-slice (kept for section titles) ── */
 const SliceText = ({ text, inView, baseDelay = 0 }) => (
   <>
@@ -518,11 +522,13 @@ const Contact = () => {
                   <p className="text-gray-500 text-sm">{text.securityDesc}</p>
                 </div>
                 <div className="flex justify-center">
-                  <ReCAPTCHA
-                    ref={recaptchaRef}
-                    sitekey="6LdT4g0rAAAAAH7WF1kDQuZqqEg6zpqJjv73jVOt"
-                    onChange={handleRecaptchaChange}
-                  />
+                  {RECAPTCHA_SITE_KEY ? (
+                    <ReCAPTCHA ref={recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} onChange={handleRecaptchaChange} />
+                  ) : (
+                    <p className="text-sm text-red-500 text-center">
+                      {isKm ? "ការពិនិត្យសុវត្ថិភាពមិនទាន់ដំណើរការទេ។ សូមទាក់ទងយើងតាមទូរស័ព្ទ ឬអ៊ីមែល។" : "The security check isn't available right now. Please contact us by phone or email."}
+                    </p>
+                  )}
                 </div>
               </motion.div>
             </div>
