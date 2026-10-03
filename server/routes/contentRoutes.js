@@ -1,6 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const { setupImageUpload } = require("../config/multer");
+const optimizeImages = require("../middleware/optimizeImages");
 const verifyAdmin = require("../middleware/verifyAdmin");
 const {
   getActiveHeroContent,
@@ -43,7 +44,13 @@ const { getActiveCareers, getCareersAdmin, saveCareers } = require("../controlle
 const router = express.Router();
 
 // ── Image uploads (all CMS sections): JPG / PNG / GIF / WebP only, 10MB each ──
-const upload = setupImageUpload();
+// Every upload is then resized and saved as WebP (see middleware/optimizeImages)
+const imageUpload = setupImageUpload();
+const upload = {
+  single: (name) => [imageUpload.single(name), optimizeImages],
+  fields: (list) => [imageUpload.fields(list), optimizeImages],
+  array: (name, max) => [imageUpload.array(name, max), optimizeImages],
+};
 
 const heroImages = upload.fields([
   { name: "backgroundImage", maxCount: 1 },
