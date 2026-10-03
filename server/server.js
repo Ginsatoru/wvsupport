@@ -180,7 +180,8 @@ const startServer = async () => {
   });
   if (!geoIPReady) console.warn("⚠️  GeoIP limited - country detection may not work");
 
-  server.listen(PORT, "0.0.0.0", () => {
+  // Only reachable from this machine; Nginx forwards public traffic to it
+  server.listen(PORT, "127.0.0.1", () => {
     console.log(`\n🚀 Server running on port ${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/api/health`);
     console.log(`GeoIP: ${geoIPReady ? "✅ Ready" : "⚠️ Limited"}`);
