@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2, Upload, Trash2, Plus, X } from "lucide-react";
 import { ModernAlert } from "../../../Modals/Alert";
+import SaveButton, { useSaveProgress } from "../../../Common/SaveButton";
 import { getServicesAdmin, saveServices } from "../../../../../services/servicesApi";
 import posImage from "../../../../../Components/Images/pos1.webp";
 import webstoreImage from "../../../../../Components/Images/webstore1.webp";
@@ -124,7 +125,7 @@ const ServicesManager = () => {
   const { i18n } = useTranslation();
   const [form, setForm] = useState(null);
   const [lang, setLang] = useState("en");
-  const [saving, setSaving] = useState(false);
+  const save = useSaveProgress();
   const [alert, setAlert] = useState({ show: false, message: "", type: "success" });
 
   const showAlert = (message, type = "success") => {
@@ -190,18 +191,15 @@ const ServicesManager = () => {
       setLang("en");
       return showAlert(`Service ${missing + 1} needs an English title and an image`, "error");
     }
-    setSaving(true);
     try {
       const body = new FormData();
       body.append("content", JSON.stringify({ ...form, items: form.items.map(({ file, ...item }) => item) }));
       form.items.forEach((item, i) => item.file && body.append(`image${i}`, item.file));
-      const res = await saveServices(body);
+      const res = await save.run((onProgress) => saveServices(body, onProgress));
       showAlert(res.message);
       await load();
     } catch (err) {
       showAlert(err.message, "error");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -263,14 +261,7 @@ const ServicesManager = () => {
           <section className="px-6 py-5 space-y-3 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <SectionTitle>Services</SectionTitle>
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-[#0f8abe] hover:bg-[#0d7aaa] disabled:opacity-50"
-              >
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save changes
-              </button>
+              <SaveButton state={save} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {form.items.map((item, i) => (

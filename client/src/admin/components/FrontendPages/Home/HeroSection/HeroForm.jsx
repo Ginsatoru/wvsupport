@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Upload, Trash2, Link as LinkIcon } from "lucide-react";
 import { saveHeroContent } from "../../../../../services/heroApi";
+import SaveButton, { useSaveProgress } from "../../../Common/SaveButton";
 
 // ── Form parts ──
 const KHMER_FONT = { fontFamily: '"Noto Sans Khmer", "Khmer OS", sans-serif' };
@@ -92,21 +93,12 @@ const ImagePicker = ({ label, preview, onPick, onRemove, height = "h-36" }) => {
   );
 };
 
-const SaveBar = ({ saving, updatedAt, label = "Save changes" }) => (
+const SaveBar = ({ save, updatedAt }) => (
   <div className="sticky bottom-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-b-xl">
     {updatedAt && (
       <span className="mr-auto text-xs text-gray-500 dark:text-gray-400">Last saved {new Date(updatedAt).toLocaleString()}</span>
     )}
-    <button
-      type="submit"
-      disabled={saving}
-      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-[#0f8abe] hover:bg-[#0d7aaa] disabled:opacity-50"
-    >
-      {saving ? (
-        <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-      ) : null}
-      {label}
-    </button>
+    <SaveButton state={save} />
   </div>
 );
 
@@ -144,7 +136,7 @@ const HeroForm = ({ hero, onSaved }) => {
     background: { file: null, preview: hero?.backgroundImage || "" },
     person: { file: null, preview: hero?.personImage || "", removed: false },
   });
-  const [saving, setSaving] = useState(false);
+  const save = useSaveProgress();
   const [error, setError] = useState("");
 
   // Bilingual input bound to the current language tab
@@ -183,19 +175,16 @@ const HeroForm = ({ hero, onSaved }) => {
     }
     if (!images.background.preview) return setError("Background image is required");
 
-    setSaving(true);
     setError("");
     try {
       const body = new FormData();
       body.append("content", JSON.stringify({ ...form, isActive: true, removePersonImage: images.person.removed }));
       if (images.background.file) body.append("backgroundImage", images.background.file);
       if (images.person.file) body.append("personImage", images.person.file);
-      const result = await saveHeroContent(hero?._id, body);
+      const result = await save.run((onProgress) => saveHeroContent(hero?._id, body, onProgress));
       onSaved(result);
     } catch (err) {
       setError(err.message);
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -289,7 +278,7 @@ const HeroForm = ({ hero, onSaved }) => {
           </div>
         </div>
 
-        <SaveBar saving={saving} updatedAt={hero?.updatedAt} />
+        <SaveBar save={save} updatedAt={hero?.updatedAt} />
     </form>
   );
 };

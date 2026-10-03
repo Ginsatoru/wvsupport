@@ -13,7 +13,7 @@ const setAuthToken = token => {
 
 // Get the auth token from localStorage or sessionStorage
 const getAuthToken = () => {
-  return localStorage.getItem('token') || sessionStorage.getItem('token') || 
+  return localStorage.getItem('token') || sessionStorage.getItem('token') ||
          localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
 };
 
@@ -54,11 +54,11 @@ export const getSettings = async () => {
   }
 };
 
-// Update settings (requires auth)
-export const updateSettings = async (settingsData) => {
+// Update settings (requires auth). onProgress(percent) receives the real upload progress (0–100).
+export const updateSettings = async (settingsData, onProgress) => {
   try {
     const token = getAuthToken();
-    
+
     if (!token) {
       throw new Error('No authentication token found. Please log in.');
     }
@@ -67,7 +67,10 @@ export const updateSettings = async (settingsData) => {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
-      }
+      },
+      onUploadProgress: (e) => {
+        if (onProgress && e.total) onProgress(Math.round((e.loaded / e.total) * 100));
+      },
     });
     return response.data;
   } catch (error) {

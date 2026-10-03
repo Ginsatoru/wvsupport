@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Loader2, Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ModernAlert } from "../../../Modals/Alert";
+import SaveButton, { useSaveProgress } from "../../../Common/SaveButton";
 import { getGalleryAdmin, saveGallery } from "../../../../../services/galleryApi";
 import Image1 from "../../../../../Components/Images/image1.webp";
 import Image2 from "../../../../../Components/Images/image2.webp";
@@ -139,7 +140,7 @@ const PhotoRow = ({ label, hint, photos, onMove, onRemove, onAdd }) => {
 const GalleryManager = () => {
   const [form, setForm] = useState(null);
   const [lang, setLang] = useState("en");
-  const [saving, setSaving] = useState(false);
+  const save = useSaveProgress();
   const [alert, setAlert] = useState({ show: false, message: "", type: "success" });
 
   const showAlert = (message, type = "success") => {
@@ -184,7 +185,6 @@ const GalleryManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
     try {
       // New photos go up as "photos" files; the row lists point at them with "new:<i>"
       const body = new FormData();
@@ -203,13 +203,11 @@ const GalleryManager = () => {
       };
       body.append("content", JSON.stringify(content));
       uploads.forEach((file) => body.append("photos", file));
-      const res = await saveGallery(body);
+      const res = await save.run((onProgress) => saveGallery(body, onProgress));
       showAlert(res.message);
       await load();
     } catch (err) {
       showAlert(err.message, "error");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -266,14 +264,7 @@ const GalleryManager = () => {
           <section className="px-6 py-5 space-y-5 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <SectionTitle>Photos</SectionTitle>
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-[#0f8abe] hover:bg-[#0d7aaa] disabled:opacity-50"
-              >
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save changes
-              </button>
+              <SaveButton state={save} />
             </div>
             {ROWS.map(([key, label, hint]) => (
               <PhotoRow

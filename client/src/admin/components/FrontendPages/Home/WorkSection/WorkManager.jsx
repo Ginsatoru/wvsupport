@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Loader2, Upload, Trash2, Link as LinkIcon } from "lucide-react";
 import { ModernAlert } from "../../../Modals/Alert";
+import SaveButton, { useSaveProgress } from "../../../Common/SaveButton";
 import { getWorkAdmin, saveWork } from "../../../../../services/workApi";
 import workImg from "../../../../../Components/Images/work.webp";
 import teamviewerLogo from "../../../../../Components/Images/tools/teamviewer.webp";
@@ -127,7 +128,7 @@ const ImagePicker = ({ preview, onPick, onReset, className = "h-40" }) => {
 const WorkManager = () => {
   const [form, setForm] = useState(null);
   const [lang, setLang] = useState("en");
-  const [saving, setSaving] = useState(false);
+  const save = useSaveProgress();
   const [alert, setAlert] = useState({ show: false, message: "", type: "success" });
 
   const showAlert = (message, type = "success") => {
@@ -173,7 +174,6 @@ const WorkManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
     try {
       const body = new FormData();
       body.append(
@@ -182,13 +182,11 @@ const WorkManager = () => {
       );
       if (form.image.file) body.append("image", form.image.file);
       form.tools.forEach((t, i) => t.file && body.append(`tool${i}`, t.file));
-      const res = await saveWork(body);
+      const res = await save.run((onProgress) => saveWork(body, onProgress));
       showAlert(res.message);
       await load();
     } catch (err) {
       showAlert(err.message, "error");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -279,14 +277,7 @@ const WorkManager = () => {
           <section className="px-6 py-5 space-y-4 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <SectionTitle>Image, badges & cards</SectionTitle>
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-[#0f8abe] hover:bg-[#0d7aaa] disabled:opacity-50"
-              >
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save changes
-              </button>
+              <SaveButton state={save} />
             </div>
 
             <Field label="Person image">

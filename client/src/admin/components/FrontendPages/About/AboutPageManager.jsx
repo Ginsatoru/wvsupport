@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Loader2, Upload, Trash2 } from "lucide-react";
 import { ModernAlert } from "../../Modals/Alert";
+import SaveButton, { useSaveProgress } from "../../Common/SaveButton";
 import { getAboutPageAdmin, saveAboutPage } from "../../../../services/aboutPageApi";
 import aboutImg from "../../../../Components/Images/about.webp";
 
@@ -73,7 +74,7 @@ const SectionTitle = ({ children }) => (
 const AboutPageManager = () => {
   const [form, setForm] = useState(null);
   const [lang, setLang] = useState("en");
-  const [saving, setSaving] = useState(false);
+  const save = useSaveProgress();
   const [alert, setAlert] = useState({ show: false, message: "", type: "success" });
   const fileRef = useRef(null);
 
@@ -120,18 +121,15 @@ const AboutPageManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
     try {
       const body = new FormData();
       body.append("content", JSON.stringify({ ...form, image: form.image.saved }));
       if (form.image.file) body.append("image", form.image.file);
-      const res = await saveAboutPage(body);
+      const res = await save.run((onProgress) => saveAboutPage(body, onProgress));
       showAlert(res.message);
       await load();
     } catch (err) {
       showAlert(err.message, "error");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -205,14 +203,7 @@ const AboutPageManager = () => {
           <section className="px-6 py-5 space-y-4 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <SectionTitle>Image & values</SectionTitle>
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-[#0f8abe] hover:bg-[#0d7aaa] disabled:opacity-50"
-              >
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save changes
-              </button>
+              <SaveButton state={save} />
             </div>
 
             <div className="relative">

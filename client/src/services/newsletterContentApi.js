@@ -1,3 +1,4 @@
+import { sendWithProgress } from "./sendWithProgress";
 const API_URL = `${import.meta.env.VITE_BACKEND_URL || "http://localhost:5000"}/api/content/newsletter-section`;
 
 // Admin calls send the token; errors come back as the server's message
@@ -16,4 +17,5 @@ export const getActiveNewsletterContent = (lang = "en") => request(`/active?lang
 
 // Admin
 export const getNewsletterContentAdmin = () => request("/admin");
-export const saveNewsletterContent = (formData) => request("/admin", { method: "PUT", body: formData });
+export const saveNewsletterContent = (formData, onProgress) =>
+  sendWithProgress(`${API_URL}/admin`, { method: "PUT", body: formData, onProgress });

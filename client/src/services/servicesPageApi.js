@@ -1,3 +1,4 @@
+import { sendWithProgress } from "./sendWithProgress";
 const API_URL = `${import.meta.env.VITE_BACKEND_URL || "http://localhost:5000"}/api/content/services-page`;
 
 // Admin calls send the token; errors come back as the server's message
@@ -16,4 +17,5 @@ export const getActiveServicesPage = (lang = "en") => request(`/active?lang=${la
 
 // Admin
 export const getServicesPageAdmin = () => request("/admin");
-export const saveServicesPage = (formData) => request("/admin", { method: "PUT", body: formData });
+export const saveServicesPage = (formData, onProgress) =>
+  sendWithProgress(`${API_URL}/admin`, { method: "PUT", body: formData, onProgress });

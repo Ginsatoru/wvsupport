@@ -28,7 +28,6 @@
     "multer": "^2.0.2",
     "nodemailer": "^10.0.13",
     "socket.io": "^4.8.1",
-    "ua-parser-js": "^2.0.4",
-    "xss-clean": "^0.1.4"
+    "ua-parser-js": "^2.0.4"
   }
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2, Upload, Trash2, Link as LinkIcon } from "lucide-react";
 import { ModernAlert } from "../../../Modals/Alert";
+import SaveButton, { useSaveProgress } from "../../../Common/SaveButton";
 import { getAboutAdmin, saveAbout } from "../../../../../services/aboutApi";
 import teamImg from "../../../../../Components/Images/team.webp";
 import reportIcon from "../../../../../Components/Images/report.gif";
@@ -130,7 +131,7 @@ const AboutManager = () => {
   const { i18n } = useTranslation();
   const [form, setForm] = useState(null);
   const [lang, setLang] = useState("en");
-  const [saving, setSaving] = useState(false);
+  const save = useSaveProgress();
   const [alert, setAlert] = useState({ show: false, message: "", type: "success" });
 
   const showAlert = (message, type = "success") => {
@@ -176,18 +177,15 @@ const AboutManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
     try {
       const body = new FormData();
       body.append("content", JSON.stringify({ ...form, cards: form.cards.map(({ file, ...card }) => card) }));
       form.cards.forEach((card, i) => card.file && body.append(`image${i}`, card.file));
-      const res = await saveAbout(body);
+      const res = await save.run((onProgress) => saveAbout(body, onProgress));
       showAlert(res.message);
       await load();
     } catch (err) {
       showAlert(err.message, "error");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -241,14 +239,7 @@ const AboutManager = () => {
           <section className="px-6 py-5 space-y-3 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <SectionTitle>Cards</SectionTitle>
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-[#0f8abe] hover:bg-[#0d7aaa] disabled:opacity-50"
-              >
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save changes
-              </button>
+              <SaveButton state={save} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {form.cards.map((card, i) => {

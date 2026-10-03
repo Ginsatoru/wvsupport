@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Loader2, Upload, Trash2, Link as LinkIcon } from "lucide-react";
 import { ModernAlert } from "../../../Modals/Alert";
+import SaveButton, { useSaveProgress } from "../../../Common/SaveButton";
 import { getTechAdmin, saveTech } from "../../../../../services/techApi";
 import retailGuy from "../../../../../Components/Images/retail-guy.webp";
 
@@ -108,7 +109,7 @@ const ImagePicker = ({ preview, onPick, onReset, className = "h-40", round }) =>
 const TechManager = () => {
   const [form, setForm] = useState(null);
   const [lang, setLang] = useState("en");
-  const [saving, setSaving] = useState(false);
+  const save = useSaveProgress();
   const [alert, setAlert] = useState({ show: false, message: "", type: "success" });
 
   const showAlert = (message, type = "success") => {
@@ -155,7 +156,6 @@ const TechManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
     try {
       const body = new FormData();
       body.append(
@@ -164,13 +164,11 @@ const TechManager = () => {
       );
       if (form.image.file) body.append("image", form.image.file);
       form.avatars.forEach((a, i) => a.file && body.append(`avatar${i}`, a.file));
-      const res = await saveTech(body);
+      const res = await save.run((onProgress) => saveTech(body, onProgress));
       showAlert(res.message);
       await load();
     } catch (err) {
       showAlert(err.message, "error");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -261,14 +259,7 @@ const TechManager = () => {
           <section className="px-6 py-5 space-y-4 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <SectionTitle>Images & cards</SectionTitle>
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-[#0f8abe] hover:bg-[#0d7aaa] disabled:opacity-50"
-              >
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save changes
-              </button>
+              <SaveButton state={save} />
             </div>
 
             <Field label="Person image">

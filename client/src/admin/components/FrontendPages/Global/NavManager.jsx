@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Loader2, Plus, X, ChevronUp, ChevronDown, Link as LinkIcon, Trash2 } from "lucide-react";
 import { Home, Mail, LayoutGrid, Info, Briefcase, HelpCircle, Phone, Users } from "lucide-react";
 import { ModernAlert } from "../../Modals/Alert";
+import SaveButton, { useSaveProgress } from "../../Common/SaveButton";
 import { getNavAdmin, saveNav } from "../../../../services/navApi";
 import enFlag from "../../../../Components/Images/en.png";
 import khFlag from "../../../../Components/Images/kh.png";
@@ -110,7 +111,7 @@ const IconButton = ({ title, onClick, disabled, children, danger }) => (
 const NavManager = () => {
   const [form, setForm] = useState(null);
   const [lang, setLang] = useState("en");
-  const [saving, setSaving] = useState(false);
+  const save = useSaveProgress();
   const [alert, setAlert] = useState({ show: false, message: "", type: "success" });
 
   const showAlert = (message, type = "success") => {
@@ -157,19 +158,16 @@ const NavManager = () => {
       setLang("en");
       return showAlert("Every menu link needs an English label and a link", "error");
     }
-    setSaving(true);
     try {
       const body = new FormData();
       const languages = Object.fromEntries(Object.entries(form.languages).map(([code, { file, ...l }]) => [code, l]));
       body.append("content", JSON.stringify({ ...form, languages }));
       Object.entries(form.languages).forEach(([code, l]) => l.file && body.append(`flag_${code}`, l.file));
-      const res = await saveNav(body);
+      const res = await save.run((onProgress) => saveNav(body, onProgress));
       showAlert(res.message);
       await load();
     } catch (err) {
       showAlert(err.message, "error");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -272,14 +270,7 @@ const NavManager = () => {
           <section className="px-6 py-5 space-y-3 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <SectionTitle>Buttons</SectionTitle>
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-[#0f8abe] hover:bg-[#0d7aaa] disabled:opacity-50"
-              >
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save changes
-              </button>
+              <SaveButton state={save} />
             </div>
             <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 space-y-3">
               <span className="block text-xs font-medium text-gray-500 dark:text-gray-400">Main button</span>

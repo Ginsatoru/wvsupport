@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Loader2, Upload, Plus, X } from "lucide-react";
 import { getSettings, updateSettings } from "../../../services/settingsService";
 import { ModernAlert } from "../Modals/Alert";
+import SaveButton, { useSaveProgress } from "../Common/SaveButton";
 
 // Used until business hours are saved (matches the Contact page)
 const DEFAULT_HOURS = [
@@ -54,7 +55,7 @@ const shrinkImage = (file, maxSide = 800) =>
 export default function SettingsPage() {
   const [form, setForm] = useState(null);
   const [lang, setLang] = useState("en");
-  const [saving, setSaving] = useState(false);
+  const save = useSaveProgress();
   const [alert, setAlert] = useState({ show: false, message: "", type: "success" });
   const logoInput = useRef(null);
 
@@ -108,9 +109,8 @@ export default function SettingsPage() {
       setLang("en");
       return showAlert("Every business hours row needs an English day and time", "error");
     }
-    setSaving(true);
     try {
-      const res = await updateSettings(form);
+      const res = await save.run((onProgress) => updateSettings(form, onProgress));
       if (res?.data) load(res.data);
       showAlert("Settings saved");
     } catch (err) {
@@ -119,8 +119,6 @@ export default function SettingsPage() {
       } else {
         showAlert(err.response?.data?.message || "Failed to save settings", "error");
       }
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -209,14 +207,7 @@ export default function SettingsPage() {
                     </button>
                   ))}
                 </div>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-[#0f8abe] hover:bg-[#0d7aaa] disabled:opacity-50"
-                >
-                  {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Save changes
-                </button>
+                <SaveButton state={save} />
               </div>
             </div>
 

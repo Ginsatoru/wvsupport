@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Loader2, Plus, X, ChevronUp, ChevronDown } from "lucide-react";
 import { ModernAlert } from "../../Modals/Alert";
+import SaveButton, { useSaveProgress } from "../../Common/SaveButton";
 import { getFaqAdmin, saveFaq } from "../../../../services/faqApi";
 
 // ── Defaults (match the live page) ──
@@ -95,7 +96,7 @@ const IconButton = ({ title, onClick, disabled, danger, children }) => (
 const FaqManager = () => {
   const [form, setForm] = useState(null);
   const [lang, setLang] = useState("en");
-  const [saving, setSaving] = useState(false);
+  const save = useSaveProgress();
   const [alert, setAlert] = useState({ show: false, message: "", type: "success" });
 
   const showAlert = (message, type = "success") => {
@@ -143,15 +144,12 @@ const FaqManager = () => {
       setLang("en");
       return showAlert(`Question ${missing + 1} needs an English question and answer`, "error");
     }
-    setSaving(true);
     try {
-      const res = await saveFaq(form);
+      const res = await save.run((onProgress) => saveFaq(form, onProgress));
       showAlert(res.message);
       await load();
     } catch (err) {
       showAlert(err.message, "error");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -211,14 +209,7 @@ const FaqManager = () => {
           <section className="px-6 py-5 space-y-3 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <SectionTitle>Questions</SectionTitle>
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-[#0f8abe] hover:bg-[#0d7aaa] disabled:opacity-50"
-              >
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save changes
-              </button>
+              <SaveButton state={save} />
             </div>
 
             {form.items.map((_, i) => (
