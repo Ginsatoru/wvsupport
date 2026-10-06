@@ -9,6 +9,8 @@ const NewsModal = () => {
   const [closeBtnHovered, setCloseBtnHovered] = useState(false);
 
   useEffect(() => {
+    let timer;
+
     const fetchPopup = async () => {
       try {
         const r = await fetch(`${API}/api/content/news-popup/active`);
@@ -16,6 +18,11 @@ const NewsModal = () => {
         if (d.success && d.data) {
           const key = `news_popup_seen_${d.data._id}`;
           if (!sessionStorage.getItem(key)) {
+            // Start downloading the poster now, so it is ready when the popup opens
+            if (d.data.image) {
+              const preload = new Image();
+              preload.src = d.data.image;
+            }
             setPopup(d.data);
             setTimeout(() => setIsOpen(true), 1200);
           }
@@ -24,7 +31,18 @@ const NewsModal = () => {
         console.error("Failed to fetch popup:", e);
       }
     };
-    fetchPopup();
+
+    // Wait until the page has loaded, so the popup doesn't compete with the hero
+    const start = () => {
+      timer = setTimeout(fetchPopup, 1000);
+    };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("load", start);
+    };
   }, []);
 
   const handleClose = () => {
