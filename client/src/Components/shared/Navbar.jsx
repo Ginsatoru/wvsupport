@@ -440,6 +440,7 @@ function Nav() {
               <Link
                 key={to}
                 to={to}
+                aria-label={label}
                 className={`flex items-center gap-2 rounded-full transition-all duration-200 flex-shrink-0 ${
                   isActive
                     ? "bg-black text-white px-4 py-2.5"
@@ -453,6 +454,7 @@ function Nav() {
           })}
           <button
             onClick={toggleMenu}
+            aria-label="Menu"
             className="flex items-center justify-center rounded-full text-black px-3 py-2.5 flex-shrink-0"
           >
             <Menu size={18} strokeWidth={2} />

@@ -47,6 +47,11 @@ const NOT_FOUND = {
   description: "The page you are looking for could not be found.",
 };
 
+const ADMIN = {
+  title: "Admin Dashboard | WV Support",
+  description: "WV Support admin dashboard.",
+};
+
 // Find or create a <meta>/<link> in <head> and set one attribute on it
 const setHeadTag = (tag, matchAttr, matchValue, attr, value) => {
   let el = document.head.querySelector(`${tag}[${matchAttr}="${matchValue}"]`);
@@ -63,7 +68,7 @@ export const usePageMeta = (pathname) => {
     const path = pathname.toLowerCase().replace(/\/+$/, "") || "/";
     const isAdmin = path.startsWith("/admin") || path === "/login";
     const page = PAGES[path];
-    const meta = page || NOT_FOUND;
+    const meta = page || (isAdmin ? ADMIN : NOT_FOUND);
     const url = `${SITE}${path === "/" ? "" : path}`;
 
     document.title = meta.title;
