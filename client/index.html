@@ -169,11 +169,17 @@
     <link rel="preload" as="fetch" crossorigin href="/api/content/hero/active?lang=en" />
     <link rel="preload" as="fetch" crossorigin href="/api/settings" />
 
-    <!-- Fonts: all in one request, only the weights the site uses, text shows immediately (swap) -->
+    <!-- Fonts: one request, only the weights the site uses. Loaded without blocking the first paint:
+         the page shows straight away in a system font, then switches to these when they arrive -->
     <link
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Battambang:wght@400;700&family=Dangrek&family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Battambang:wght@400;700&family=Dangrek&family=Inter:wght@400;500;600&display=swap" />
+    </noscript>
 
     <!-- reCAPTCHA: loaded by the form itself only when it opens (not on every page) -->
 
