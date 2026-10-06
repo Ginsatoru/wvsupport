@@ -161,34 +161,15 @@
     <!-- Preconnect for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
-    <!-- Fonts -->
+    <!-- Fonts: all in one request, only the weights the site uses, text shows immediately (swap) -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Dangrek&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Battambang:wght@400;700&family=Dangrek&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
 
-    <!-- reCAPTCHA -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
-    <!-- Google Analytics -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=GA_TRACKING_ID"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-      gtag("config", "GA_TRACKING_ID");
-    </script>
+    <!-- reCAPTCHA: loaded by the form itself only when it opens (not on every page) -->
 
     <!-- Security Headers - UPDATED CSP WITH YOUTUBE SUPPORT -->
     <meta

@@ -7,21 +7,26 @@ import {
 } from "react-router-dom";
 import trackPageView from "../utils/tracker";
 import { SettingsProvider } from "./context/SettingsContext";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import Nav from "./Components/shared/Navbar";
 import Footer from "./Components/shared/Footer";
 import Home from "./pages/Home";
-import Aboutus from "./pages/Aboutus";
-import Contact from "./pages/Contact";
-import Services from "./pages/Services";
-import LoginForm from "./Components/LoginForm";
-import AdminPanel from "./admin/Main/AdminPanel";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ChatBox from "./Components/shared/ChatBox";
-import Legal from "./pages/Legal";
-import Careers from "./pages/Careers";
-import FAQ from "./pages/FAQ";
-import NotFound from "./pages/NotFound";
+
+// Loaded only when opened, so visitors don't download them up front (the admin panel especially)
+const Aboutus = lazy(() => import("./pages/Aboutus"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Services = lazy(() => import("./pages/Services"));
+const Legal = lazy(() => import("./pages/Legal"));
+const Careers = lazy(() => import("./pages/Careers"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const LoginForm = lazy(() => import("./Components/LoginForm"));
+const AdminPanel = lazy(() => import("./admin/Main/AdminPanel"));
+
+// Shown for a moment while a page's code loads (keeps the footer from jumping up)
+const PageFallback = () => <div style={{ minHeight: "60vh" }} />;
 
 function App() {
   const location = useLocation();
@@ -50,39 +55,41 @@ function App() {
         {!hideLayout && <Nav />}
 
         <div className="App">
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/aboutus" element={<Aboutus />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/Legal" element={<Legal />} />
-            <Route path="/Careers" element={<Careers />} />
-            <Route path="/FAQ" element={<FAQ />} />
+          <Suspense fallback={<PageFallback />}>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/aboutus" element={<Aboutus />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/Legal" element={<Legal />} />
+              <Route path="/Careers" element={<Careers />} />
+              <Route path="/FAQ" element={<FAQ />} />
 
-            {/* Admin routes */}
-            <Route
-              path="/login"
-              element={<LoginForm onLogin={() => setIsAuthenticated(true)} />}
-            />
-            <Route
-              path="/admin-panel/*"
-              element={
-                <ProtectedRoute isAuthenticated={isAuthenticated}>
-                  <AdminPanel />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={<Navigate to="/admin/login" replace />}
-            />
-            {/* Logout / expired session land here — login is a modal on the site, so go home */}
-            <Route path="/admin/login" element={<Navigate to="/" replace />} />
+              {/* Admin routes */}
+              <Route
+                path="/login"
+                element={<LoginForm onLogin={() => setIsAuthenticated(true)} />}
+              />
+              <Route
+                path="/admin-panel/*"
+                element={
+                  <ProtectedRoute isAuthenticated={isAuthenticated}>
+                    <AdminPanel />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={<Navigate to="/admin/login" replace />}
+              />
+              {/* Logout / expired session land here — login is a modal on the site, so go home */}
+              <Route path="/admin/login" element={<Navigate to="/" replace />} />
 
-            {/* Anything else: 404 page */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* Anything else: 404 page */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </div>
 
         {/* ChatBox appears on all pages except admin routes */}

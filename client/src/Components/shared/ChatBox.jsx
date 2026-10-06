@@ -296,8 +296,6 @@ const ChatBox = () => {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
         .cb-root * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
         /* ── Toggle button ── */
