@@ -277,11 +277,8 @@
     <!-- Main Application Script -->
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-DHDYX12YPB"
-    ></script>
+    <!-- Google tag (gtag.js): queued now, the script itself loads on the first
+         scroll / tap / key press (or after 10s) so it doesn't slow the first load -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
@@ -290,6 +287,26 @@
       gtag("js", new Date());
 
       gtag("config", "G-DHDYX12YPB");
+
+      (function () {
+        var loaded = false;
+        var events = ["scroll", "wheel", "pointerdown", "touchstart", "keydown"];
+        function loadGtag() {
+          if (loaded) return;
+          loaded = true;
+          events.forEach(function (type) {
+            window.removeEventListener(type, loadGtag);
+          });
+          var script = document.createElement("script");
+          script.async = true;
+          script.src = "https://www.googletagmanager.com/gtag/js?id=G-DHDYX12YPB";
+          document.head.appendChild(script);
+        }
+        events.forEach(function (type) {
+          window.addEventListener(type, loadGtag, { once: true, passive: true });
+        });
+        setTimeout(loadGtag, 10000);
+      })();
     </script>
 
     <!-- User tracker (tracker.js) -->

@@ -15,7 +15,9 @@ const OurServices = lazy(() => import("../Components/home/Services"));
 const RetailManagerTroubleshooting = lazy(() => import("../Components/home/About"));
 const CustomerSupportExperience = lazy(() => import("../Components/home/Tech"));
 
-// Same <section> wrapper as before; children mount once it is within 400px of the viewport
+// Same <section> wrapper as before; children mount once it is within 400px of the viewport.
+// The placeholder keeps its height while the section's code downloads, so the sections below
+// don't slide up into view and all start loading at once.
 const LazySection = ({ children, minHeight = 400 }) => {
   const ref = useRef(null);
   const [show, setShow] = useState(false);
@@ -40,13 +42,11 @@ const LazySection = ({ children, minHeight = 400 }) => {
     return () => io.disconnect();
   }, [show]);
 
+  const placeholder = <div style={{ minHeight }} />;
+
   return (
-    <section
-      ref={ref}
-      className="team-section-wrapper"
-      style={show ? undefined : { minHeight }}
-    >
-      {show && <Suspense fallback={null}>{children}</Suspense>}
+    <section ref={ref} className="team-section-wrapper">
+      {show ? <Suspense fallback={placeholder}>{children}</Suspense> : placeholder}
     </section>
   );
 };
