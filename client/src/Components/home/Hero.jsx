@@ -60,17 +60,6 @@ const HeroSection = () => {
   const [entered, setEntered] = useState(false);
   const [contentReady, setContentReady] = useState(false); // images wait for this (no double download)
 
-  // Desktop-only images: images inside a display:none panel still download, so skip them on phones/tablets
-  const [isDesktop, setIsDesktop] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
-  );
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const onChange = (e) => setIsDesktop(e.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-
   /* ── Fetch hero content ── */
   useEffect(() => {
     const fetchHeroContent = async () => {
@@ -217,6 +206,7 @@ const HeroSection = () => {
               src={heroData.personImage}
               alt=""
               draggable={false}
+              fetchpriority="high"
               className="absolute bottom-0 left-1/2 -translate-x-1/2 h-full max-w-none w-auto object-contain object-bottom select-none pointer-events-none"
               style={{
                 maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
@@ -228,6 +218,7 @@ const HeroSection = () => {
               src={heroData.backgroundImage || fallbackHero}
               alt=""
               draggable={false}
+              fetchpriority="high"
               className="w-full h-full object-contain select-none pointer-events-none"
               onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackHero; }}
             />
@@ -280,7 +271,7 @@ const HeroSection = () => {
           }}
         />
 
-        {isDesktop && contentReady && heroData.backgroundImage && (
+        {contentReady && heroData.backgroundImage && (
           <div
             className="absolute inset-0 w-full h-full z-1"
           >
@@ -296,11 +287,12 @@ const HeroSection = () => {
               onLoad={() => setImageLoaded(true)}
               onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = fallbackHero; setImageLoaded(true); }}
               loading="eager"
+              fetchpriority="high"
             />
           </div>
         )}
 
-        {isDesktop && heroData.personImage && (
+        {heroData.personImage && (
           <motion.img
             src={heroData.personImage}
             alt=""
@@ -312,6 +304,7 @@ const HeroSection = () => {
             onLoad={() => setPersonImageLoaded(true)}
             onError={() => setPersonImageLoaded(false)}
             loading="eager"
+            fetchpriority="high"
           />
         )}
 
