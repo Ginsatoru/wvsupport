@@ -80,10 +80,12 @@ function Nav() {
 
   // Saved navbar content (logo and company name still come from Settings)
   const [savedNav, setSavedNav] = useState(null);
+  const [navReady, setNavReady] = useState(false); // flags wait for this (no double download)
   useEffect(() => {
     getActiveNav(isKm ? "km" : "en")
       .then((res) => setSavedNav(res.data))
-      .catch(() => setSavedNav(null));
+      .catch(() => setSavedNav(null))
+      .finally(() => setNavReady(true));
   }, [isKm]);
 
   const NAV_LINKS = savedNav?.links?.length
@@ -95,10 +97,10 @@ function Nav() {
   const ctaText = savedNav?.ctaText || (isKm ? "ចាប់ផ្តើម" : "Get Started");
   const ctaLink = savedNav?.ctaLink || "/contact";
 
-  // Language switcher: saved flag/labels, or the built-in ones
+  // Language switcher: saved flag/labels, or the built-in ones (flag = null until the CMS answers)
   const LANGS = {
-    en: { flag: savedNav?.languages?.en?.flag || enFlag, short: savedNav?.languages?.en?.short || "EN", name: savedNav?.languages?.en?.name || "English" },
-    km: { flag: savedNav?.languages?.km?.flag || khFlag, short: savedNav?.languages?.km?.short || "ខ្មែរ", name: savedNav?.languages?.km?.name || "Khmer" },
+    en: { flag: navReady ? savedNav?.languages?.en?.flag || enFlag : null, short: savedNav?.languages?.en?.short || "EN", name: savedNav?.languages?.en?.name || "English" },
+    km: { flag: navReady ? savedNav?.languages?.km?.flag || khFlag : null, short: savedNav?.languages?.km?.short || "ខ្មែរ", name: savedNav?.languages?.km?.name || "Khmer" },
   };
   const currentLangInfo = (code) => LANGS[code === "en" ? "en" : "km"];
   const [currentLang, setCurrentLang] = useState("en");
@@ -250,11 +252,15 @@ function Nav() {
               {/* Language selector */}
               <div className="relative group">
                 <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 text-black hover:bg-[#f1f5f9]">
-                  <img
-                    src={currentLangInfo(currentLang).flag}
-                    alt={currentLangInfo(currentLang).name}
-                    className="w-4 h-3 rounded-sm"
-                  />
+                  {currentLangInfo(currentLang).flag ? (
+                    <img
+                      src={currentLangInfo(currentLang).flag}
+                      alt={currentLangInfo(currentLang).name}
+                      className="w-4 h-3 rounded-sm"
+                    />
+                  ) : (
+                    <span className="w-4 h-3" />
+                  )}
                   <span>{currentLangInfo(currentLang).short}</span>
                   <svg
                     className="w-3 h-3 transition-transform duration-200 group-hover:rotate-180"
@@ -281,7 +287,7 @@ function Nav() {
                             : "hover:bg-[#f1f5f9]"
                         }`}
                       >
-                        <img src={flag} alt={label} className="w-5 h-3.5 rounded-sm" />
+                        {flag ? <img src={flag} alt={label} className="w-5 h-3.5 rounded-sm" /> : <span className="w-5 h-3.5" />}
                         {label}
                       </button>
                     ))}
@@ -324,11 +330,15 @@ function Nav() {
                 onClick={toggleLanguageDropdown}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 text-black hover:bg-[#f1f5f9]"
               >
-                <img
-                  src={currentLangInfo(currentLang).flag}
-                  alt={currentLangInfo(currentLang).name}
-                  className="w-4 h-3 rounded-sm"
-                />
+                {currentLangInfo(currentLang).flag ? (
+                  <img
+                    src={currentLangInfo(currentLang).flag}
+                    alt={currentLangInfo(currentLang).name}
+                    className="w-4 h-3 rounded-sm"
+                  />
+                ) : (
+                  <span className="w-4 h-3" />
+                )}
                 <span>{currentLangInfo(currentLang).short}</span>
                 <svg
                   className={`w-3 h-3 transition-transform duration-200 ${languageDropdownActive ? "rotate-180" : ""}`}
@@ -356,7 +366,7 @@ function Nav() {
                             : "hover:bg-[#f1f5f9]"
                         }`}
                       >
-                        <img src={flag} alt={label} className="w-5 h-3.5 rounded-sm" />
+                        {flag ? <img src={flag} alt={label} className="w-5 h-3.5 rounded-sm" /> : <span className="w-5 h-3.5" />}
                         {label}
                       </button>
                     ))}

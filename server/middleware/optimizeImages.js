@@ -2,14 +2,16 @@ const sharp = require("sharp");
 const fs = require("fs/promises");
 const path = require("path");
 
-// Runs after multer: shrinks each uploaded image and saves it as WebP (quality 80),
+// Runs after multer: shrinks each uploaded image and saves it as WebP,
 // rotated upright from phone EXIF, never enlarged. GIFs are left as they are (animations).
 // If anything fails, the original file is kept.
-//   Photos:                       longest side max 1600px
-//   Logos / icons / flags / avatars: longest side max 400px (shown at ~35–140px)
-const PHOTO_SIZE = 1600;
+//   Hero images:                     longest side max 1600px (can fill half a wide screen)
+//   Photos (cards, sections, gallery): longest side max 1200px (shown ≤ ~730px wide)
+//   Logos / icons / flags / avatars:   longest side max 400px (shown at ~35–140px)
+const HERO_SIZE = 1600;
+const PHOTO_SIZE = 1200;
 const LOGO_SIZE = 400;
-const QUALITY = 80;
+const QUALITY = 75;
 const LOGO_FIELDS = /^(avatar|tool|flag)/; // e.g. avatar0, tool2, flag_en
 
 const uploadedFiles = (req) => [
@@ -17,11 +19,11 @@ const uploadedFiles = (req) => [
   ...(Array.isArray(req.files) ? req.files : Object.values(req.files || {}).flat()),
 ];
 
-const createOptimizer = ({ allLogos = false } = {}) => async (req, res, next) => {
+const createOptimizer = ({ allLogos = false, photoSize = PHOTO_SIZE } = {}) => async (req, res, next) => {
   for (const file of uploadedFiles(req)) {
     if (!file.mimetype.startsWith("image/") || file.mimetype === "image/gif") continue;
 
-    const maxSize = allLogos || LOGO_FIELDS.test(file.fieldname) ? LOGO_SIZE : PHOTO_SIZE;
+    const maxSize = allLogos || LOGO_FIELDS.test(file.fieldname) ? LOGO_SIZE : photoSize;
     const output = file.path.replace(/\.[^.]+$/, ".webp");
     const temp = `${output}.tmp`;
     try {
@@ -49,4 +51,6 @@ const createOptimizer = ({ allLogos = false } = {}) => async (req, res, next) =>
 module.exports = createOptimizer();
 // Every file is a logo (partner logos)
 module.exports.forLogos = createOptimizer({ allLogos: true });
-module.exports.SIZES = { PHOTO_SIZE, LOGO_SIZE, QUALITY };
+// Hero images (bigger)
+module.exports.forHero = createOptimizer({ photoSize: HERO_SIZE });
+module.exports.SIZES = { HERO_SIZE, PHOTO_SIZE, LOGO_SIZE, QUALITY };

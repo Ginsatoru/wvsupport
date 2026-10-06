@@ -14,26 +14,31 @@ const DRY = process.argv.includes("--dry");
 const FORMATS = { ".webp": "webp", ".jpg": "jpeg", ".jpeg": "jpeg", ".png": "png" };
 const kb = (bytes) => `${Math.round(bytes / 1024)} KB`;
 
-// File names used as logos / icons / flags / avatars → small size
-const logoFiles = async () => {
-  const names = new Set();
-  const add = (value) => typeof value === "string" && value.startsWith("uploads/") && names.add(path.basename(value));
-  const [partners, work, nav, tech] = await Promise.all([
-    mongoose.connection.db.collection("partners").find().toArray(),
-    mongoose.connection.db.collection("workcontents").findOne(),
-    mongoose.connection.db.collection("navcontents").findOne(),
-    mongoose.connection.db.collection("techcontents").findOne(),
+// File names by use: logos / icons / flags / avatars (small) and hero images (big)
+const fileGroups = async () => {
+  const logos = new Set();
+  const hero = new Set();
+  const addTo = (set) => (value) =>
+    typeof value === "string" && value.includes("uploads/") && set.add(path.basename(value));
+  const db = mongoose.connection.db;
+  const [partners, work, nav, tech, heroes] = await Promise.all([
+    db.collection("partners").find().toArray(),
+    db.collection("workcontents").findOne(),
+    db.collection("navcontents").findOne(),
+    db.collection("techcontents").findOne(),
+    db.collection("frontendcontents").find().toArray(),
   ]);
-  partners.forEach((p) => add(p.image));
-  (work?.tools || []).forEach((t) => add(t.logo));
-  Object.values(nav?.languages || {}).forEach((l) => add(l?.flag));
-  (tech?.avatars || []).forEach(add);
-  return names;
+  partners.forEach((p) => addTo(logos)(p.image));
+  (work?.tools || []).forEach((t) => addTo(logos)(t.logo));
+  Object.values(nav?.languages || {}).forEach((l) => addTo(logos)(l?.flag));
+  (tech?.avatars || []).forEach(addTo(logos));
+  heroes.forEach((h) => [h.backgroundImage, h.personImage].forEach(addTo(hero)));
+  return { logos, hero };
 };
 
 (async () => {
   await mongoose.connect(process.env.MONGO_URI);
-  const logos = await logoFiles();
+  const { logos, hero } = await fileGroups();
   const entries = await fs.readdir(UPLOADS, { withFileTypes: true });
   let before = 0;
   let after = 0;
@@ -44,7 +49,7 @@ const logoFiles = async () => {
     if (!entry.isFile() || !format) continue;
 
     const file = path.join(UPLOADS, entry.name);
-    const maxSize = logos.has(entry.name) ? SIZES.LOGO_SIZE : SIZES.PHOTO_SIZE;
+    const maxSize = logos.has(entry.name) ? SIZES.LOGO_SIZE : hero.has(entry.name) ? SIZES.HERO_SIZE : SIZES.PHOTO_SIZE;
     try {
       const { width = 0, height = 0 } = await sharp(file).metadata();
       if (Math.max(width, height) <= maxSize) continue;

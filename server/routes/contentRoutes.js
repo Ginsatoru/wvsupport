@@ -53,10 +53,14 @@ const upload = {
   logo: (name) => [imageUpload.single(name), optimizeImages.forLogos], // small (partner logos)
 };
 
-const heroImages = upload.fields([
-  { name: "backgroundImage", maxCount: 1 },
-  { name: "personImage", maxCount: 1 },
-]);
+// Hero images keep a bigger size (they can fill half of a wide screen)
+const heroImages = [
+  imageUpload.fields([
+    { name: "backgroundImage", maxCount: 1 },
+    { name: "personImage", maxCount: 1 },
+  ]),
+  optimizeImages.forHero,
+];
 
 router.get("/test", (req, res) => res.json({ success: true, message: "Content routes working!" }));
 
