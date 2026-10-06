@@ -50,6 +50,7 @@ const upload = {
   single: (name) => [imageUpload.single(name), optimizeImages],
   fields: (list) => [imageUpload.fields(list), optimizeImages],
   array: (name, max) => [imageUpload.array(name, max), optimizeImages],
+  logo: (name) => [imageUpload.single(name), optimizeImages.forLogos], // small (partner logos)
 };
 
 const heroImages = upload.fields([
@@ -69,9 +70,9 @@ router.patch("/hero/admin/:id/toggle-active", verifyAdmin, toggleHeroActive);
 
 // ── Partner logos ──
 router.get("/partners", partnerController.list);
-router.post("/partners/admin", verifyAdmin, upload.single("image"), partnerController.create);
+router.post("/partners/admin", verifyAdmin, upload.logo("image"), partnerController.create);
 router.patch("/partners/admin/reorder", verifyAdmin, partnerController.reorder);
-router.put("/partners/admin/:id", verifyAdmin, upload.single("image"), partnerController.update);
+router.put("/partners/admin/:id", verifyAdmin, upload.logo("image"), partnerController.update);
 router.delete("/partners/admin/:id", verifyAdmin, partnerController.remove);
 
 // ── Home services ──
