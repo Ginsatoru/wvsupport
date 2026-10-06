@@ -182,6 +182,24 @@
 
     <!-- reCAPTCHA: loaded by the form itself only when it opens (not on every page) -->
 
+    <style>
+      .skip-link {
+        position: absolute;
+        left: 8px;
+        top: -48px;
+        z-index: 10000;
+        padding: 8px 14px;
+        border-radius: 8px;
+        background: #000;
+        color: #fff;
+        font: 600 14px/1.4 system-ui, sans-serif;
+        text-decoration: none;
+      }
+      .skip-link:focus {
+        top: 8px;
+      }
+    </style>
+
     <!-- Security Headers - UPDATED CSP WITH YOUTUBE SUPPORT -->
     <meta
       http-equiv="Content-Security-Policy"
@@ -201,23 +219,13 @@
     <!-- <meta name="msvalidate.01" content="your-bing-verification-code" /> -->
   </head>
   <body>
-    <!-- Skip to main content for accessibility -->
-    <a
-      href="#main-content"
-      class="skip-link"
-      style="
-        position: absolute;
-        left: -9999px;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-      "
-      >Skip to main content</a
-    >
+    <!-- Skip to main content (keyboard users): hidden until focused with Tab -->
+    <a href="#root" class="skip-link">Skip to main content</a>
 
     <!-- Main Application -->
     <div
       id="root"
+      tabindex="-1"
       role="main"
       aria-label="WV Support Services Cambodia - Main Application"
     ></div>
