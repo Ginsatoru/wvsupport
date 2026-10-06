@@ -12,6 +12,7 @@ import Nav from "./Components/shared/Navbar";
 import Footer from "./Components/shared/Footer";
 import Home from "./pages/Home";
 import ProtectedRoute from "./Components/ProtectedRoute";
+import { usePageMeta } from "./seo";
 
 // Loaded only when opened, so visitors don't download them up front (the admin panel especially)
 const Aboutus = lazy(() => import("./pages/Aboutus"));
@@ -34,6 +35,9 @@ function App() {
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [chatReady, setChatReady] = useState(false);
+
+  // Title, description and canonical URL for the current page (search engines + link previews)
+  usePageMeta(location.pathname);
 
   // Define paths where Nav, Footer, and ChatBox should be hidden
   const hideLayoutPaths = ["/admin", "/admin/login", "/admin-panel"];

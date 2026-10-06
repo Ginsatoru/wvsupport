@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
-Sitemap: https://wvsupportservices.com/sitemap.xml
+Disallow: /admin
+Disallow: /admin-panel
+Disallow: /login
+
+Sitemap: https://www.wvsupportservices.com/sitemap.xml
