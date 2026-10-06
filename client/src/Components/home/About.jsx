@@ -85,10 +85,12 @@ const About = () => {
 
   // Saved content (empty fields keep the built-in wording/images)
   const [saved, setSaved] = useState(null);
+  const [ready, setReady] = useState(false); // images wait for this (no double download)
   useEffect(() => {
     getActiveAbout(lang)
       .then((res) => setSaved(res.data))
-      .catch(() => setSaved(null));
+      .catch(() => setSaved(null))
+      .finally(() => setReady(true));
   }, [lang]);
 
   const title = saved?.title || t("retailManager.subtitle");
@@ -97,7 +99,7 @@ const About = () => {
     return {
       title: card?.title || d.title,
       description: card?.description || d.description,
-      image: card?.image || DEFAULT_IMAGES[i],
+      image: ready ? card?.image || DEFAULT_IMAGES[i] : null,
       buttonText: card?.buttonText || d.buttonText,
       buttonLink: card?.buttonLink || DEFAULT_LINK,
     };
@@ -129,7 +131,7 @@ const About = () => {
             delay={0.1}
             inView={inView}
           >
-            <motion.img
+            {cards[0].image && <motion.img
               src={cards[0].image}
               alt={cards[0].title}
               className="w-full h-full object-cover"
@@ -140,7 +142,7 @@ const About = () => {
                 ease: [0.25, 0.46, 0.45, 0.94],
                 delay: 0.1,
               }}
-            />
+            />}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
             {/* Text slides up from bottom */}
@@ -168,7 +170,7 @@ const About = () => {
             scaleVariant
           >
             <div className="relative z-10">
-              <img src={cards[1].image} alt="" className="w-10 h-10 mb-3 object-contain" />
+              {cards[1].image ? <img src={cards[1].image} alt="" className="w-10 h-10 mb-3 object-contain" /> : <div className="w-10 h-10 mb-3" />}
               <h3 className="text-lg md:text-2xl font-bold leading-snug mb-2 md:mb-3" style={{ color: "#000000" }}>
                 {cards[1].title}
               </h3>
@@ -198,7 +200,7 @@ const About = () => {
             scaleVariant
           >
             <div className="relative z-10 py-4 md:py-0">
-              <img src={cards[2].image} alt="" className="w-10 h-10 mb-3 object-contain" />
+              {cards[2].image ? <img src={cards[2].image} alt="" className="w-10 h-10 mb-3 object-contain" /> : <div className="w-10 h-10 mb-3" />}
               <h3 className="text-lg md:text-xl font-bold mb-2" style={{ color: "#000000" }}>
                 {cards[2].title}
               </h3>
@@ -215,7 +217,7 @@ const About = () => {
             delay={0.4}
             inView={inView}
           >
-            <motion.img
+            {cards[3].image && <motion.img
               src={cards[3].image}
               alt={cards[3].title}
               className="absolute bottom-0 right-0 h-full w-auto object-contain object-bottom pointer-events-none select-none"
@@ -227,7 +229,7 @@ const About = () => {
                 delay: 0.55,
                 ease: [0.25, 0.46, 0.45, 0.94],
               }}
-            />
+            />}
 
             <motion.div
               className="relative z-10 max-w-[60%] md:max-w-[55%]"

@@ -30,10 +30,12 @@ const AboutUs = () => {
 
   // Saved content from Content › About Us (empty fields keep the built-in wording/image)
   const [saved, setSaved] = useState(null);
+  const [ready, setReady] = useState(false); // images wait for this (no double download)
   useEffect(() => {
     getActiveAboutPage(isKm ? "km" : "en")
       .then((res) => setSaved(res.data))
-      .catch(() => setSaved(null));
+      .catch(() => setSaved(null))
+      .finally(() => setReady(true));
   }, [isKm]);
   const pick = (field, fallback) => saved?.[field] || fallback;
 
@@ -52,12 +54,12 @@ const AboutUs = () => {
   }, []);
 
   const eyebrow = pick("eyebrow", isKm ? "អំពីយើង" : "About Us");
-  const headline1 = pick("headingLine1", isKm ? "ក្រុមគាំទ្រនៅជិតអតិថិជន" : "Support that stays close");
-  const headline2 = pick("headingLine2", isKm ? "ជានិច្ចកាល" : "to the people we help.");
+  const headline1 = pick("headingLine1", isKm ? "ក្រុមគាំទ្រដែលនៅជិតអតិថិជន" : "Support that stays close");
+  const headline2 = pick("headingLine2", isKm ? "យានិច្ចកាល" : "to the people we help.");
   const body = pick(
     "body",
     isKm
-      ? "WV Support គឺជាក្រុមការងារនៅសៀមរាប ដែលផ្តល់ការគាំទ្របច្ចេកទេសពីចម្ងាយសម្រាប់ RetailManager ជូនអតិថិជនអូស្ត្រាលី និងតំបន់អាស៊ី-ប៉ាស៊ីហ្វិក។"
+      ? "WV Support គឺជាក្រុមការងារនៅសៀមរាប ដែលផ្តល់ការគាំទ្របច្ចេកទេសពីចម្ងាយសម្រាប់ RetailManager ជូនអតិថិជនអូស្ត្រាលី នូវែលសេឡង់ និងតំបន់អាស៊ី-ប៉ាស៊ីហ្វិក។"
       : "WV Support is a Siem Reap-based team delivering remote technical support for RetailManager, helping retailers across Australia, New Zealand, and the Asia-Pacific region every day."
   );
 
@@ -79,16 +81,16 @@ const AboutUs = () => {
   const defaultValues = [
     {
       icon: <ShieldCheck size={20} strokeWidth={1.8} />,
-      title: isKm ? "ភាពជឿទុកចិត្តបាន" : "Reliability",
+      title: isKm ? "ភាពជឿជាក់" : "Reliability",
       desc: isKm
-        ? "ការគាំទ្រដែលអាចទុកចិត្តបាន និងស្មើគ្នារាល់ថ្ងៃ។"
+        ? "ការគាំទ្រដែលអាចទុកចិត្តបាន និងស្មោះត្រង់រាល់ថ្ងៃ។"
         : "Consistent, dependable support your team can count on every day.",
     },
     {
       icon: <Heart size={20} strokeWidth={1.8} />,
-      title: isKm ? "អតិថិជនជាចម្បង" : "Customer-First",
+      title: isKm ? "អតិថិជនជាមុន" : "Customer-First",
       desc: isKm
-        ? "យើងស្តាប់មុន ហើយដោះស្រាយតាមរបៀបដែលសមស្របបំផុតសម្រាប់អ្នក។"
+        ? "យើងស្តាប់មុន ហើយដោះស្រាយបញ្ហាតាមរប៖ដែលល្អបំផុតសម្រាប់អ្នក។"
         : "We listen first and solve problems the way that works best for you.",
     },
     {
@@ -104,6 +106,8 @@ const AboutUs = () => {
     title: saved?.values?.[i]?.title || v.title,
     desc: saved?.values?.[i]?.description || v.desc,
   }));
+
+  const aboutImageSrc = ready ? pick("image", aboutImg) : null;
 
   return (
     <>
@@ -220,12 +224,14 @@ const AboutUs = () => {
 
               <div className="ab-slide-up flex-1 w-full max-w-sm lg:max-w-none mx-auto lg:mx-0" style={{ transitionDelay: "0.3s" }}>
                 <div className="rounded-2xl overflow-hidden">
-                  <img
-                    src={pick("image", aboutImg)}
-                    alt=""
-                    draggable={false}
-                    className="w-full h-auto max-h-[360px] object-contain select-none mx-auto"
-                  />
+                  {aboutImageSrc && (
+                    <img
+                      src={aboutImageSrc}
+                      alt=""
+                      draggable={false}
+                      className="w-full h-auto max-h-[360px] object-contain select-none mx-auto"
+                    />
+                  )}
                 </div>
               </div>
             </div>

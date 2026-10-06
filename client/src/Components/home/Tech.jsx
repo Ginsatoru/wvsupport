@@ -40,10 +40,12 @@ const Tech = () => {
 
   // Saved content from Content › Home › Tech (empty fields keep the built-in wording/images)
   const [saved, setSaved] = useState(null);
+  const [ready, setReady] = useState(false); // images wait for this (no double download)
   useEffect(() => {
     getActiveTech(isKm ? "km" : "en")
       .then((res) => setSaved(res.data))
-      .catch(() => setSaved(null));
+      .catch(() => setSaved(null))
+      .finally(() => setReady(true));
   }, [isKm]);
   const pick = (field, fallback) => saved?.[field] || fallback;
 
@@ -108,7 +110,7 @@ const Tech = () => {
           />
 
           {/* Person image — bigger with bottom fade */}
-          <img
+          {ready && <img
             src={pick("image", retailGuy)}
             alt="RetailManager user"
             className="absolute bottom-0 left-1/2 z-20 w-auto object-contain object-bottom select-none pointer-events-none"
@@ -123,7 +125,7 @@ const Tech = () => {
                 "linear-gradient(to bottom, black 60%, transparent 100%)",
             }}
             draggable={false}
-          />
+          />}
 
           {/* Top-left card */}
           <motion.div
@@ -285,11 +287,15 @@ const Tech = () => {
                   zIndex: 4 - i,
                 }}
               >
-                <img
-                  src={src}
-                  alt="user"
-                  className="w-9 h-9 rounded-full border-[2.5px] border-white object-cover"
-                />
+                {ready ? (
+                  <img
+                    src={src}
+                    alt="user"
+                    className="w-9 h-9 rounded-full border-[2.5px] border-white object-cover"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-full border-[2.5px] border-white bg-slate-100" />
+                )}
               </div>
             ))}
             {/* + pill */}

@@ -12,10 +12,12 @@ const Careers = () => {
 
   // Saved content from Content › Careers (empty keeps the built-in wording/image)
   const [saved, setSaved] = useState(null);
+  const [ready, setReady] = useState(false); // images wait for this (no double download)
   useEffect(() => {
     getActiveCareers(isKm ? "km" : "en")
       .then((res) => setSaved(res.data))
-      .catch(() => setSaved(null));
+      .catch(() => setSaved(null))
+      .finally(() => setReady(true));
   }, [isKm]);
   const pick = (field, fallback) => saved?.[field] || fallback;
 
@@ -74,6 +76,7 @@ const Careers = () => {
 
   const buttonLink = pick("buttonLink", `mailto:${email}`);
   const openings = saved?.openings || [];
+  const careersImageSrc = ready ? pick("image", careersImg) : null;
 
   return (
     <div className="bg-white">
@@ -106,12 +109,14 @@ const Careers = () => {
             </div>
 
             <div className="flex-1 w-full mx-auto lg:mx-0">
-              <img
-                src={pick("image", careersImg)}
-                alt=""
-                draggable={false}
-                className="w-full h-auto max-h-[320px] object-contain select-none mx-auto"
-              />
+              {careersImageSrc && (
+                <img
+                  src={careersImageSrc}
+                  alt=""
+                  draggable={false}
+                  className="w-full h-auto max-h-[320px] object-contain select-none mx-auto"
+                />
+              )}
             </div>
           </div>
 

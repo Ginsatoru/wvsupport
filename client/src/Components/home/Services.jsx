@@ -160,13 +160,13 @@ const MobileServices = ({ items, icons, stats, title, subtitle }) => {
             style={{ background: "#f1f5f9" }}
           >
             <div className="h-44 overflow-hidden bg-white">
-              <img
+              {svc.image && <img
                 src={svc.image}
                 alt={svc.title}
                 loading={i === 0 ? "eager" : "lazy"}
                 draggable={false}
                 className="w-full h-full object-cover select-none"
-              />
+              />}
             </div>
             <div className="flex-1 flex items-start gap-3 p-4">
               <div
@@ -209,10 +209,12 @@ const Services = () => {
 
   // Content from the admin (Content › Home › Services); empty fields keep the built-in wording/images
   const [saved, setSaved] = useState(null);
+  const [ready, setReady] = useState(false); // images wait for this (no double download)
   useEffect(() => {
     getActiveServices(lang)
       .then((res) => setSaved(res.data))
-      .catch(() => setSaved(null));
+      .catch(() => setSaved(null))
+      .finally(() => setReady(true));
   }, [lang]);
 
   const content = useMemo(() => {
@@ -238,11 +240,11 @@ const Services = () => {
         return {
           title: item.title || d.title || "",
           description: item.description || d.description || "",
-          image: item.image || d.image || "",
+          image: ready ? item.image || d.image || "" : "",
         };
       }),
     };
-  }, [saved, lang, t]);
+  }, [saved, lang, t, ready]);
   const items = content.items;
   const itemCountRef = useRef(items.length);
   itemCountRef.current = items.length;
@@ -532,7 +534,7 @@ const Services = () => {
             <div className="relative w-full h-[70%] rounded-[1.5rem] overflow-hidden">
               {items.map((svc, i) => (
                 <div key={i} className={`srv-img${i === 0 ? " is-active" : ""}`}>
-                  <img src={svc.image} alt={svc.title} loading={i === 0 ? "eager" : "lazy"} draggable={false} className="w-full h-full object-cover select-none" />
+                  {svc.image && <img src={svc.image} alt={svc.title} loading={i === 0 ? "eager" : "lazy"} draggable={false} className="w-full h-full object-cover select-none" />}
                 </div>
               ))}
             </div>

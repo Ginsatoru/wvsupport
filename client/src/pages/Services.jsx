@@ -35,10 +35,12 @@ const Services = () => {
 
   // Saved content from Content › Services (empty fields keep the built-in wording/images)
   const [saved, setSaved] = useState(null);
+  const [ready, setReady] = useState(false); // images wait for this (no double download)
   useEffect(() => {
     getActiveServicesPage(isKm ? "km" : "en")
       .then((res) => setSaved(res.data))
-      .catch(() => setSaved(null));
+      .catch(() => setSaved(null))
+      .finally(() => setReady(true));
   }, [isKm]);
   const pick = (field, fallback) => saved?.[field] || fallback;
 
@@ -57,12 +59,12 @@ const Services = () => {
   }, []);
 
   const eyebrow = pick("eyebrow", isKm ? "សេវាកម្មរបស់យើង" : "Our Services");
-  const headline1 = pick("headingLine1", isKm ? "អ្វីគ្រប់យ៉ាងសម្រាប់ការលក់រាយ" : "Everything your retail");
-  const headline2 = pick("headingLine2", isKm ? "ការគាំទ្ររបស់អ្នក" : "business needs.");
+  const headline1 = pick("headingLine1", isKm ? "អ្វីៗដែលអាជីវកម្មរាយការណ៍របស់អ្នកត្រូវការ" : "Everything your retail");
+  const headline2 = pick("headingLine2", isKm ? "ការគាំទ្រត្រូវការ" : "business needs.");
   const bodyText = pick(
     "body",
     isKm
-      ? "ពីចំណុចលក់រហូតដល់របាយការណ៍ យើងផ្តល់ដំណោះស្រាយ RetailManager ពេញលេញសម្រាប់អាជីវកម្មរបស់អ្នក។"
+      ? "ពីចំណុចលក់រហូតដល់របាយការណ៍ យើងគ្របដណ្តប់ឧបករណ៍ RetailManager ពេញលេញដែលអាជីវកម្មរបស់អ្នកត្រូវការ។"
       : "From point of sale to reporting, we cover the full RetailManager toolkit your business relies on."
   );
 
@@ -73,23 +75,23 @@ const Services = () => {
       image: posImage,
       title: isKm ? "ចំណុចលក់ RetailManager" : "RetailManager POS",
       desc: isKm
-        ? "ដំណើរការការលក់ក្នុងរយៈពេលប៉ុន្មានវិនាទី រួមទាំង lay-by គណនី ការដកស្មៀន និងវិធីទូទាត់ច្រើនប្រភេទ ខណៈពេលដែល RetailManager តាមដានតម្លៃ ការបញ្ចុះតម្លៃ និងចលនាស្តុកដោយស្វ័យប្រវត្តិ។ របាយការណ៍ក្នុងប្រព័ន្ធបង្ហាញអ្វីដែលកំពុងលក់ដាច់ និងចំណេញ ដើម្បីជួយសម្រេចចិត្តដោយផ្អែកលើទិន្នន័យពិត។"
+        ? "ដំណើរការការលក់ក្នុងរយៈពេលប៉ុន្មានវិនាទី រួមទាំង lay-by គណនី ការស្នើសុំ និងវិញ្ញាបនបត្រអំណោយ ខណៈ RetailManager តាមដានតម្លៃ ការបញ្ចុះតម្លៃ និងចលនាស្តុកដោយស្ងាត់ៗ។ របាយការណ៍ក្នុងខ្លួនបង្ហាញពីអ្វីដែលលក់ ប្រាក់ចំណេញ និងកន្លែងដែលស្តុកត្រូវការយកចិត្តទុកដាក់។"
         : "Process sales in seconds, including lay-bys, account sales, quotes, and gift vouchers, while RetailManager quietly tracks every price, discount, and stock movement behind the scenes. Built-in reports show what's selling, your margins, and where stock needs attention, so decisions are based on real numbers, not guesswork.",
     },
     {
       key: "webstore",
       image: webstoreImage,
-      title: isKm ? "ការតភ្ជាប់ហាងអនឡាញ" : "Webstore Integration",
+      title: isKm ? "ការភ្ជាប់ហាងអនឡាញ" : "Webstore Integration",
       desc: isKm
-        ? "ភ្ជាប់ RetailManager ជាមួយ Shopify, WooCommerce, eBay ឬ BigCommerce តាមរយៈ AAAPOS Webstore Manager ហើយអនុញ្ញាតឱ្យស្តុក តម្លៃ និងការបញ្ជាទិញធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិរវាងហាងអនឡាញ និងហាងជាក់ស្តែង។ លែងចាំបាច់ធ្វើបច្ចុប្បន្នភាពផលិតផលដដែលពីរដងទៀតទេ។"
+        ? "ភ្ជាប់ RetailManager ជាមួយ Shopify, WooCommerce, eBay ឬ BigCommerce តាមរយៈ AAAPOS Webstore Manager ហើយអនុញ្ញាតឱ្យស្តុក តម្លៃ និងការទាញយកការបញ្ជាទិញធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិ។ លែងមានការធ្វើបច្ចុប្បន្នភាពផលិតផលតែមួយនៅពីរកន្លែងទៀតទេ។"
         : "Connect RetailManager to Shopify, WooCommerce, eBay, or BigCommerce through AAAPOS Webstore Manager, and let stock levels, pricing, and order downloads sync automatically between your online store and the shop floor. No more updating the same product in two places.",
     },
     {
       key: "multistore",
       image: multistoreImage,
-      title: isKm ? "ការគ្រប់គ្រងច្រើនហាង" : "Multi-Store Management",
+      title: isKm ? "ការគ្រប់គ្រងហាងច្រើន" : "Multi-Store Management",
       desc: isKm
-        ? "ដំណើរការការលក់ ស្តុក និងតម្លៃនៅគ្រប់ម៉ាស៊ីនលក់ និងគ្រប់ទីតាំងពីប្រព័ន្ធតែមួយ។ ការកំណត់សុវត្ថិភាពច្រើនកម្រិតរក្សាសិទ្ធិចូលប្រើឱ្យសមស្របតាមតួនាទីបុគ្គលិក ហើយម៉ាស៊ីនលក់បន្ថែមនីមួយៗត្រូវបានរួមបញ្ចូលក្នុងតម្លៃចុះឈ្មោះតែមួយ។"
+        ? "ដំណើរការការលក់ ស្តុក និងតម្លៃនៅគ្រប់គ្រឿងគិតប្រាក់ និងគ្រប់ទីតាំងពីប្រព័ន្ធតែមួយ។ សន្តិសុខពហុកម្រិតរក្សាការចូលប្រើរបស់បុគ្គលិកឱ្យសមស្របតាមតួនាទី ហើយគ្រឿងគិតប្រាក់បន្ថែមនីមួយៗត្រូវបានរាប់បញ្ចូលក្នុងការជាវតែមួយ។"
         : "Run sales, stock, and pricing across every register and every location from one system. Multi-level security keeps staff access appropriate to their role, and every additional register is included in the one subscription, with no per-terminal surprises as you grow.",
     },
     {
@@ -97,15 +99,15 @@ const Services = () => {
       image: emailImage,
       title: isKm ? "សេវាកម្ម Hosting" : "Web Hosting Service",
       desc: isKm
-        ? "រក្សាហាងអនឡាញរបស់អ្នកឱ្យលឿន សុវត្ថិភាព និងអាចចូលប្រើបានគ្រប់ពេល ដើម្បីឱ្យអតិថិជនអាចរកមើល និងទិញទំនិញនៅពេលណាក៏បាន ដោយមិនមានការរំខានចំពោះគេហទំព័រដែលភ្ជាប់ជាមួយស្តុក RetailManager របស់អ្នក។"
+        ? "រក្សាហាងអនឡាញរបស់អ្នកឱ្យលឿន និងមានសុវត្ថិភាព ដើម្បីឱ្យអតិថិជនអាចរុករក និងទិញបានគ្រប់ពេល ដោយគ្មានការរំខានដល់គេហទំព័រដែលភ្ជាប់ជាមួយស្តុក RetailManager របស់អ្នក។"
         : "Keep your webstore fast, secure, and always reachable, so customers can browse and buy any time without interruptions to the site that's connected to your RetailManager stock.",
     },
     {
       key: "support",
       image: supportImage,
-      title: isKm ? "ការគាំទ្រជាប់លាប់ និងឧបករណ៍អតិថិជន" : "Ongoing Support & Customer Tools",
+      title: isKm ? "ការគាំទ្របន្ត និងឧបករណ៍អតិថិជន" : "Ongoing Support & Customer Tools",
       desc: isKm
-        ? "ទាក់ទងសេវាកម្មគាំទ្រពិតប្រាកដ 7 ថ្ងៃក្នុងមួយសប្តាហ៍, ចន្ទ័ដល់សុក្រ 7:00-19:00 និងចុងសប្តាហ៍ 9:00-17:00, តាមទូរស័ព្ទ អ៊ីមែល ឬ TeamViewer ពីចម្ងាយ។ ប្រព័ន្ធ CRM ក្នុង RetailManager ក៏ជួយអ្នកកំណត់គោលដៅអតិថិជនត្រឹមត្រូវជាមួយការផ្សព្វផ្សាយ និងកាតសមាជិកភាព ដើម្បីឱ្យការគាំទ្រ និងកំណើនអាជីវកម្មដំណើរការជាមួយគ្នា។"
+        ? "ទាក់ទងសេវាកម្មគាំទ្រពិតប្រាកដ 7 ថ្ងៃក្នុងមួយសប្តាហ៍, ចន្ទដល់សុក្រ 7:00-19:00 និងចុងសប្តាហ៍ 9:00-17:00, តាមទូរស័ព្ទ អ៊ីមែល ឬ TeamViewer។ ប្រព័ន្ធ CRM ក្នុង RetailManager ក៏ជួយអ្នកកំណត់អតិថិជនត្រឹមត្រូវតាមរយៈការផ្សព្វផ្សាយ ការផ្តល់ជូនពិសេស និងបារកូដស្មោះត្រង់។"
         : "Reach real support 7 days a week, Monday to Friday 7am-7pm and weekends 9am-5pm, by phone, email, or remote TeamViewer session. RetailManager's built-in CRM also helps you target the right customers with promotions, special offers, and loyalty barcodes, so support and growth work together.",
     },
   ];
@@ -123,7 +125,7 @@ const Services = () => {
     {
       title: "RM Mobile",
       desc: isKm
-        ? "គ្រប់គ្រងស្តុក និងការលក់ពីទូរស័ព្ទ ជាដៃគូនឹង RetailManager។"
+        ? "គ្រប់គ្រងស្តុក និងការលក់ពេលធ្វើដំណើរ ជាមួយកម្មវិធីទូរស័ព្ទសម្រាប់ RetailManager។"
         : "Manage stock and sales on the go with the mobile companion for RetailManager.",
       href: "https://www.aaapos.com/rm-mobile/",
     },
@@ -137,7 +139,7 @@ const Services = () => {
     {
       title: "RM Multi-Store",
       desc: isKm
-        ? "គ្រប់គ្រងទីតាំងហាងច្រើនកន្លែងពីប្រព័ន្ធកណ្តាលតែមួយ។"
+        ? "គ្រប់គ្រងទីតាំងហាងច្រើនពីប្រព័ន្ធតែមួយដែលបានកណ្តាល។"
         : "Manage multiple store locations from a single, centralized system.",
       href: "https://www.aaapos.com/rm-multistore/",
     },
@@ -146,8 +148,10 @@ const Services = () => {
     ? saved.products.map((p) => ({ title: p.title, desc: p.description, href: p.href }))
     : defaultProducts;
 
-  const productsTitle = pick("productsTitle", isKm ? "ផលិតផលផ្សេងទៀតពី AAAPOS ដែលអ្នកអាចចាប់អារម្មណ៍" : "Other AAAPOS products you may like");
+  const productsTitle = pick("productsTitle", isKm ? "ផលិតផល AAAPOS ផ្សេងទៀតដែលអ្នកអាចចូលចិត្ត" : "Other AAAPOS products you may like");
   const productsButton = pick("productsButton", isKm ? "ស្វែងយល់បន្ថែម" : "Learn More");
+
+  const servicesImageSrc = ready ? pick("image", servicesImg) : null;
 
   return (
     <>
@@ -227,12 +231,14 @@ const Services = () => {
               </div>
 
               <div className="sv-slide-up flex-1 w-full mx-auto lg:mx-0" style={{ transitionDelay: "0.3s" }}>
-                <img
-                  src={pick("image", servicesImg)}
-                  alt=""
-                  draggable={false}
-                  className="w-full h-auto max-h-[320px] object-contain select-none mx-auto"
-                />
+                {servicesImageSrc && (
+                  <img
+                    src={servicesImageSrc}
+                    alt=""
+                    draggable={false}
+                    className="w-full h-auto max-h-[320px] object-contain select-none mx-auto"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -248,12 +254,14 @@ const Services = () => {
                 style={{ transitionDelay: `${0.1 + i * 0.08}s` }}
               >
                 <div className={`relative ${i % 2 === 1 ? "md:order-2" : ""}`}>
-                  <img
-                    src={s.image}
-                    alt={s.title}
-                    draggable={false}
-                    className="relative w-full h-auto max-h-[520px] object-contain select-none mx-auto"
-                  />
+                  {ready && s.image && (
+                    <img
+                      src={s.image}
+                      alt={s.title}
+                      draggable={false}
+                      className="relative w-full h-auto max-h-[520px] object-contain select-none mx-auto"
+                    />
+                  )}
                 </div>
                 <div className={i % 2 === 1 ? "md:order-1" : ""}>
                   <h3

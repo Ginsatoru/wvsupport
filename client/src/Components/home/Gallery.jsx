@@ -50,17 +50,21 @@ const Gallery = () => {
 
   // Saved content from Content › Home › Gallery (empty keeps the built-in wording/photos)
   const [saved, setSaved] = useState(null);
+  const [ready, setReady] = useState(false); // photos wait for this (no double download)
   useEffect(() => {
     getActiveGallery(isKm ? "km" : "en")
       .then((res) => setSaved(res.data))
-      .catch(() => setSaved(null));
+      .catch(() => setSaved(null))
+      .finally(() => setReady(true));
   }, [isKm]);
 
   const eyebrow   = saved?.eyebrow || (isKm ? "វិចិត្រសាលរបស់យើង" : "Our Gallery");
   const headLine1 = saved?.title || (isKm ? "ជឿជាក់ដោយអ្នកលក់រាយ" : "Retailers trust us worldwide.");
 
-  const firstRow  = saved?.topRow?.length ? saved.topRow.map(photoSrc) : [Image1, Image2, Image3, Image7, Image8];
-  const secondRow = saved?.bottomRow?.length ? saved.bottomRow.map(photoSrc) : [Image4, Image5, Image6, Image9, Image10];
+  // Until the CMS answers: 5 empty tiles per row (same layout, nothing downloaded)
+  const placeholders = Array(5).fill(null);
+  const firstRow  = !ready ? placeholders : saved?.topRow?.length ? saved.topRow.map(photoSrc) : [Image1, Image2, Image3, Image7, Image8];
+  const secondRow = !ready ? placeholders : saved?.bottomRow?.length ? saved.bottomRow.map(photoSrc) : [Image4, Image5, Image6, Image9, Image10];
 
   return (
     <>
@@ -227,11 +231,13 @@ const Gallery = () => {
                     height: "clamp(144px, 15vw, 240px)",
                     borderRadius: 16,
                     overflow: "hidden",
+                    background: "#f1f5f9",
                   }}
                 >
-                  <img
+                  {img && <img
                     src={img}
                     alt=""
+                    loading="lazy"
                     draggable={false}
                     style={{
                       width: "100%",
@@ -242,7 +248,7 @@ const Gallery = () => {
                     }}
                     onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
                     onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-                  />
+                  />}
                 </div>
               ))}
             </div>
@@ -270,11 +276,13 @@ const Gallery = () => {
                     height: "clamp(144px, 15vw, 240px)",
                     borderRadius: 16,
                     overflow: "hidden",
+                    background: "#f1f5f9",
                   }}
                 >
-                  <img
+                  {img && <img
                     src={img}
                     alt=""
+                    loading="lazy"
                     draggable={false}
                     style={{
                       width: "100%",
@@ -285,7 +293,7 @@ const Gallery = () => {
                     }}
                     onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
                     onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-                  />
+                  />}
                 </div>
               ))}
             </div>

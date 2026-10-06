@@ -36,10 +36,12 @@ const Work = () => {
 
   // Saved content from Content › Home › Work (empty fields keep the built-in wording/images)
   const [saved, setSaved] = useState(null);
+  const [ready, setReady] = useState(false); // images wait for this (no double download)
   useEffect(() => {
     getActiveWork(isKm ? "km" : "en")
       .then((res) => setSaved(res.data))
-      .catch(() => setSaved(null));
+      .catch(() => setSaved(null))
+      .finally(() => setReady(true));
   }, [isKm]);
   const pick = (field, fallback) => saved?.[field] || fallback;
 
@@ -394,17 +396,21 @@ const Work = () => {
                         transitionDelay: `${0.9 + i * 0.07}s`,
                       }}
                     >
-                      <img
-                        src={tool.src}
-                        alt={tool.alt}
-                        draggable={false}
-                        style={{
-                          height: 20,
-                          width: "auto",
-                          objectFit: "contain",
-                          userSelect: "none",
-                        }}
-                      />
+                      {ready ? (
+                        <img
+                          src={tool.src}
+                          alt={tool.alt}
+                          draggable={false}
+                          style={{
+                            height: 20,
+                            width: "auto",
+                            objectFit: "contain",
+                            userSelect: "none",
+                          }}
+                        />
+                      ) : (
+                        <span style={{ display: "inline-block", width: 20, height: 20 }} />
+                      )}
                       <span
                         style={{
                           fontSize: 12,
@@ -444,7 +450,7 @@ const Work = () => {
               />
 
               {/* Person */}
-              <img
+              {ready && <img
                 src={pick("image", techGuy)}
                 alt="Support specialist"
                 className="fs-person fs-person-img"
@@ -465,7 +471,7 @@ const Work = () => {
                   userSelect: "none",
                   pointerEvents: "none",
                 }}
-              />
+              />}
 
               {/* Badge — top left: 100% Remote */}
               <motion.div

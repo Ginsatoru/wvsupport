@@ -16,13 +16,13 @@ const FALLBACK_LOGOS = [
 
 const Partners = () => {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.2 });
-  const [logos, setLogos] = useState(FALLBACK_LOGOS);
+  const [logos, setLogos] = useState([]); // filled once the CMS answers (no double download)
 
-  // Logos managed in the admin (Content › Home › Partner Logos)
+  // Logos managed in the admin (Content › Home › Partner Logos); built-in list only if none are saved
   useEffect(() => {
     getPartners()
-      .then((res) => res.data?.length && setLogos(res.data))
-      .catch(() => {});
+      .then((res) => setLogos(res.data?.length ? res.data : FALLBACK_LOGOS))
+      .catch(() => setLogos(FALLBACK_LOGOS));
   }, []);
 
   return (
@@ -64,7 +64,7 @@ const Partners = () => {
           {/* Right fade */}
           <div className="absolute right-0 top-0 bottom-0 w-12 md:w-28 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
 
-          <div className="overflow-hidden">
+          <div className="overflow-hidden min-h-[4rem] sm:min-h-[5rem] md:min-h-[7rem]">
             {/* List shown twice so the scroll loops seamlessly */}
             <div className="partners-track">
               {[...logos, ...logos].map((logo, index) => (

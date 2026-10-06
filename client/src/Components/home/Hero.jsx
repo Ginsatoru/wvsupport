@@ -58,6 +58,7 @@ const HeroSection = () => {
   const [heroData, setHeroData] = useState(DEFAULT_CONTENT.en);
   const [loading, setLoading] = useState(false);
   const [entered, setEntered] = useState(false);
+  const [contentReady, setContentReady] = useState(false); // images wait for this (no double download)
 
   /* ── Fetch hero content ── */
   useEffect(() => {
@@ -76,6 +77,7 @@ const HeroSection = () => {
         setHeroData(DEFAULT_CONTENT[currentLang]);
       } finally {
         setLoading(false);
+        setContentReady(true);
       }
     };
     fetchHeroContent();
@@ -199,7 +201,7 @@ const HeroSection = () => {
             background: "radial-gradient(ellipse 55% 60% at 50% 60%, #c2e6f5 0%, #d9f0f8 30%, #eef8fd 55%, rgba(255,255,255,0) 80%)",
           }}
         >
-          {heroData.personImage ? (
+          {!contentReady ? null : heroData.personImage ? (
             <img
               src={heroData.personImage}
               alt=""
@@ -267,7 +269,7 @@ const HeroSection = () => {
           }}
         />
 
-        {heroData.backgroundImage && (
+        {contentReady && heroData.backgroundImage && (
           <div
             className="absolute inset-0 w-full h-full z-1"
           >

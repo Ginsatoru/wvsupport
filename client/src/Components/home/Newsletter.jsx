@@ -98,10 +98,12 @@ const NewsletterSection = () => {
 
   // Saved content (empty fields keep the built-in wording/mockup)
   const [saved, setSaved] = useState(null);
+  const [ready, setReady] = useState(false); // mockup waits for this (no double download)
   useEffect(() => {
     getActiveNewsletterContent(lang)
       .then((res) => setSaved(res.data))
-      .catch(() => setSaved(null));
+      .catch(() => setSaved(null))
+      .finally(() => setReady(true));
   }, [lang]);
   const ct = (key) => saved?.[CMS_FIELD[key]] || t(key, lang);
 
@@ -472,7 +474,7 @@ const NewsletterSection = () => {
                 justifyContent: "center",
               }}
             >
-              <motion.img
+              {ready && <motion.img
                 src={saved?.image || mockup}
                 alt="App mockup"
                 draggable={false}
@@ -491,7 +493,7 @@ const NewsletterSection = () => {
                   filter: "drop-shadow(0 -6px 28px rgba(0,0,0,0.45))",
                   userSelect: "none",
                 }}
-              />
+              />}
             </div>
           </div>
         </div>
@@ -567,7 +569,7 @@ const NewsletterSection = () => {
             >
               <ReCAPTCHA
                 ref={recaptchaRef}
-                sitekey="6LdT4g0rAAAAAH7WF1kDQuZqqEg6zpqJjv73jVOt"
+                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                 onChange={handleRecaptchaChange}
                 onExpired={handleRecaptchaExpired}
                 onError={handleRecaptchaError}
