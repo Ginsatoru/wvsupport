@@ -25,8 +25,10 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const LoginForm = lazy(() => import("./Components/LoginForm"));
 const AdminPanel = lazy(() => import("./admin/Main/AdminPanel"));
 
-// Chat widget (and its socket.io connection) loads after the page has finished loading
+// Chat widget (and its socket.io connection) loads on the visitor's first interaction
 const ChatBox = lazy(() => import("./Components/shared/ChatBox"));
+const CHAT_EVENTS = ["scroll", "wheel", "pointerdown", "touchstart", "keydown"];
+const CHAT_FALLBACK_MS = 15000;
 
 // Shown for a moment while a page's code loads (keeps the footer from jumping up)
 const PageFallback = () => <div style={{ minHeight: "60vh" }} />;
@@ -55,17 +57,19 @@ function App() {
     window.scrollTo(0, 0);
   }, [location]);
 
-  // Start loading the chat widget 3s after the page has finished loading
+  // Load the chat widget on the first scroll / tap / click / key press (or after 15s),
+  // so it never competes with the page's first load
   useEffect(() => {
-    let timer;
-    const start = () => {
-      timer = setTimeout(() => setChatReady(true), 3000);
+    const load = () => {
+      CHAT_EVENTS.forEach((type) => window.removeEventListener(type, load));
+      clearTimeout(fallback);
+      setChatReady(true);
     };
-    if (document.readyState === "complete") start();
-    else window.addEventListener("load", start, { once: true });
+    CHAT_EVENTS.forEach((type) => window.addEventListener(type, load, { once: true, passive: true }));
+    const fallback = setTimeout(load, CHAT_FALLBACK_MS);
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener("load", start);
+      clearTimeout(fallback);
+      CHAT_EVENTS.forEach((type) => window.removeEventListener(type, load));
     };
   }, []);
 
