@@ -166,19 +166,19 @@ const Contact = () => {
     {
       icon: <HiPhone className="w-5 h-5" />,
       label: text.contact,
-      value: settings?.phoneNumber || "(405) 555-0128",
-      href: `tel:${(settings?.phoneNumber || "").replace(/[^0-9+]/g, "")}`,
+      value: settings?.phoneNumber || "+855 974 839 135",
+      href: `tel:${(settings?.phoneNumber || "+855974839135").replace(/[^0-9+]/g, "")}`,
     },
     {
       icon: <HiEnvelope className="w-5 h-5" />,
       label: text.email,
-      value: settings?.email || "support@thetork.com",
-      href: `mailto:${settings?.email || "support@thetork.com"}`,
+      value: settings?.email || "wvservicescambodia@gmail.com",
+      href: `mailto:${settings?.email || "wvservicescambodia@gmail.com"}`,
     },
     {
       icon: <HiMapPin className="w-5 h-5" />,
       label: text.location,
-      value: settings?.address || "4517 Washington Ave. Manchester, Kentucky 39495",
+      value: settings?.address || "Phum Thmey, Sangkat Svay Dankum, Siem Reap, Cambodia",
       href: settings?.addressUrl || null,
     },
   ];
@@ -276,9 +276,9 @@ const Contact = () => {
 
               {/* ── Left: Contact Form ── */}
               <div className="w-full ct-form-pop" style={{ transitionDelay: "0.2s" }}>
-                <h2 className="text-3xl font-bold text-black mb-2">
+                <h1 className="text-3xl font-bold text-black mb-2">
                   {text.formTitle}
-                </h2>
+                </h1>
                 <p className="text-gray-500 text-sm mb-8">
                   {text.formSubtitle}
                 </p>
@@ -486,8 +486,8 @@ const Contact = () => {
                 style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.1)", transitionDelay: "0.6s" }}
               >
                 <iframe
-                  title="Map"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d204652.6172355523!2d-119.894334394015!3d36.78553471016834!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80945de154971c33%3A0x6a69542018898952!2sFresno%2C%20CA!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus"
+                  title="WV Support Services Cambodia location map"
+                  src="https://www.google.com/maps?q=Svay+Dankum,+Siem+Reap,+Cambodia&output=embed"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}

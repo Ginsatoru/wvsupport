@@ -227,7 +227,7 @@ const AboutUs = () => {
                   {aboutImageSrc && (
                     <img
                       src={aboutImageSrc}
-                      alt=""
+                      alt="WV Support team providing remote RetailManager support"
                       draggable={false}
                       className="w-full h-auto max-h-[360px] object-contain select-none mx-auto"
                     />

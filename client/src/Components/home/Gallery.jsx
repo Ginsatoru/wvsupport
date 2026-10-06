@@ -236,7 +236,7 @@ const Gallery = () => {
                 >
                   {img && <img
                     src={img}
-                    alt=""
+                    alt="WV Support team and retail clients"
                     loading="lazy"
                     draggable={false}
                     style={{
@@ -281,7 +281,7 @@ const Gallery = () => {
                 >
                   {img && <img
                     src={img}
-                    alt=""
+                    alt="WV Support team and retail clients"
                     loading="lazy"
                     draggable={false}
                     style={{

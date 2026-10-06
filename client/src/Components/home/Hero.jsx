@@ -142,7 +142,7 @@ const HeroSection = () => {
       <div className="flex flex-col justify-center w-full lg:w-1/2 lg:min-h-screen lg:pr-10 pt-16 pb-10 sm:pt-20 sm:pb-14 lg:py-0">
 
         {/* Title */}
-        <h2
+        <h1
           className="font-extrabold leading-[1.1] tracking-tight text-gray-900 mb-4 lg:mb-5"
           style={{ fontSize: "clamp(28px, 4vw, 56px)" }}
         >
@@ -151,7 +151,7 @@ const HeroSection = () => {
               <SliceText text={line} inView={entered} baseDelay={0.1 + li * 0.18} />
             </div>
           ))}
-        </h2>
+        </h1>
 
         {/* Subtitle */}
         <p
@@ -204,7 +204,7 @@ const HeroSection = () => {
           {!contentReady ? null : heroData.personImage ? (
             <img
               src={heroData.personImage}
-              alt=""
+              alt="WV Support technician"
               draggable={false}
               fetchpriority="high"
               className="absolute bottom-0 left-1/2 -translate-x-1/2 h-full max-w-none w-auto object-contain object-bottom select-none pointer-events-none"
@@ -295,7 +295,7 @@ const HeroSection = () => {
         {heroData.personImage && (
           <motion.img
             src={heroData.personImage}
-            alt=""
+            alt="WV Support technician"
             draggable={false}
             className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10 h-[92vh] max-h-[700px] w-auto object-contain object-bottom select-none pointer-events-none"
             initial={{ opacity: 0, scale: 1.07, y: 24 }}

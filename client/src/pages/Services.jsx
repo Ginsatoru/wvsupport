@@ -234,7 +234,7 @@ const Services = () => {
                 {servicesImageSrc && (
                   <img
                     src={servicesImageSrc}
-                    alt=""
+                    alt="RetailManager point of sale and retail software services"
                     draggable={false}
                     className="w-full h-auto max-h-[320px] object-contain select-none mx-auto"
                   />
