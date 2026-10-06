@@ -3,6 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const API = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
+// The popup opens on the visitor's first scroll / tap / click / key press (or after 15s).
+// Those are the same actions that end Google's LCP measurement, so the poster never counts
+// as the page's main content, and real visitors still see it as soon as they start browsing.
+const OPEN_EVENTS = ["scroll", "wheel", "pointerdown", "touchstart", "keydown"];
+const FALLBACK_MS = 15000;
+
 const NewsModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [popup, setPopup] = useState(null);
@@ -10,6 +16,18 @@ const NewsModal = () => {
 
   useEffect(() => {
     let timer;
+    let fallback;
+
+    const open = () => {
+      OPEN_EVENTS.forEach((type) => window.removeEventListener(type, open));
+      clearTimeout(fallback);
+      setIsOpen(true);
+    };
+
+    const openOnFirstInteraction = () => {
+      OPEN_EVENTS.forEach((type) => window.addEventListener(type, open, { once: true, passive: true }));
+      fallback = setTimeout(open, FALLBACK_MS);
+    };
 
     const fetchPopup = async () => {
       try {
@@ -24,7 +42,7 @@ const NewsModal = () => {
               preload.src = d.data.image;
             }
             setPopup(d.data);
-            setTimeout(() => setIsOpen(true), 1200);
+            openOnFirstInteraction();
           }
         }
       } catch (e) {
@@ -41,7 +59,9 @@ const NewsModal = () => {
 
     return () => {
       clearTimeout(timer);
+      clearTimeout(fallback);
       window.removeEventListener("load", start);
+      OPEN_EVENTS.forEach((type) => window.removeEventListener(type, open));
     };
   }, []);
 
