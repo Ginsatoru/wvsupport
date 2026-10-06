@@ -163,11 +163,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
-    <!-- Fonts: all in one request, only the weights the site uses, text shows immediately (swap) -->
+    <!-- Fonts: all in one request, only the weights the site uses, text shows immediately (swap).
+         Non-blocking: media="print" + onload swap so the stylesheet no longer blocks first paint. -->
     <link
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Battambang:wght@400;700&family=Dangrek&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Battambang:wght@400;700&family=Dangrek&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
 
     <!-- reCAPTCHA: loaded by the form itself only when it opens (not on every page) -->
 

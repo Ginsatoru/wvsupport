@@ -12,7 +12,6 @@ import Nav from "./Components/shared/Navbar";
 import Footer from "./Components/shared/Footer";
 import Home from "./pages/Home";
 import ProtectedRoute from "./Components/ProtectedRoute";
-import ChatBox from "./Components/shared/ChatBox";
 
 // Loaded only when opened, so visitors don't download them up front (the admin panel especially)
 const Aboutus = lazy(() => import("./pages/Aboutus"));
@@ -25,12 +24,16 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const LoginForm = lazy(() => import("./Components/LoginForm"));
 const AdminPanel = lazy(() => import("./admin/Main/AdminPanel"));
 
+// Chat widget (and its socket.io connection) loads after the page has finished loading
+const ChatBox = lazy(() => import("./Components/shared/ChatBox"));
+
 // Shown for a moment while a page's code loads (keeps the footer from jumping up)
 const PageFallback = () => <div style={{ minHeight: "60vh" }} />;
 
 function App() {
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [chatReady, setChatReady] = useState(false);
 
   // Define paths where Nav, Footer, and ChatBox should be hidden
   const hideLayoutPaths = ["/admin", "/admin/login", "/admin-panel"];
@@ -47,6 +50,20 @@ function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location]);
+
+  // Start loading the chat widget 3s after the page has finished loading
+  useEffect(() => {
+    let timer;
+    const start = () => {
+      timer = setTimeout(() => setChatReady(true), 3000);
+    };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("load", start);
+    };
+  }, []);
 
   return (
     <>
@@ -92,8 +109,12 @@ function App() {
           </Suspense>
         </div>
 
-        {/* ChatBox appears on all pages except admin routes */}
-        {!hideLayout && <ChatBox />}
+        {/* ChatBox appears on all pages except admin routes (after the page has loaded) */}
+        {!hideLayout && chatReady && (
+          <Suspense fallback={null}>
+            <ChatBox />
+          </Suspense>
+        )}
 
         {/* Footer appears on all pages except admin routes */}
         {!hideLayout && <Footer />}

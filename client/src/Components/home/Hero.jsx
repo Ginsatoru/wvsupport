@@ -60,6 +60,17 @@ const HeroSection = () => {
   const [entered, setEntered] = useState(false);
   const [contentReady, setContentReady] = useState(false); // images wait for this (no double download)
 
+  // Desktop-only images: images inside a display:none panel still download, so skip them on phones/tablets
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = (e) => setIsDesktop(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
   /* ── Fetch hero content ── */
   useEffect(() => {
     const fetchHeroContent = async () => {
@@ -269,7 +280,7 @@ const HeroSection = () => {
           }}
         />
 
-        {contentReady && heroData.backgroundImage && (
+        {isDesktop && contentReady && heroData.backgroundImage && (
           <div
             className="absolute inset-0 w-full h-full z-1"
           >
@@ -289,7 +300,7 @@ const HeroSection = () => {
           </div>
         )}
 
-        {heroData.personImage && (
+        {isDesktop && heroData.personImage && (
           <motion.img
             src={heroData.personImage}
             alt=""
